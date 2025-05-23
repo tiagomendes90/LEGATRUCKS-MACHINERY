@@ -1,10 +1,7 @@
-
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
-
 const Footer = () => {
-  return (
-    <footer className="bg-slate-900 text-white py-12">
+  return <footer className="text-white py-12 bg-orange-500">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -15,7 +12,7 @@ const Footer = () => {
               </div>
               <span className="text-2xl font-bold">TruckHub</span>
             </div>
-            <p className="text-gray-300 mb-4">
+            <p className="mb-4 text-slate-50">
               Your trusted partner for premium commercial trucks. Quality, reliability, and service excellence since 2003.
             </p>
           </div>
@@ -48,26 +45,24 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-gray-300">
                 <Phone className="h-4 w-4" />
-                <span>(555) 123-4567</span>
+                <span className="font-normal text-slate-50">(555) 123-4567</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Mail className="h-4 w-4" />
-                <span>info@truckhub.com</span>
+                <span className="text-slate-50">info@truckhub.com</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <MapPin className="h-4 w-4" />
-                <span>123 Industrial Ave, City, ST 12345</span>
+                <span className="text-slate-50">123 Industrial Ave, City, ST 12345</span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 TruckHub. All rights reserved.</p>
+          <p className="font-normal text-slate-50">&copy; 2024 TruckHub. All rights reserved.</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;

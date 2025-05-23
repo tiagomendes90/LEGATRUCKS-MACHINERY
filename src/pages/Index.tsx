@@ -35,17 +35,13 @@ const Index = () => {
       <section className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 text-white py-24">
         <div className="absolute inset-0 bg-black/20 mx-0 my-0 py-0 px-0"></div>
         <div className="relative container mx-auto px-6 text-center">
-          <h1 className="text-5xl mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-extrabold md:text-7xl">Trucks &amp; Machinery</h1>
-          <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto md:text-2xl">
-            Discover our exceptional range of commercial trucks built for power, reliability, and performance
-          </p>
+          <h1 className="text-5xl mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-extrabold md:text-5xl">TRUCKS & MACHINERY</h1>
+          <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto md:text-xl">100+ NEW TRUCKS AND MACHINES IN STOCK</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 text-lg">
               Browse Catalog
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-900 px-8 py-6 text-lg">
-              Learn More
-            </Button>
+            
           </div>
         </div>
       </section>
@@ -115,26 +111,7 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-900 to-slate-800 text-white">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Find Your Perfect Truck?</h2>
-          <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
-            Contact our expert team today for personalized recommendations and competitive pricing
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/contact">
-              <Button size="lg" className="bg-orange-500 hover:bg-orange-600 px-8 py-6 text-lg">
-                Get Quote
-              </Button>
-            </Link>
-            <Link to="/about">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-900 px-8 py-6 text-lg">
-                Learn About Us
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      
 
       <Footer />
     </div>;
