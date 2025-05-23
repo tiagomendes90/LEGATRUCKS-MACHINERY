@@ -33,7 +33,7 @@ const Index = () => {
       
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 text-white py-24">
-        <div className="absolute inset-0 bg-black/20 mx-0 my-0 py-0 px-0"></div>
+        <div className="absolute inset-0 bg-black/20 mx-0 my-0 px-0 py-0 rounded-none"></div>
         <div className="relative container mx-auto px-6 text-center">
           <h1 className="text-5xl mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-extrabold md:text-5xl">TRUCKS & MACHINERY</h1>
           <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto md:text-xl">100+ NEW TRUCKS AND MACHINES IN STOCK</p>

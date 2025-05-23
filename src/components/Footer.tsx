@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
 const Footer = () => {
-  return <footer className="text-white py-12 bg-orange-500">
+  return <footer className="text-white py-12 bg-blue-500">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -10,11 +10,9 @@ const Footer = () => {
               <div className="bg-blue-600 p-2 rounded-lg">
                 <Truck className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold">TruckHub</span>
+              <span className="text-2xl font-bold">LEGA</span>
             </div>
-            <p className="mb-4 text-slate-50">
-              Your trusted partner for premium commercial trucks. Quality, reliability, and service excellence since 2003.
-            </p>
+            <p className="mb-4 text-slate-50">Your trusted partner for premium commercial trucks. Quality, reliability, and service excellence.</p>
           </div>
 
           {/* Quick Links */}
@@ -49,7 +47,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Mail className="h-4 w-4" />
-                <span className="text-slate-50">info@truckhub.com</span>
+                <span className="text-slate-50">info@lega.pt</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <MapPin className="h-4 w-4" />
@@ -60,7 +58,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p className="font-normal text-slate-50">&copy; 2024 TruckHub. All rights reserved.</p>
+          <p className="font-normal text-slate-50">© 2025 Lega. All rights reserved.</p>
         </div>
       </div>
     </footer>;
