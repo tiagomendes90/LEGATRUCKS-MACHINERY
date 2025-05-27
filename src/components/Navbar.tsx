@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Menu, X, Truck } from "lucide-react";
 
 const Navbar = () => {
@@ -65,8 +64,8 @@ const Navbar = () => {
             }`}>TruckHub</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
+          {/* Desktop Navigation - Right Justified */}
+          <div className="hidden lg:flex items-center space-x-1 ml-auto">
             {navItems.map(item => (
               <Link 
                 key={item.path} 
@@ -86,25 +85,11 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Admin Button & Mobile Menu Toggle */}
-          <div className="flex items-center space-x-4">
-            <Link to="/admin" className="hidden md:block">
-              <Button 
-                variant="outline" 
-                className={`transition-all duration-200 ${
-                  isScrolled
-                    ? "border-white text-white hover:bg-white hover:text-orange-500"
-                    : "border-white text-white hover:bg-white hover:text-blue-600"
-                }`}
-              >
-                Admin
-              </Button>
-            </Link>
-            
-            {/* Mobile menu button */}
+          {/* Mobile Menu Toggle */}
+          <div className="lg:hidden">
             <button 
               onClick={() => setIsOpen(!isOpen)} 
-              className={`lg:hidden p-2 rounded-lg transition-colors ${
+              className={`p-2 rounded-lg transition-colors ${
                 isScrolled 
                   ? 'hover:bg-orange-600 text-white' 
                   : 'hover:bg-white/10 text-white'
@@ -143,17 +128,6 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
-              <Link 
-                to="/admin" 
-                onClick={() => setIsOpen(false)} 
-                className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  isScrolled
-                    ? "text-white hover:bg-orange-600 hover:text-white"
-                    : "text-white hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                Admin
-              </Link>
             </div>
           </div>
         )}
