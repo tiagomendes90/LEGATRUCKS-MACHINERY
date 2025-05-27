@@ -28,17 +28,9 @@ const Footer = () => {
                 alt="LEGA Logo" 
                 className="h-10 w-auto object-contain"
                 onError={(e) => {
-                  console.log('Footer logo failed to load:', e);
-                  // Fallback to text if image fails
+                  console.log('Footer logo failed to load, trying alternative approach');
                   const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent && !parent.querySelector('.logo-fallback')) {
-                    const fallback = document.createElement('div');
-                    fallback.className = 'logo-fallback text-white font-bold text-xl';
-                    fallback.textContent = 'LEGA';
-                    parent.appendChild(fallback);
-                  }
+                  target.src = "/lovable-uploads/d6edba1e-f8cd-45b8-ae55-992d54ea7de1.png";
                 }}
                 onLoad={() => {
                   console.log('Footer logo loaded successfully');

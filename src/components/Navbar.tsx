@@ -50,17 +50,9 @@ const Navbar = () => {
               alt="LEGA Logo" 
               className="h-12 w-auto object-contain"
               onError={(e) => {
-                console.log('Navbar logo failed to load:', e);
-                // Fallback to text if image fails
+                console.log('Navbar logo failed to load, trying alternative path');
                 const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const parent = target.parentElement;
-                if (parent && !parent.querySelector('.logo-fallback')) {
-                  const fallback = document.createElement('div');
-                  fallback.className = 'logo-fallback text-white font-bold text-xl';
-                  fallback.textContent = 'LEGA';
-                  parent.appendChild(fallback);
-                }
+                target.src = "/lovable-uploads/8eb9fcab-dc27-4552-85d8-caec92deceec.png";
               }}
               onLoad={() => {
                 console.log('Navbar logo loaded successfully');
