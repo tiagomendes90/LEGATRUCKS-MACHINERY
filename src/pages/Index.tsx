@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Truck, Users, Shield, Award } from "lucide-react";
 import { useTrucks } from "@/hooks/useTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Autoplay from "embla-carousel-autoplay";
 
 const Index = () => {
   const { data: trucks } = useTrucks();
@@ -137,13 +138,18 @@ const Index = () => {
                 align: "start",
                 loop: true,
               }}
+              plugins={[
+                Autoplay({
+                  delay: 2000,
+                }),
+              ]}
               className="w-full max-w-5xl"
             >
               <CarouselContent className="-ml-2 md:-ml-4">
                 {uniqueBrands.length > 0 ? uniqueBrands.map((brand, index) => (
                   <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                     <div className="p-1">
-                      <Card className="border-2 hover:border-orange-500 transition-colors duration-300">
+                      <Card className="border-0 shadow-none">
                         <CardContent className="flex aspect-square items-center justify-center p-6">
                           <div className="text-center">
                             <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -162,7 +168,7 @@ const Index = () => {
                   ['Volvo', 'Scania', 'Mercedes', 'MAN', 'Iveco', 'DAF'].map((brand, index) => (
                     <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                       <div className="p-1">
-                        <Card className="border-2 hover:border-orange-500 transition-colors duration-300">
+                        <Card className="border-0 shadow-none">
                           <CardContent className="flex aspect-square items-center justify-center p-6">
                             <div className="text-center">
                               <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -179,8 +185,6 @@ const Index = () => {
                   ))
                 )}
               </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
             </Carousel>
           </div>
         </div>
