@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrucks, useAddTruck, useDeleteTruck, Truck } from "@/hooks/useTrucks";
 import { useUpdateTruck } from "@/hooks/useUpdateTruck";
-import Navbar from "@/components/Navbar";
 import EditTruckModal from "@/components/EditTruckModal";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import RealOrderManagement from "@/components/RealOrderManagement";
@@ -136,7 +135,6 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8 flex justify-between items-center">
