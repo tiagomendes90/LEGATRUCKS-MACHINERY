@@ -14,17 +14,17 @@ const Footer = () => {
               </div>
               <span className="text-2xl font-bold">LEGA</span>
             </div>
-            <p className="mb-4 text-slate-50">Your trusted partner for premium commercial trucks. Quality, reliability, and service excellence.</p>
+            <p className="mb-4 text-white">Your trusted partner for premium commercial trucks. Quality, reliability, and service excellence.</p>
           </div>
 
           {/* Quick Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><Link to="/trucks/heavy-duty" className="text-gray-300 hover:text-white transition-colors">Heavy Duty Trucks</Link></li>
-              <li><Link to="/trucks/medium-duty" className="text-gray-300 hover:text-white transition-colors">Medium Duty Trucks</Link></li>
-              <li><Link to="/trucks/light-duty" className="text-gray-300 hover:text-white transition-colors">Light Duty Trucks</Link></li>
-              <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/trucks/heavy-duty" className="text-white hover:text-gray-200 transition-colors">Heavy Duty Trucks</Link></li>
+              <li><Link to="/trucks/medium-duty" className="text-white hover:text-gray-200 transition-colors">Medium Duty Trucks</Link></li>
+              <li><Link to="/trucks/light-duty" className="text-white hover:text-gray-200 transition-colors">Light Duty Trucks</Link></li>
+              <li><Link to="/about" className="text-white hover:text-gray-200 transition-colors">About Us</Link></li>
             </ul>
           </div>
 
@@ -32,17 +32,17 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-gray-300">
+              <div className="flex items-center space-x-2 text-white">
                 <Phone className="h-4 w-4" />
-                <span className="font-normal text-slate-50">(555) 123-4567</span>
+                <span className="font-normal text-white">(555) 123-4567</span>
               </div>
-              <div className="flex items-center space-x-2 text-gray-300">
+              <div className="flex items-center space-x-2 text-white">
                 <Mail className="h-4 w-4" />
-                <span className="text-slate-50">info@lega.pt</span>
+                <span className="text-white">info@lega.pt</span>
               </div>
-              <div className="flex items-center space-x-2 text-gray-300">
+              <div className="flex items-center space-x-2 text-white">
                 <MapPin className="h-4 w-4" />
-                <span className="text-slate-50">123 Industrial Ave, City, ST 12345</span>
+                <span className="text-white">123 Industrial Ave, City, ST 12345</span>
               </div>
             </div>
           </div>
