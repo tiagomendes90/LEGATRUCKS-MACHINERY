@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Truck, Users, Shield, Award } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
 const Index = () => {
   const featuredTrucks = [{
     id: 1,
@@ -28,20 +29,34 @@ const Index = () => {
     image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
     features: ["10-ton capacity", "Urban delivery", "Compact design"]
   }];
-  return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 text-white py-24">
-        <div className="absolute inset-0 bg-black/20 mx-0 my-0 px-0 py-0 rounded-none"></div>
-        <div className="relative container mx-auto px-6 text-center">
-          <h1 className="text-5xl mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-extrabold md:text-5xl">TRUCKS & MACHINERY</h1>
-          <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto md:text-xl">100+ NEW TRUCKS AND MACHINES IN STOCK</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 text-lg">
-              Browse Catalog
-            </Button>
-            
+      {/* Hero Section with Full Screen Image */}
+      <section className="relative h-screen w-full overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('/lovable-uploads/5e2912d0-c74c-4979-91b4-a8a43d2ac24b.png')`
+          }}
+        >
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <div className="container mx-auto px-6 text-center text-white">
+            <h1 className="text-5xl mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-extrabold md:text-6xl lg:text-7xl">
+              TRUCKS & MACHINERY
+            </h1>
+            <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto md:text-2xl">
+              100+ NEW TRUCKS AND MACHINES IN STOCK
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 text-lg">
+                Browse Catalog
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -87,7 +102,8 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Trucks</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {featuredTrucks.map(truck => <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+            {featuredTrucks.map(truck => (
+              <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
                 <div className="relative overflow-hidden">
                   <img src={truck.image} alt={truck.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
                   <Badge className="absolute top-4 left-4 bg-blue-600">{truck.type}</Badge>
@@ -98,22 +114,24 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 mb-4">
-                    {truck.features.map((feature, index) => <li key={index} className="text-sm text-gray-600 flex items-center">
+                    {truck.features.map((feature, index) => (
+                      <li key={index} className="text-sm text-gray-600 flex items-center">
                         <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                         {feature}
-                      </li>)}
+                      </li>
+                    ))}
                   </ul>
                   <Button className="w-full bg-slate-800 hover:bg-slate-700">View Details</Button>
                 </CardContent>
-              </Card>)}
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      
-
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
