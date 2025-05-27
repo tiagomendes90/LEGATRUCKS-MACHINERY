@@ -127,9 +127,9 @@ const Index = () => {
       </section>
 
       {/* Truck Brands Carousel */}
-      <section className="bg-white py-[90px]">
-        <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Brands</h2>
+      <section className="bg-white px-0 py-[30px]">
+        <div className="container mx-auto py-0 my-0 px-[24px]">
+          
           <div className="flex justify-center">
             <Carousel opts={{
             align: "start",
@@ -158,9 +158,9 @@ const Index = () => {
               ['Volvo', 'Scania', 'Mercedes', 'MAN', 'Iveco', 'DAF'].map((brand, index) => <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                       <div className="p-1">
                         <Card className="border-0 shadow-none">
-                          <CardContent className="flex aspect-square items-center justify-center p-6">
+                          <CardContent className="flex aspect-square items-center justify-center p-6 py-0 px-0">
                             <div className="text-center">
-                              <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                              <div className="bg-gradient-to-br from-ble-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                                 <Truck className="h-8 w-8 text-white" />
                               </div>
                               <h3 className="text-xl font-bold text-slate-800 uppercase tracking-wider">
