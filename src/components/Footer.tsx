@@ -2,12 +2,24 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Newsletter subscription for:", email);
+    // Add newsletter subscription logic here
+    setEmail("");
+  };
+
   return <footer className="text-white my-0 mx-0 px-[20px] py-[50px] bg-orange-500">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-8">
-          {/* Company Info */}
+          {/* Company Info with Newsletter */}
           <div className="py-0">
             <div className="flex items-center space-x-2 mb-4">
               <div className="p-2 rounded-lg py-0 bg-orange-500">
@@ -23,6 +35,29 @@ const Footer = () => {
                   }}
                 />
               </div>
+            </div>
+            
+            {/* Newsletter Subscription */}
+            <div className="mb-6">
+              <p className="text-white text-sm mb-3">
+                Subscribe to get latest news updates and informations
+              </p>
+              <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white"
+                  required
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full bg-white text-orange-500 hover:bg-white/90 font-medium"
+                >
+                  Subscribe
+                </Button>
+              </form>
             </div>
             
             {/* Social Media Icons */}
