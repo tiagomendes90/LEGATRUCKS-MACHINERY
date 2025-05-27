@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,8 +20,15 @@ const Admin = () => {
 
   const [newTruck, setNewTruck] = useState({
     name: "",
+    brand: "",
     category: "",
     price: "",
+    year: "",
+    mileage: "",
+    condition: "",
+    engineType: "",
+    transmission: "",
+    fuelType: "",
     description: "",
     specs: ""
   });
@@ -39,7 +45,20 @@ const Admin = () => {
       status: "available"
     };
     setTrucks([...trucks, truck]);
-    setNewTruck({ name: "", category: "", price: "", description: "", specs: "" });
+    setNewTruck({ 
+      name: "", 
+      brand: "",
+      category: "", 
+      price: "", 
+      year: "",
+      mileage: "",
+      condition: "",
+      engineType: "",
+      transmission: "",
+      fuelType: "",
+      description: "", 
+      specs: "" 
+    });
     toast({
       title: "Truck Added",
       description: "New truck has been added to the inventory successfully.",
@@ -142,13 +161,14 @@ const Admin = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Add New Truck</CardTitle>
-                <CardDescription>Add a new truck to your inventory</CardDescription>
+                <CardDescription>Add a new truck to your inventory with detailed specifications</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAddTruck} className="space-y-6">
+                  {/* Basic Information */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="truck-name">Truck Name</Label>
+                      <Label htmlFor="truck-name">Truck Name/Model</Label>
                       <Input
                         id="truck-name"
                         value={newTruck.name}
@@ -157,6 +177,28 @@ const Admin = () => {
                         required
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="brand">Brand</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, brand: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select brand" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="volvo">Volvo</SelectItem>
+                          <SelectItem value="scania">Scania</SelectItem>
+                          <SelectItem value="mercedes">Mercedes-Benz</SelectItem>
+                          <SelectItem value="man">MAN</SelectItem>
+                          <SelectItem value="daf">DAF</SelectItem>
+                          <SelectItem value="iveco">Iveco</SelectItem>
+                          <SelectItem value="kenworth">Kenworth</SelectItem>
+                          <SelectItem value="peterbilt">Peterbilt</SelectItem>
+                          <SelectItem value="freightliner">Freightliner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="category">Category</Label>
                       <Select onValueChange={(value) => setNewTruck({...newTruck, category: value})}>
@@ -170,38 +212,129 @@ const Admin = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div>
+                      <Label htmlFor="condition">Condition</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="new">New</SelectItem>
+                          <SelectItem value="used">Used</SelectItem>
+                          <SelectItem value="certified">Certified Pre-Owned</SelectItem>
+                          <SelectItem value="refurbished">Refurbished</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="price">Price ($)</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      value={newTruck.price}
-                      onChange={(e) => setNewTruck({...newTruck, price: e.target.value})}
-                      placeholder="125000"
-                      required
-                    />
+                  {/* Price and Year */}
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div>
+                      <Label htmlFor="price">Price ($)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={newTruck.price}
+                        onChange={(e) => setNewTruck({...newTruck, price: e.target.value})}
+                        placeholder="125000"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="year">Year</Label>
+                      <Input
+                        id="year"
+                        type="number"
+                        value={newTruck.year}
+                        onChange={(e) => setNewTruck({...newTruck, year: e.target.value})}
+                        placeholder="2024"
+                        min="2000"
+                        max="2024"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="mileage">Mileage (miles)</Label>
+                      <Input
+                        id="mileage"
+                        type="number"
+                        value={newTruck.mileage}
+                        onChange={(e) => setNewTruck({...newTruck, mileage: e.target.value})}
+                        placeholder="50000"
+                        min="0"
+                      />
+                    </div>
                   </div>
 
+                  {/* Engine and Transmission */}
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div>
+                      <Label htmlFor="engine-type">Engine Type</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, engineType: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select engine type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cummins-x15">Cummins X15</SelectItem>
+                          <SelectItem value="detroit-dd15">Detroit DD15</SelectItem>
+                          <SelectItem value="caterpillar-c15">Caterpillar C15</SelectItem>
+                          <SelectItem value="paccar-px-9">Paccar PX-9</SelectItem>
+                          <SelectItem value="volvo-d13">Volvo D13</SelectItem>
+                          <SelectItem value="mack-mp8">Mack MP8</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="transmission">Transmission</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, transmission: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select transmission" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manual">Manual</SelectItem>
+                          <SelectItem value="automatic">Automatic</SelectItem>
+                          <SelectItem value="automated-manual">Automated Manual</SelectItem>
+                          <SelectItem value="cvt">CVT</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="fuel-type">Fuel Type</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, fuelType: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select fuel type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="diesel">Diesel</SelectItem>
+                          <SelectItem value="gasoline">Gasoline</SelectItem>
+                          <SelectItem value="electric">Electric</SelectItem>
+                          <SelectItem value="hybrid">Hybrid</SelectItem>
+                          <SelectItem value="natural-gas">Natural Gas</SelectItem>
+                          <SelectItem value="biodiesel">Biodiesel</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Description and Specifications */}
                   <div>
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
                       value={newTruck.description}
                       onChange={(e) => setNewTruck({...newTruck, description: e.target.value})}
-                      placeholder="Detailed description of the truck..."
+                      placeholder="Detailed description of the truck, features, and selling points..."
                       rows={4}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="specs">Specifications</Label>
+                    <Label htmlFor="specs">Technical Specifications</Label>
                     <Textarea
                       id="specs"
                       value={newTruck.specs}
                       onChange={(e) => setNewTruck({...newTruck, specs: e.target.value})}
-                      placeholder="Engine type, capacity, transmission, etc."
+                      placeholder="Engine capacity, horsepower, torque, payload capacity, dimensions, etc."
                       rows={3}
                     />
                   </div>
