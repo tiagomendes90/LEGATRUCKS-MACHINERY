@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ const TRUCKS_PER_PAGE = 12;
 const TruckCategory = () => {
   const { category } = useParams();
   const { data: allTrucks, isLoading, error } = useTrucks();
-  const [filteredTrucks, setFilteredTrucks] = useState<any[]>([]);
+  const [displayTrucks, setDisplayTrucks] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   
   const categoryData = {
@@ -34,12 +35,19 @@ const TruckCategory = () => {
 
   const data = categoryData[category as keyof typeof categoryData];
 
-  // Filter trucks by category when data loads or category changes
+  // Set initial trucks filtered by category when data loads
   useEffect(() => {
+    console.log('All trucks loaded:', allTrucks?.length);
+    console.log('Current category:', category);
+    
     if (allTrucks && category) {
-      const categoryTrucks = allTrucks.filter(truck => truck.category === category);
-      setFilteredTrucks(categoryTrucks);
-      setCurrentPage(1); // Reset to first page when category changes
+      const categoryTrucks = allTrucks.filter(truck => {
+        console.log('Truck category:', truck.category, 'Target category:', category);
+        return truck.category === category;
+      });
+      console.log('Category trucks found:', categoryTrucks.length);
+      setDisplayTrucks(categoryTrucks);
+      setCurrentPage(1);
     }
   }, [allTrucks, category]);
 
@@ -57,62 +65,79 @@ const TruckCategory = () => {
     brand: string;
     sortBy: string;
   }) => {
-    if (!allTrucks || !category) return;
+    console.log('Applying filters:', filters);
+    
+    if (!allTrucks || !category) {
+      console.log('No trucks or category available');
+      return;
+    }
 
     // Start with trucks from the current category
     let filtered = allTrucks.filter(truck => truck.category === category);
+    console.log('Starting with category trucks:', filtered.length);
 
-    // Filter by search term
+    // Apply search term filter
     if (filters.searchTerm) {
       filtered = filtered.filter(truck =>
         truck.model.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
         truck.brand.toLowerCase().includes(filters.searchTerm.toLowerCase())
       );
+      console.log('After search filter:', filtered.length);
     }
 
-    // Filter by brand
+    // Apply brand filter
     if (filters.brand) {
       filtered = filtered.filter(truck => truck.brand === filters.brand);
+      console.log('After brand filter:', filtered.length);
     }
 
-    // Filter by condition
+    // Apply condition filter
     if (filters.condition) {
       filtered = filtered.filter(truck => truck.condition === filters.condition);
+      console.log('After condition filter:', filtered.length);
     }
 
-    // Filter by price range
+    // Apply price range filters
     if (filters.minPrice) {
       filtered = filtered.filter(truck => truck.price >= parseInt(filters.minPrice));
+      console.log('After min price filter:', filtered.length);
     }
     if (filters.maxPrice) {
       filtered = filtered.filter(truck => truck.price <= parseInt(filters.maxPrice));
+      console.log('After max price filter:', filtered.length);
     }
 
-    // Filter by year range
+    // Apply year range filters
     if (filters.minYear) {
       filtered = filtered.filter(truck => truck.year >= parseInt(filters.minYear));
+      console.log('After min year filter:', filtered.length);
     }
     if (filters.maxYear) {
       filtered = filtered.filter(truck => truck.year <= parseInt(filters.maxYear));
+      console.log('After max year filter:', filtered.length);
     }
 
-    // Filter by mileage
+    // Apply mileage filter
     if (filters.maxMileage) {
       filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.maxMileage));
+      console.log('After mileage filter:', filtered.length);
     }
 
-    // Filter by engine type
+    // Apply engine type filter
     if (filters.engineType) {
       filtered = filtered.filter(truck => truck.engine === filters.engineType);
+      console.log('After engine filter:', filtered.length);
     }
 
-    // Filter by transmission
+    // Apply transmission filter
     if (filters.transmission) {
       filtered = filtered.filter(truck => truck.transmission === filters.transmission);
+      console.log('After transmission filter:', filtered.length);
     }
 
-    // Sort results
+    // Apply sorting
     if (filters.sortBy) {
+      console.log('Applying sort:', filters.sortBy);
       switch (filters.sortBy) {
         case "price-low":
           filtered.sort((a, b) => a.price - b.price);
@@ -141,17 +166,16 @@ const TruckCategory = () => {
       }
     }
 
-    setFilteredTrucks(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+    console.log('Final filtered trucks:', filtered.length);
+    setDisplayTrucks(filtered);
+    setCurrentPage(1);
   };
 
   // Calculate pagination
-  const categoryTrucks = allTrucks ? allTrucks.filter(truck => truck.category === category) : [];
-  const trucksToShow = filteredTrucks.length > 0 ? filteredTrucks : categoryTrucks;
-  const totalPages = Math.ceil(trucksToShow.length / TRUCKS_PER_PAGE);
+  const totalPages = Math.ceil(displayTrucks.length / TRUCKS_PER_PAGE);
   const startIndex = (currentPage - 1) * TRUCKS_PER_PAGE;
   const endIndex = startIndex + TRUCKS_PER_PAGE;
-  const currentTrucks = trucksToShow.slice(startIndex, endIndex);
+  const currentTrucks = displayTrucks.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -208,13 +232,12 @@ const TruckCategory = () => {
 
       <section className="py-16">
         <div className="container mx-auto px-6">
-          {/* Add filter component for all categories */}
           <TruckFilter onFilterChange={handleFilterChange} />
 
           {/* Results count and pagination info */}
           <div className="mb-6 flex justify-between items-center">
             <p className="text-gray-600">
-              Showing {startIndex + 1}-{Math.min(endIndex, trucksToShow.length)} of {trucksToShow.length} trucks
+              Showing {startIndex + 1}-{Math.min(endIndex, displayTrucks.length)} of {displayTrucks.length} trucks
               {totalPages > 1 && (
                 <span className="ml-2 text-gray-500">
                   (Page {currentPage} of {totalPages})
@@ -339,16 +362,8 @@ const TruckCategory = () => {
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No {data.title.toLowerCase()} found.</p>
-              <p className="text-gray-400">Add trucks in the admin panel to see them here.</p>
-            </div>
-          )}
-
-          {/* No results message for filtered results */}
-          {categoryTrucks.length > 0 && trucksToShow.length === 0 && (
-            <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No trucks match your current filters.</p>
-              <p className="text-gray-400">Try adjusting your search criteria.</p>
+              <p className="text-gray-400">Try adjusting your search criteria or clear the filters.</p>
             </div>
           )}
         </div>
