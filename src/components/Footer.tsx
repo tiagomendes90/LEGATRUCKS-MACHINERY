@@ -24,9 +24,9 @@ const Footer = () => {
           <div>
             <div className="flex items-center mb-6">
               <img 
-                src="/lovable-uploads/f7e0c7af-aa58-4de9-b8df-dd8b2f1b46c6.png" 
+                src="/lovable-uploads/d6edba1e-f8cd-45b8-ae55-992d54ea7de1.png" 
                 alt="LEGA Logo" 
-                className="h-10 w-auto object-contain filter brightness-0 invert"
+                className="h-10 w-auto object-contain"
                 onError={(e) => {
                   console.log('Footer logo failed to load:', e);
                   // Fallback to text if image fails
