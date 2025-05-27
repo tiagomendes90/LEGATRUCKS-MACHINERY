@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,7 @@ const Index = () => {
   const { data: trucks } = useTrucks();
   const { data: featuredTrucksData } = useFeaturedTrucks();
 
-  // Use featured trucks from database, fallback to first 3 trucks, then static data
+  // Use featured trucks from database, fallback to first 3 trucks from inventory
   const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0
     ? featuredTrucksData.map(featured => ({
         id: featured.trucks.id,
@@ -37,32 +38,7 @@ const Index = () => {
           image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
           features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
         }))
-      : [
-          {
-            id: 1,
-            name: "Heavy Duty Titan",
-            type: "Heavy Duty",
-            price: "$125,000",
-            image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
-            features: ["40-ton capacity", "Diesel engine", "All-terrain"]
-          },
-          {
-            id: 2,
-            name: "Medium Duty Pro",
-            type: "Medium Duty",
-            price: "$75,000",
-            image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
-            features: ["25-ton capacity", "Fuel efficient", "City optimized"]
-          },
-          {
-            id: 3,
-            name: "Light Duty Express",
-            type: "Light Duty",
-            price: "$45,000",
-            image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
-            features: ["10-ton capacity", "Urban delivery", "Compact design"]
-          }
-        ];
+      : [];
 
   // Get unique brands from the trucks database
   const uniqueBrands = trucks ? [...new Set(trucks.map(truck => truck.brand))] : [];
@@ -133,35 +109,47 @@ const Index = () => {
       <section className="bg-slate-50 py-[90px]">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Trucks</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {featuredTrucks.map((truck, index) => (
-              <Card key={truck.id || index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div className="relative overflow-hidden">
-                  <img 
-                    src={truck.image} 
-                    alt={truck.name} 
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
-                  />
-                  <Badge className="absolute top-4 left-4 bg-blue-600">{truck.type}</Badge>
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-xl">{truck.name}</CardTitle>
-                  <CardDescription className="text-2xl font-bold text-orange-600">{truck.price}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 mb-4">
-                    {truck.features.map((feature, index) => (
-                      <li key={index} className="text-sm text-gray-600 flex items-center">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button className="w-full bg-slate-800 hover:bg-slate-700">View Details</Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {featuredTrucks.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-8">
+              {featuredTrucks.map((truck, index) => (
+                <Card key={truck.id || index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src={truck.image} 
+                      alt={truck.name} 
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+                    />
+                    <Badge className="absolute top-4 left-4 bg-blue-600">{truck.type}</Badge>
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl">{truck.name}</CardTitle>
+                    <CardDescription className="text-2xl font-bold text-orange-600">{truck.price}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2 mb-4">
+                      {truck.features.map((feature, index) => (
+                        <li key={index} className="text-sm text-gray-600 flex items-center">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button className="w-full bg-slate-800 hover:bg-slate-700">View Details</Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Truck className="h-12 w-12 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Featured Trucks</h3>
+              <p className="text-gray-500 max-w-md mx-auto">
+                No trucks are currently featured. Add some trucks to your inventory or set featured trucks in the admin panel.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
