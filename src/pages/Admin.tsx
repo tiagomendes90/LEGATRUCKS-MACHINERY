@@ -7,87 +7,114 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3 } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useTrucks, useAddTruck, useDeleteTruck } from "@/hooks/useTrucks";
 import Navbar from "@/components/Navbar";
 
 const Admin = () => {
-  const [trucks, setTrucks] = useState([
-    { id: 1, name: "Heavy Duty Titan", category: "heavy-duty", price: 125000, status: "available" },
-    { id: 2, name: "Medium Pro", category: "medium-duty", price: 75000, status: "sold" },
-    { id: 3, name: "Light Express", category: "light-duty", price: 45000, status: "available" }
-  ]);
+  const { data: trucks = [], isLoading } = useTrucks();
+  const addTruckMutation = useAddTruck();
+  const deleteTruckMutation = useDeleteTruck();
+  const { signOut, user } = useAuth();
 
   const [newTruck, setNewTruck] = useState({
-    name: "",
     brand: "",
-    category: "",
-    price: "",
+    model: "",
     year: "",
     mileage: "",
+    price: "",
     condition: "",
-    engineType: "",
+    engine: "",
     transmission: "",
-    fuelType: "",
     description: "",
-    specs: ""
+    horsepower: "",
+    features: [] as string[],
+    images: [] as string[]
   });
 
   const { toast } = useToast();
 
   const handleAddTruck = (e: React.FormEvent) => {
     e.preventDefault();
-    const truck = {
-      id: trucks.length + 1,
-      name: newTruck.name,
-      category: newTruck.category,
-      price: parseInt(newTruck.price),
-      status: "available"
+    
+    const truckData = {
+      brand: newTruck.brand,
+      model: newTruck.model,
+      year: parseInt(newTruck.year),
+      mileage: parseInt(newTruck.mileage) || 0,
+      price: parseFloat(newTruck.price),
+      condition: newTruck.condition,
+      engine: newTruck.engine,
+      transmission: newTruck.transmission,
+      description: newTruck.description,
+      horsepower: parseInt(newTruck.horsepower) || 0,
+      features: newTruck.features,
+      images: newTruck.images
     };
-    setTrucks([...trucks, truck]);
-    setNewTruck({ 
-      name: "", 
-      brand: "",
-      category: "", 
-      price: "", 
-      year: "",
-      mileage: "",
-      condition: "",
-      engineType: "",
-      transmission: "",
-      fuelType: "",
-      description: "", 
-      specs: "" 
-    });
-    toast({
-      title: "Truck Added",
-      description: "New truck has been added to the inventory successfully.",
+
+    addTruckMutation.mutate(truckData, {
+      onSuccess: () => {
+        setNewTruck({
+          brand: "",
+          model: "",
+          year: "",
+          mileage: "",
+          price: "",
+          condition: "",
+          engine: "",
+          transmission: "",
+          description: "",
+          horsepower: "",
+          features: [],
+          images: []
+        });
+      }
     });
   };
 
-  const handleDeleteTruck = (id: number) => {
-    setTrucks(trucks.filter(truck => truck.id !== id));
+  const handleDeleteTruck = (id: string) => {
+    deleteTruckMutation.mutate(id);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
     toast({
-      title: "Truck Deleted",
-      description: "Truck has been removed from the inventory.",
+      title: "Signed Out",
+      description: "You have been signed out successfully.",
     });
   };
 
   const stats = [
-    { title: "Total Inventory", value: "45", icon: <Package className="h-8 w-8" />, color: "bg-blue-500" },
+    { title: "Total Inventory", value: trucks.length.toString(), icon: <Package className="h-8 w-8" />, color: "bg-blue-500" },
     { title: "Monthly Sales", value: "$2.4M", icon: <DollarSign className="h-8 w-8" />, color: "bg-green-500" },
     { title: "Active Customers", value: "1,234", icon: <Users className="h-8 w-8" />, color: "bg-purple-500" },
     { title: "Growth Rate", value: "+15%", icon: <BarChart3 className="h-8 w-8" />, color: "bg-orange-500" }
   ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="container mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage your truck inventory and business operations</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600">Welcome back, {user?.email}</p>
+          </div>
+          <Button onClick={handleSignOut} variant="outline">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
 
         {/* Stats Overview */}
@@ -128,14 +155,12 @@ const Admin = () => {
                   {trucks.map((truck) => (
                     <div key={truck.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{truck.name}</h3>
-                        <p className="text-gray-600 capitalize">{truck.category.replace('-', ' ')}</p>
+                        <h3 className="font-semibold text-lg">{truck.brand} {truck.model}</h3>
+                        <p className="text-gray-600">{truck.year} • {truck.condition}</p>
                         <p className="font-medium text-green-600">${truck.price.toLocaleString()}</p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <Badge variant={truck.status === 'available' ? 'default' : 'secondary'}>
-                          {truck.status}
-                        </Badge>
+                        <Badge variant="default">Available</Badge>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline">
                             <Edit className="h-4 w-4" />
@@ -145,6 +170,7 @@ const Admin = () => {
                             variant="outline" 
                             onClick={() => handleDeleteTruck(truck.id)}
                             className="text-red-600 hover:text-red-700"
+                            disabled={deleteTruckMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -168,16 +194,6 @@ const Admin = () => {
                   {/* Basic Information */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="truck-name">Truck Name/Model</Label>
-                      <Input
-                        id="truck-name"
-                        value={newTruck.name}
-                        onChange={(e) => setNewTruck({...newTruck, name: e.target.value})}
-                        placeholder="Heavy Duty Hauler"
-                        required
-                      />
-                    </div>
-                    <div>
                       <Label htmlFor="brand">Brand</Label>
                       <Select onValueChange={(value) => setNewTruck({...newTruck, brand: value})}>
                         <SelectTrigger>
@@ -192,26 +208,63 @@ const Admin = () => {
                           <SelectItem value="iveco">Iveco</SelectItem>
                           <SelectItem value="kenworth">Kenworth</SelectItem>
                           <SelectItem value="peterbilt">Peterbilt</SelectItem>
-                          <SelectItem value="freightliner">Freightliner</SelectItem>
+                          <SelectItem value="freightliner">Freightliner</Freightliner>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="model">Model</Label>
+                      <Input
+                        id="model"
+                        value={newTruck.model}
+                        onChange={(e) => setNewTruck({...newTruck, model: e.target.value})}
+                        placeholder="FH16"
+                        required
+                      />
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  {/* Vehicle Details */}
+                  <div className="grid md:grid-cols-3 gap-6">
                     <div>
-                      <Label htmlFor="category">Category</Label>
-                      <Select onValueChange={(value) => setNewTruck({...newTruck, category: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="heavy-duty">Heavy Duty</SelectItem>
-                          <SelectItem value="medium-duty">Medium Duty</SelectItem>
-                          <SelectItem value="light-duty">Light Duty</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="year">Year</Label>
+                      <Input
+                        id="year"
+                        type="number"
+                        value={newTruck.year}
+                        onChange={(e) => setNewTruck({...newTruck, year: e.target.value})}
+                        placeholder="2024"
+                        min="2000"
+                        max="2024"
+                        required
+                      />
                     </div>
+                    <div>
+                      <Label htmlFor="mileage">Mileage</Label>
+                      <Input
+                        id="mileage"
+                        type="number"
+                        value={newTruck.mileage}
+                        onChange={(e) => setNewTruck({...newTruck, mileage: e.target.value})}
+                        placeholder="50000"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="price">Price ($)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={newTruck.price}
+                        onChange={(e) => setNewTruck({...newTruck, price: e.target.value})}
+                        placeholder="125000"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Condition and Engine */}
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="condition">Condition</Label>
                       <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})}>
@@ -226,53 +279,26 @@ const Admin = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  {/* Price and Year */}
-                  <div className="grid md:grid-cols-3 gap-6">
                     <div>
-                      <Label htmlFor="price">Price ($)</Label>
+                      <Label htmlFor="horsepower">Horsepower</Label>
                       <Input
-                        id="price"
+                        id="horsepower"
                         type="number"
-                        value={newTruck.price}
-                        onChange={(e) => setNewTruck({...newTruck, price: e.target.value})}
-                        placeholder="125000"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="year">Year</Label>
-                      <Input
-                        id="year"
-                        type="number"
-                        value={newTruck.year}
-                        onChange={(e) => setNewTruck({...newTruck, year: e.target.value})}
-                        placeholder="2024"
-                        min="2000"
-                        max="2024"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="mileage">Mileage (miles)</Label>
-                      <Input
-                        id="mileage"
-                        type="number"
-                        value={newTruck.mileage}
-                        onChange={(e) => setNewTruck({...newTruck, mileage: e.target.value})}
-                        placeholder="50000"
+                        value={newTruck.horsepower}
+                        onChange={(e) => setNewTruck({...newTruck, horsepower: e.target.value})}
+                        placeholder="500"
                         min="0"
                       />
                     </div>
                   </div>
 
                   {/* Engine and Transmission */}
-                  <div className="grid md:grid-cols-3 gap-6">
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="engine-type">Engine Type</Label>
-                      <Select onValueChange={(value) => setNewTruck({...newTruck, engineType: value})}>
+                      <Label htmlFor="engine">Engine</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, engine: value})}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select engine type" />
+                          <SelectValue placeholder="Select engine" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="cummins-x15">Cummins X15</SelectItem>
@@ -298,25 +324,9 @@ const Admin = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
-                      <Label htmlFor="fuel-type">Fuel Type</Label>
-                      <Select onValueChange={(value) => setNewTruck({...newTruck, fuelType: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select fuel type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="diesel">Diesel</SelectItem>
-                          <SelectItem value="gasoline">Gasoline</SelectItem>
-                          <SelectItem value="electric">Electric</SelectItem>
-                          <SelectItem value="hybrid">Hybrid</SelectItem>
-                          <SelectItem value="natural-gas">Natural Gas</SelectItem>
-                          <SelectItem value="biodiesel">Biodiesel</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
 
-                  {/* Description and Specifications */}
+                  {/* Description */}
                   <div>
                     <Label htmlFor="description">Description</Label>
                     <Textarea
@@ -325,29 +335,24 @@ const Admin = () => {
                       onChange={(e) => setNewTruck({...newTruck, description: e.target.value})}
                       placeholder="Detailed description of the truck, features, and selling points..."
                       rows={4}
+                      required
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="specs">Technical Specifications</Label>
-                    <Textarea
-                      id="specs"
-                      value={newTruck.specs}
-                      onChange={(e) => setNewTruck({...newTruck, specs: e.target.value})}
-                      placeholder="Engine capacity, horsepower, torque, payload capacity, dimensions, etc."
-                      rows={3}
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full">
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={addTruckMutation.isPending}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Truck to Inventory
+                    {addTruckMutation.isPending ? "Adding Truck..." : "Add Truck to Inventory"}
                   </Button>
                 </form>
               </CardContent>
             </Card>
           </TabsContent>
 
+          
           <TabsContent value="orders">
             <Card>
               <CardHeader>
