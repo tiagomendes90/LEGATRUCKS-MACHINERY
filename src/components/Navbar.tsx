@@ -46,7 +46,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img 
-              src="/lovable-uploads/8eb9fcab-dc27-4552-85d8-caec92deceec.png" 
+              src="/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png" 
               alt="LEGA Logo" 
               className="h-12 w-auto object-contain"
             />
