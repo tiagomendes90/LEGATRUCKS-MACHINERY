@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ interface EditTruckModalProps {
 const EditTruckModal = ({ truck, isOpen, onClose, onSave }: EditTruckModalProps) => {
   const [formData, setFormData] = useState<Partial<Truck>>({});
 
-  useState(() => {
+  useEffect(() => {
     if (truck) {
       setFormData({
         brand: truck.brand,
