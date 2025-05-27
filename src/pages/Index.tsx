@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,36 +9,54 @@ import { useTrucks } from "@/hooks/useTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Autoplay from "embla-carousel-autoplay";
+
 const Index = () => {
-  const {
-    data: trucks
-  } = useTrucks();
-  const featuredTrucks = [{
-    id: 1,
-    name: "Heavy Duty Titan",
-    type: "Heavy Duty",
-    price: "$125,000",
-    image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
-    features: ["40-ton capacity", "Diesel engine", "All-terrain"]
-  }, {
-    id: 2,
-    name: "Medium Duty Pro",
-    type: "Medium Duty",
-    price: "$75,000",
-    image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
-    features: ["25-ton capacity", "Fuel efficient", "City optimized"]
-  }, {
-    id: 3,
-    name: "Light Duty Express",
-    type: "Light Duty",
-    price: "$45,000",
-    image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
-    features: ["10-ton capacity", "Urban delivery", "Compact design"]
-  }];
+  const { data: trucks } = useTrucks();
+
+  // Get the first 3 trucks from database as featured trucks, or fallback to static data
+  const featuredTrucks = trucks && trucks.length > 0 
+    ? trucks.slice(0, 3).map(truck => ({
+        id: truck.id,
+        name: `${truck.brand} ${truck.model}`,
+        type: truck.category?.split('-').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ') || 'Truck',
+        price: `$${truck.price.toLocaleString()}`,
+        image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
+        features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
+      }))
+    : [
+        {
+          id: 1,
+          name: "Heavy Duty Titan",
+          type: "Heavy Duty",
+          price: "$125,000",
+          image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
+          features: ["40-ton capacity", "Diesel engine", "All-terrain"]
+        },
+        {
+          id: 2,
+          name: "Medium Duty Pro",
+          type: "Medium Duty",
+          price: "$75,000",
+          image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
+          features: ["25-ton capacity", "Fuel efficient", "City optimized"]
+        },
+        {
+          id: 3,
+          name: "Light Duty Express",
+          type: "Light Duty",
+          price: "$45,000",
+          image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
+          features: ["10-ton capacity", "Urban delivery", "Compact design"]
+        }
+      ];
 
   // Get unique brands from the trucks database
   const uniqueBrands = trucks ? [...new Set(trucks.map(truck => truck.brand))] : [];
-  return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Navbar />
       
       {/* Hero Section with Full Screen Image */}
@@ -103,9 +122,14 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Trucks</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {featuredTrucks.map(truck => <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+            {featuredTrucks.map((truck, index) => (
+              <Card key={truck.id || index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
                 <div className="relative overflow-hidden">
-                  <img src={truck.image} alt={truck.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img 
+                    src={truck.image} 
+                    alt={truck.name} 
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+                  />
                   <Badge className="absolute top-4 left-4 bg-blue-600">{truck.type}</Badge>
                 </div>
                 <CardHeader>
@@ -114,14 +138,17 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 mb-4">
-                    {truck.features.map((feature, index) => <li key={index} className="text-sm text-gray-600 flex items-center">
+                    {truck.features.map((feature, index) => (
+                      <li key={index} className="text-sm text-gray-600 flex items-center">
                         <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                         {feature}
-                      </li>)}
+                      </li>
+                    ))}
                   </ul>
                   <Button className="w-full bg-slate-800 hover:bg-slate-700">View Details</Button>
                 </CardContent>
-              </Card>)}
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -178,6 +205,8 @@ const Index = () => {
       </section>
 
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

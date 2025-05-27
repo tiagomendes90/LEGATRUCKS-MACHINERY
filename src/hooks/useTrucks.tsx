@@ -17,6 +17,7 @@ export interface Truck {
   horsepower: number;
   features: string[];
   images: string[];
+  category: string;
   created_at?: string;
   updated_at?: string;
 }
