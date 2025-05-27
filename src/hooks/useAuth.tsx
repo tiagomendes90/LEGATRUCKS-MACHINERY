@@ -31,13 +31,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           // Check if user is admin
           setTimeout(async () => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-            
-            setIsAdmin(profile?.role === 'admin');
+            try {
+              const { data: profile } = await (supabase as any)
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+              
+              setIsAdmin(profile?.role === 'admin');
+            } catch (error) {
+              console.error('Error checking admin status:', error);
+              setIsAdmin(false);
+            }
           }, 0);
         } else {
           setIsAdmin(false);

@@ -9,13 +9,93 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      trucks: {
+        Row: {
+          brand: string
+          condition: string
+          created_at: string | null
+          description: string
+          engine: string
+          features: string[] | null
+          horsepower: number | null
+          id: string
+          images: string[] | null
+          mileage: number | null
+          model: string
+          price: number
+          transmission: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          brand: string
+          condition: string
+          created_at?: string | null
+          description: string
+          engine: string
+          features?: string[] | null
+          horsepower?: number | null
+          id?: string
+          images?: string[] | null
+          mileage?: number | null
+          model: string
+          price: number
+          transmission: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          brand?: string
+          condition?: string
+          created_at?: string | null
+          description?: string
+          engine?: string
+          features?: string[] | null
+          horsepower?: number | null
+          id?: string
+          images?: string[] | null
+          mileage?: number | null
+          model?: string
+          price?: number
+          transmission?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_admin_profile: {
+        Args: { user_email: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

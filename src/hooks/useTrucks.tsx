@@ -17,18 +17,18 @@ export interface Truck {
   horsepower: number;
   features: string[];
   images: string[];
-  createdAt?: string;
-  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const useTrucks = () => {
   return useQuery({
     queryKey: ['trucks'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('trucks')
         .select('*')
-        .order('createdAt', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as Truck[];
@@ -41,8 +41,8 @@ export const useAddTruck = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (truck: Omit<Truck, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const { data, error } = await supabase
+    mutationFn: async (truck: Omit<Truck, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await (supabase as any)
         .from('trucks')
         .insert([truck])
         .select()
@@ -58,7 +58,7 @@ export const useAddTruck = () => {
         description: "New truck has been added to the inventory successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: `Failed to add truck: ${error.message}`,
@@ -74,7 +74,7 @@ export const useDeleteTruck = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('trucks')
         .delete()
         .eq('id', id);
@@ -88,7 +88,7 @@ export const useDeleteTruck = () => {
         description: "Truck has been removed from the inventory.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: `Failed to delete truck: ${error.message}`,
