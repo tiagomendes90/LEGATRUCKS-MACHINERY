@@ -26,7 +26,7 @@ export const useTrucks = () => {
   return useQuery({
     queryKey: ['trucks'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('trucks')
         .select('*')
         .order('created_at', { ascending: false });
@@ -43,7 +43,7 @@ export const useAddTruck = () => {
 
   return useMutation({
     mutationFn: async (truck: Omit<Truck, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('trucks')
         .insert([truck])
         .select()
@@ -75,7 +75,7 @@ export const useDeleteTruck = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('trucks')
         .delete()
         .eq('id', id);

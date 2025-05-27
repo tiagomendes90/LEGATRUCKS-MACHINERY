@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,30 +37,8 @@ const TruckCategory = () => {
 
   // Set initial trucks filtered by category when data loads
   useEffect(() => {
-    console.log('=== INITIAL LOAD ===');
-    console.log('All trucks loaded:', allTrucks?.length);
-    console.log('Current category:', category);
-    
     if (allTrucks && category) {
-      console.log('All trucks:', allTrucks.map(truck => ({ 
-        id: truck.id, 
-        brand: truck.brand, 
-        model: truck.model, 
-        category: truck.category 
-      })));
-      
-      const categoryTrucks = allTrucks.filter(truck => {
-        console.log(`Comparing: truck.category="${truck.category}" with category="${category}"`);
-        return truck.category === category;
-      });
-      
-      console.log('Category trucks found:', categoryTrucks.length);
-      console.log('Category trucks:', categoryTrucks.map(truck => ({ 
-        id: truck.id, 
-        brand: truck.brand, 
-        model: truck.model 
-      })));
-      
+      const categoryTrucks = allTrucks.filter(truck => truck.category === category);
       setDisplayTrucks(categoryTrucks);
       setCurrentPage(1);
     }
@@ -79,103 +58,65 @@ const TruckCategory = () => {
     brand: string;
     sortBy: string;
   }) => {
-    console.log('=== FILTER CHANGE ===');
-    console.log('Received filters:', filters);
-    
-    if (!allTrucks || !category) {
-      console.log('No trucks or category available for filtering');
-      return;
-    }
+    if (!allTrucks || !category) return;
 
     // Start with trucks from the current category
     let filtered = allTrucks.filter(truck => truck.category === category);
-    console.log(`Starting with ${filtered.length} trucks from category "${category}"`);
 
-    // Apply search term filter with improved logic
+    // Apply search term filter
     if (filters.searchTerm && filters.searchTerm.trim()) {
       const searchLower = filters.searchTerm.toLowerCase().trim();
-      console.log(`Applying search filter for: "${searchLower}"`);
-      
-      const beforeSearch = filtered.length;
       filtered = filtered.filter(truck => {
         const brandMatch = truck.brand && truck.brand.toLowerCase().includes(searchLower);
         const modelMatch = truck.model && truck.model.toLowerCase().includes(searchLower);
         const descriptionMatch = truck.description && truck.description.toLowerCase().includes(searchLower);
-        
-        const matches = brandMatch || modelMatch || descriptionMatch;
-        
-        if (matches) {
-          console.log(`✓ Match found: ${truck.brand} ${truck.model}`);
-        }
-        
-        return matches;
+        return brandMatch || modelMatch || descriptionMatch;
       });
-      console.log(`Search filter: ${beforeSearch} → ${filtered.length} trucks`);
     }
 
-    // Apply other filters...
     // Apply brand filter
     if (filters.brand) {
-      const beforeBrand = filtered.length;
       filtered = filtered.filter(truck => truck.brand === filters.brand);
-      console.log(`Brand filter (${filters.brand}): ${beforeBrand} → ${filtered.length} trucks`);
     }
 
     // Apply condition filter
     if (filters.condition) {
-      const beforeCondition = filtered.length;
       filtered = filtered.filter(truck => truck.condition === filters.condition);
-      console.log(`Condition filter (${filters.condition}): ${beforeCondition} → ${filtered.length} trucks`);
     }
 
     // Apply price range filters
     if (filters.minPrice) {
-      const beforeMinPrice = filtered.length;
       filtered = filtered.filter(truck => truck.price >= parseInt(filters.minPrice));
-      console.log(`Min price filter ($${filters.minPrice}): ${beforeMinPrice} → ${filtered.length} trucks`);
     }
     if (filters.maxPrice) {
-      const beforeMaxPrice = filtered.length;
       filtered = filtered.filter(truck => truck.price <= parseInt(filters.maxPrice));
-      console.log(`Max price filter ($${filters.maxPrice}): ${beforeMaxPrice} → ${filtered.length} trucks`);
     }
 
     // Apply year range filters
     if (filters.minYear) {
-      const beforeMinYear = filtered.length;
       filtered = filtered.filter(truck => truck.year >= parseInt(filters.minYear));
-      console.log(`Min year filter (${filters.minYear}): ${beforeMinYear} → ${filtered.length} trucks`);
     }
     if (filters.maxYear) {
-      const beforeMaxYear = filtered.length;
       filtered = filtered.filter(truck => truck.year <= parseInt(filters.maxYear));
-      console.log(`Max year filter (${filters.maxYear}): ${beforeMaxYear} → ${filtered.length} trucks`);
     }
 
     // Apply mileage filter
     if (filters.maxMileage) {
-      const beforeMileage = filtered.length;
       filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.maxMileage));
-      console.log(`Max mileage filter (${filters.maxMileage}): ${beforeMileage} → ${filtered.length} trucks`);
     }
 
     // Apply engine type filter
     if (filters.engineType) {
-      const beforeEngine = filtered.length;
       filtered = filtered.filter(truck => truck.engine === filters.engineType);
-      console.log(`Engine filter (${filters.engineType}): ${beforeEngine} → ${filtered.length} trucks`);
     }
 
     // Apply transmission filter
     if (filters.transmission) {
-      const beforeTransmission = filtered.length;
       filtered = filtered.filter(truck => truck.transmission === filters.transmission);
-      console.log(`Transmission filter (${filters.transmission}): ${beforeTransmission} → ${filtered.length} trucks`);
     }
 
     // Apply sorting
     if (filters.sortBy) {
-      console.log('Applying sort:', filters.sortBy);
       switch (filters.sortBy) {
         case "price-low":
           filtered.sort((a, b) => a.price - b.price);
@@ -202,16 +143,6 @@ const TruckCategory = () => {
           filtered.sort((a, b) => b.model.localeCompare(a.model));
           break;
       }
-    }
-
-    console.log(`=== FINAL RESULT: ${filtered.length} trucks ===`);
-    if (filtered.length > 0) {
-      console.log('Final filtered trucks:', filtered.map(truck => ({ 
-        brand: truck.brand, 
-        model: truck.model,
-        year: truck.year,
-        price: truck.price
-      })));
     }
     
     setDisplayTrucks(filtered);
@@ -411,11 +342,6 @@ const TruckCategory = () => {
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg mb-2">No trucks match your current filters.</p>
               <p className="text-gray-400 mb-4">Try adjusting your search criteria or clear the filters.</p>
-              {allTrucks && allTrucks.length > 0 && (
-                <p className="text-sm text-gray-500">
-                  Debug: Found {allTrucks.filter(truck => truck.category === category).length} trucks in "{category}" category out of {allTrucks.length} total trucks
-                </p>
-              )}
             </div>
           )}
         </div>
