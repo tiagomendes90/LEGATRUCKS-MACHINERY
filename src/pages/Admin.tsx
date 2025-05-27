@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrucks, useAddTruck, useDeleteTruck, Truck } from "@/hooks/useTrucks";
@@ -17,6 +17,7 @@ import EditTruckModal from "@/components/EditTruckModal";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import RealOrderManagement from "@/components/RealOrderManagement";
 import FeaturedTrucksManager from "@/components/FeaturedTrucksManager";
+import { seedTruckDatabase } from "@/utils/seedTruckData";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -143,10 +144,20 @@ const Admin = () => {
             <h1 className="text-4xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
             <p className="text-gray-600">Welcome back, {user?.email}</p>
           </div>
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="space-x-2">
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+            <Button 
+              onClick={seedTruckDatabase} 
+              variant="secondary"
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <Database className="h-4 w-4 mr-2" />
+              Seed Sample Trucks
+            </Button>
+          </div>
         </div>
 
         {/* Stats Overview */}
