@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,7 @@ import { useUpdateTruck } from "@/hooks/useUpdateTruck";
 import Navbar from "@/components/Navbar";
 import EditTruckModal from "@/components/EditTruckModal";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
-import OrderManagement from "@/components/OrderManagement";
+import RealOrderManagement from "@/components/RealOrderManagement";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -419,7 +420,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="orders">
-            <OrderManagement />
+            <RealOrderManagement />
           </TabsContent>
 
           <TabsContent value="analytics">
