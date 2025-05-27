@@ -32,7 +32,7 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-white">
                 <Phone className="h-4 w-4" />
-                <span className="font-normal text-white">(555) 123-4567</span>
+                <span className="font-normal text-white">(351) 123 456 789</span>
               </div>
               <div className="flex items-center space-x-2 text-white">
                 <Mail className="h-4 w-4" />
@@ -40,8 +40,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2 text-white">
                 <MapPin className="h-4 w-4" />
-                <span className="text-white">123 Joane, Braga,
- ST 12345</span>
+                <span className="text-white">123 Joane, Braga,  
+Portugal</span>
               </div>
             </div>
           </div>
