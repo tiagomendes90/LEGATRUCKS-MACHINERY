@@ -1,11 +1,17 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Truck, Users, Shield, Award } from "lucide-react";
+import { useTrucks } from "@/hooks/useTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
 const Index = () => {
+  const { data: trucks } = useTrucks();
+  
   const featuredTrucks = [{
     id: 1,
     name: "Heavy Duty Titan",
@@ -28,6 +34,10 @@ const Index = () => {
     image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
     features: ["10-ton capacity", "Urban delivery", "Compact design"]
   }];
+
+  // Get unique brands from the trucks database
+  const uniqueBrands = trucks ? [...new Set(trucks.map(truck => truck.brand))] : [];
+
   return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Navbar />
       
@@ -113,6 +123,65 @@ const Index = () => {
                   <Button className="w-full bg-slate-800 hover:bg-slate-700">View Details</Button>
                 </CardContent>
               </Card>)}
+          </div>
+        </div>
+      </section>
+
+      {/* Truck Brands Carousel */}
+      <section className="bg-white py-[90px]">
+        <div className="container mx-auto px-6">
+          <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Our Truck Brands</h2>
+          <div className="flex justify-center">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full max-w-5xl"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {uniqueBrands.length > 0 ? uniqueBrands.map((brand, index) => (
+                  <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
+                    <div className="p-1">
+                      <Card className="border-2 hover:border-orange-500 transition-colors duration-300">
+                        <CardContent className="flex aspect-square items-center justify-center p-6">
+                          <div className="text-center">
+                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                              <Truck className="h-8 w-8 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 uppercase tracking-wider">
+                              {brand}
+                            </h3>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                )) : (
+                  // Fallback brands if no trucks in database
+                  ['Volvo', 'Scania', 'Mercedes', 'MAN', 'Iveco', 'DAF'].map((brand, index) => (
+                    <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
+                      <div className="p-1">
+                        <Card className="border-2 hover:border-orange-500 transition-colors duration-300">
+                          <CardContent className="flex aspect-square items-center justify-center p-6">
+                            <div className="text-center">
+                              <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <Truck className="h-8 w-8 text-white" />
+                              </div>
+                              <h3 className="text-xl font-bold text-slate-800 uppercase tracking-wider">
+                                {brand}
+                              </h3>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))
+                )}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         </div>
       </section>
