@@ -1,9 +1,7 @@
-
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
-
 const Footer = () => {
-  return <footer className="text-white bg-orange-500 my-0 py-[30px]">
+  return <footer className="text-white bg-orange-500 my-0 py-[60px]">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -14,7 +12,7 @@ const Footer = () => {
               </div>
               <span className="text-2xl font-bold">LEGA</span>
             </div>
-            <p className="mb-4 text-white">Your trusted partner for premium commercial trucks. Quality, reliability, and service excellence.</p>
+            
           </div>
 
           {/* Quick Links */}
@@ -42,7 +40,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2 text-white">
                 <MapPin className="h-4 w-4" />
-                <span className="text-white">123 Industrial Ave, City, ST 12345</span>
+                <span className="text-white">123 Joane, Braga,
+ ST 12345</span>
               </div>
             </div>
           </div>
@@ -64,5 +63,4 @@ const Footer = () => {
       </div>
     </footer>;
 };
-
 export default Footer;
