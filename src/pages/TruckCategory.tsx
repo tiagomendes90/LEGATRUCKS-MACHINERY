@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,175 +7,37 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TruckFilter from "@/components/TruckFilter";
+import { useTrucks } from "@/hooks/useTrucks";
 
 const TruckCategory = () => {
   const { category } = useParams();
+  const { data: allTrucks, isLoading, error } = useTrucks();
   const [filteredTrucks, setFilteredTrucks] = useState<any[]>([]);
   
   const categoryData = {
     "heavy-duty": {
       title: "Heavy Duty Trucks",
-      description: "Powerful trucks designed for the toughest jobs and maximum payload capacity",
-      trucks: [
-        {
-          id: 1,
-          name: "Titan Heavy Hauler",
-          price: "$125,000",
-          priceNumber: 125000,
-          year: 2022,
-          mileage: 45000,
-          brand: "volvo",
-          condition: "used",
-          engine: "cummins-x15",
-          transmission: "manual",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
-          specs: ["40-ton capacity", "Cummins X15 Engine", "18-speed transmission", "Air suspension"]
-        },
-        {
-          id: 2,
-          name: "MaxLoad Pro",
-          price: "$135,000",
-          priceNumber: 135000,
-          year: 2023,
-          mileage: 25000,
-          brand: "scania",
-          condition: "certified",
-          engine: "detroit-dd15",
-          transmission: "automated-manual",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
-          specs: ["45-ton capacity", "Detroit DD15 Engine", "Automated transmission", "Advanced safety systems"]
-        },
-        {
-          id: 3,
-          name: "Industrial Beast",
-          price: "$145,000",
-          priceNumber: 145000,
-          year: 2024,
-          mileage: 12000,
-          brand: "caterpillar",
-          condition: "new",
-          engine: "caterpillar-c15",
-          transmission: "automatic",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
-          specs: ["50-ton capacity", "Caterpillar C15 Engine", "Heavy-duty chassis", "Off-road capability"]
-        }
-      ]
+      description: "Powerful trucks designed for the toughest jobs and maximum payload capacity"
     },
     "medium-duty": {
-      title: "Medium Duty Trucks",
-      description: "Versatile trucks perfect for regional delivery and mid-range hauling operations",
-      trucks: [
-        {
-          id: 4,
-          name: "Regional Express",
-          price: "$75,000",
-          priceNumber: 75000,
-          year: 2021,
-          mileage: 65000,
-          brand: "daf",
-          condition: "used",
-          engine: "paccar-px-9",
-          transmission: "manual",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&h=300&fit=crop",
-          specs: ["25-ton capacity", "Paccar PX-9 Engine", "10-speed transmission", "Fuel efficient design"]
-        },
-        {
-          id: 5,
-          name: "Urban Hauler",
-          price: "$85,000",
-          priceNumber: 85000,
-          year: 2022,
-          mileage: 35000,
-          brand: "iveco",
-          condition: "certified",
-          engine: "cummins-x15",
-          transmission: "automatic",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=500&h=300&fit=crop",
-          specs: ["30-ton capacity", "Cummins B6.7 Engine", "City-optimized steering", "Low emission certified"]
-        },
-        {
-          id: 6,
-          name: "Fleet Master",
-          price: "$80,000",
-          priceNumber: 80000,
-          year: 2023,
-          mileage: 18000,
-          brand: "volvo",
-          condition: "used",
-          engine: "volvo-d13",
-          transmission: "automated-manual",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=500&h=300&fit=crop",
-          specs: ["28-ton capacity", "Volvo D8 Engine", "Comfortable cab", "Advanced telematics"]
-        }
-      ]
+      title: "Medium Duty Trucks", 
+      description: "Versatile trucks perfect for regional delivery and mid-range hauling operations"
     },
     "light-duty": {
       title: "Light Duty Trucks",
-      description: "Efficient and agile trucks ideal for urban delivery and last-mile logistics",
-      trucks: [
-        {
-          id: 7,
-          name: "City Runner",
-          price: "$45,000",
-          priceNumber: 45000,
-          year: 2020,
-          mileage: 85000,
-          brand: "ford",
-          condition: "used",
-          engine: "ford-ecoboost",
-          transmission: "manual",
-          fuel: "gasoline",
-          image: "https://images.unsplash.com/photo-1615729947596-a598e5de0ab3?w=500&h=300&fit=crop",
-          specs: ["10-ton capacity", "Ford EcoBoost Engine", "6-speed manual", "Compact design"]
-        },
-        {
-          id: 8,
-          name: "Delivery Pro",
-          price: "$52,000",
-          priceNumber: 52000,
-          year: 2021,
-          mileage: 42000,
-          brand: "isuzu",
-          condition: "certified",
-          engine: "isuzu-4hk1",
-          transmission: "automatic",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=500&h=300&fit=crop",
-          specs: ["12-ton capacity", "Isuzu 4HK1 Engine", "Automatic transmission", "Easy loading design"]
-        },
-        {
-          id: 9,
-          name: "Urban Express",
-          price: "$48,000",
-          priceNumber: 48000,
-          year: 2022,
-          mileage: 28000,
-          brand: "chevrolet",
-          condition: "used",
-          engine: "chevrolet-duramax",
-          transmission: "automatic",
-          fuel: "diesel",
-          image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
-          specs: ["8-ton capacity", "Chevrolet Duramax", "Excellent fuel economy", "Tight turning radius"]
-        }
-      ]
+      description: "Efficient and agile trucks ideal for urban delivery and last-mile logistics"
     }
   };
 
   const data = categoryData[category as keyof typeof categoryData];
 
-  // Initialize filtered trucks with all trucks when component mounts
-  useState(() => {
-    if (data) {
-      setFilteredTrucks(data.trucks);
+  // Filter trucks by category when data loads or category changes
+  useEffect(() => {
+    if (allTrucks && category) {
+      const categoryTrucks = allTrucks.filter(truck => truck.category === category);
+      setFilteredTrucks(categoryTrucks);
     }
-  });
+  }, [allTrucks, category]);
 
   const handleFilterChange = (filters: {
     searchTerm: string;
@@ -190,14 +53,16 @@ const TruckCategory = () => {
     brand: string;
     sortBy: string;
   }) => {
-    if (!data) return;
+    if (!allTrucks || !category) return;
 
-    let filtered = [...data.trucks];
+    // Start with trucks from the current category
+    let filtered = allTrucks.filter(truck => truck.category === category);
 
     // Filter by search term
     if (filters.searchTerm) {
       filtered = filtered.filter(truck =>
-        truck.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
+        truck.model.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        truck.brand.toLowerCase().includes(filters.searchTerm.toLowerCase())
       );
     }
 
@@ -213,10 +78,10 @@ const TruckCategory = () => {
 
     // Filter by price range
     if (filters.minPrice) {
-      filtered = filtered.filter(truck => truck.priceNumber >= parseInt(filters.minPrice));
+      filtered = filtered.filter(truck => truck.price >= parseInt(filters.minPrice));
     }
     if (filters.maxPrice) {
-      filtered = filtered.filter(truck => truck.priceNumber <= parseInt(filters.maxPrice));
+      filtered = filtered.filter(truck => truck.price <= parseInt(filters.maxPrice));
     }
 
     // Filter by year range
@@ -229,7 +94,7 @@ const TruckCategory = () => {
 
     // Filter by mileage
     if (filters.maxMileage) {
-      filtered = filtered.filter(truck => truck.mileage <= parseInt(filters.maxMileage));
+      filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.maxMileage));
     }
 
     // Filter by engine type
@@ -242,19 +107,14 @@ const TruckCategory = () => {
       filtered = filtered.filter(truck => truck.transmission === filters.transmission);
     }
 
-    // Filter by fuel type
-    if (filters.fuelType) {
-      filtered = filtered.filter(truck => truck.fuel === filters.fuelType);
-    }
-
     // Sort results
     if (filters.sortBy) {
       switch (filters.sortBy) {
         case "price-low":
-          filtered.sort((a, b) => a.priceNumber - b.priceNumber);
+          filtered.sort((a, b) => a.price - b.price);
           break;
         case "price-high":
-          filtered.sort((a, b) => b.priceNumber - a.priceNumber);
+          filtered.sort((a, b) => b.price - a.price);
           break;
         case "year-new":
           filtered.sort((a, b) => b.year - a.year);
@@ -263,16 +123,16 @@ const TruckCategory = () => {
           filtered.sort((a, b) => a.year - b.year);
           break;
         case "mileage-low":
-          filtered.sort((a, b) => a.mileage - b.mileage);
+          filtered.sort((a, b) => (a.mileage || 0) - (b.mileage || 0));
           break;
         case "mileage-high":
-          filtered.sort((a, b) => b.mileage - a.mileage);
+          filtered.sort((a, b) => (b.mileage || 0) - (a.mileage || 0));
           break;
         case "name-asc":
-          filtered.sort((a, b) => a.name.localeCompare(b.name));
+          filtered.sort((a, b) => a.model.localeCompare(b.model));
           break;
         case "name-desc":
-          filtered.sort((a, b) => b.name.localeCompare(a.name));
+          filtered.sort((a, b) => b.model.localeCompare(a.model));
           break;
       }
     }
@@ -280,11 +140,44 @@ const TruckCategory = () => {
     setFilteredTrucks(filtered);
   };
 
-  if (!data) {
-    return <div>Category not found</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg">Loading trucks...</div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
-  const trucksToShow = filteredTrucks.length > 0 ? filteredTrucks : data.trucks;
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg text-red-600">Error loading trucks: {error.message}</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg">Category not found</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const categoryTrucks = allTrucks ? allTrucks.filter(truck => truck.category === category) : [];
+  const trucksToShow = filteredTrucks.length > 0 ? filteredTrucks : categoryTrucks;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -309,58 +202,88 @@ const TruckCategory = () => {
           {category === "heavy-duty" && (
             <div className="mb-6">
               <p className="text-gray-600">
-                Showing {trucksToShow.length} of {data.trucks.length} trucks
+                Showing {trucksToShow.length} of {categoryTrucks.length} trucks
               </p>
             </div>
           )}
 
           {/* Trucks Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {trucksToShow.map((truck) => (
-              <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div className="relative overflow-hidden">
-                  <img 
-                    src={truck.image} 
-                    alt={truck.name}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <Badge className="absolute top-4 left-4 bg-blue-600">
-                    {data.title.split(' ')[0]} {data.title.split(' ')[1]}
-                  </Badge>
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-xl">{truck.name}</CardTitle>
-                  <CardDescription className="text-2xl font-bold text-orange-600">{truck.price}</CardDescription>
-                  {truck.year && truck.mileage && (
+          {trucksToShow.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {trucksToShow.map((truck) => (
+                <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src={truck.images && truck.images.length > 0 ? truck.images[0] : "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop"} 
+                      alt={truck.model}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <Badge className="absolute top-4 left-4 bg-blue-600">
+                      {data.title.split(' ')[0]} {data.title.split(' ')[1]}
+                    </Badge>
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl">{truck.brand} {truck.model}</CardTitle>
+                    <CardDescription className="text-2xl font-bold text-orange-600">
+                      ${truck.price.toLocaleString()}
+                    </CardDescription>
                     <div className="text-sm text-gray-500">
-                      {truck.year} • {truck.mileage.toLocaleString()} miles
+                      {truck.year} • {truck.mileage ? truck.mileage.toLocaleString() : '0'} miles
                     </div>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 mb-6">
-                    {truck.specs.map((spec, index) => (
-                      <div key={index} className="flex items-center text-sm text-gray-600">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                        {spec}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button className="flex-1 bg-slate-800 hover:bg-slate-700">
-                      View Details
-                    </Button>
-                    <Button variant="outline" className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
-                      Get Quote
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-6">
+                      {truck.features && truck.features.length > 0 ? (
+                        truck.features.slice(0, 4).map((feature, index) => (
+                          <div key={index} className="flex items-center text-sm text-gray-600">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                            {feature}
+                          </div>
+                        ))
+                      ) : (
+                        <>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                            {truck.engine} Engine
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                            {truck.transmission} Transmission
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                            {truck.condition} Condition
+                          </div>
+                          {truck.horsepower && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                              {truck.horsepower} HP
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button className="flex-1 bg-slate-800 hover:bg-slate-700">
+                        View Details
+                      </Button>
+                      <Button variant="outline" className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
+                        Get Quote
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No {data.title.toLowerCase()} found.</p>
+              <p className="text-gray-400">Add trucks in the admin panel to see them here.</p>
+            </div>
+          )}
 
-          {/* No results message */}
-          {category === "heavy-duty" && trucksToShow.length === 0 && (
+          {/* No results message for filtered results */}
+          {category === "heavy-duty" && categoryTrucks.length > 0 && trucksToShow.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No trucks match your current filters.</p>
               <p className="text-gray-400">Try adjusting your search criteria.</p>

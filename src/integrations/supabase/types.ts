@@ -86,6 +86,7 @@ export type Database = {
       trucks: {
         Row: {
           brand: string
+          category: string | null
           condition: string
           created_at: string | null
           description: string
@@ -103,6 +104,7 @@ export type Database = {
         }
         Insert: {
           brand: string
+          category?: string | null
           condition: string
           created_at?: string | null
           description: string
@@ -120,6 +122,7 @@ export type Database = {
         }
         Update: {
           brand?: string
+          category?: string | null
           condition?: string
           created_at?: string | null
           description?: string
