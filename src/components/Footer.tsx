@@ -1,6 +1,8 @@
+
 import { Link } from "react-router-dom";
-import { Truck, Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+
 const Footer = () => {
   return <footer className="text-white my-0 mx-0 px-[20px] py-[50px] bg-orange-500">
       <div className="container mx-auto px-6">
@@ -9,7 +11,11 @@ const Footer = () => {
           <div className="py-0">
             <div className="flex items-center space-x-2 mb-4">
               <div className="p-2 rounded-lg py-0 bg-orange-500">
-                <Truck className="h-6 w-6 text-white" />
+                <img 
+                  src="/lovable-uploads/f7e0c7af-aa58-4de9-b8df-dd8b2f1b46c6.png" 
+                  alt="LEGA Logo" 
+                  className="h-8 w-auto brightness-0 invert"
+                />
               </div>
             </div>
             
@@ -85,4 +91,5 @@ const Footer = () => {
       </div>
     </footer>;
 };
+
 export default Footer;

@@ -45,9 +45,9 @@ const Navbar = () => {
         <div className="flex justify-between items-center py-4 mx-0">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
-            <div className={`p-2 rounded-lg transition-colors ${isScrolled ? 'bg-white group-hover:bg-gray-100' : 'bg-white/20 group-hover:bg-white/30'}`}>
+            <div className={`p-2 rounded-lg transition-colors ${isScrolled ? 'bg-white/10 group-hover:bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
               <img 
-                src="/lovable-uploads/cd2cb3eb-5eaf-4aa6-af0d-ed6eb0d06a72.png" 
+                src="/lovable-uploads/f7e0c7af-aa58-4de9-b8df-dd8b2f1b46c6.png" 
                 alt="LEGA Logo" 
                 className="h-8 w-auto"
               />
