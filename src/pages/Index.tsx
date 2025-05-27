@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +8,10 @@ import { useTrucks } from "@/hooks/useTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Autoplay from "embla-carousel-autoplay";
-
 const Index = () => {
-  const { data: trucks } = useTrucks();
-  
+  const {
+    data: trucks
+  } = useTrucks();
   const featuredTrucks = [{
     id: 1,
     name: "Heavy Duty Titan",
@@ -38,7 +37,6 @@ const Index = () => {
 
   // Get unique brands from the trucks database
   const uniqueBrands = trucks ? [...new Set(trucks.map(truck => truck.brand))] : [];
-
   return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Navbar />
       
@@ -131,23 +129,16 @@ const Index = () => {
       {/* Truck Brands Carousel */}
       <section className="bg-white py-[90px]">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Our Truck Brands</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Brands</h2>
           <div className="flex justify-center">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              plugins={[
-                Autoplay({
-                  delay: 2000,
-                }),
-              ]}
-              className="w-full max-w-5xl"
-            >
+            <Carousel opts={{
+            align: "start",
+            loop: true
+          }} plugins={[Autoplay({
+            delay: 2000
+          })]} className="w-full max-w-5xl">
               <CarouselContent className="-ml-2 md:-ml-4">
-                {uniqueBrands.length > 0 ? uniqueBrands.map((brand, index) => (
-                  <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
+                {uniqueBrands.length > 0 ? uniqueBrands.map((brand, index) => <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                     <div className="p-1">
                       <Card className="border-0 shadow-none">
                         <CardContent className="flex aspect-square items-center justify-center p-6">
@@ -162,11 +153,9 @@ const Index = () => {
                         </CardContent>
                       </Card>
                     </div>
-                  </CarouselItem>
-                )) : (
-                  // Fallback brands if no trucks in database
-                  ['Volvo', 'Scania', 'Mercedes', 'MAN', 'Iveco', 'DAF'].map((brand, index) => (
-                    <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
+                  </CarouselItem>) :
+              // Fallback brands if no trucks in database
+              ['Volvo', 'Scania', 'Mercedes', 'MAN', 'Iveco', 'DAF'].map((brand, index) => <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                       <div className="p-1">
                         <Card className="border-0 shadow-none">
                           <CardContent className="flex aspect-square items-center justify-center p-6">
@@ -181,9 +170,7 @@ const Index = () => {
                           </CardContent>
                         </Card>
                       </div>
-                    </CarouselItem>
-                  ))
-                )}
+                    </CarouselItem>)}
               </CarouselContent>
             </Carousel>
           </div>
