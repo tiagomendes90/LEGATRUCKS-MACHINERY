@@ -1,4 +1,5 @@
 
+
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
 const Footer = () => {
@@ -49,7 +50,7 @@ const Footer = () => {
           {/* Google Maps - replacing the contact column */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Location</h3>
-            <div className="w-full h-48 rounded-lg overflow-hidden">
+            <div className="w-full h-32 rounded-lg overflow-hidden">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3048.7637956098767!2d-8.426515284616394!3d40.21101797938528!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd22f8f6b2f5f5b7%3A0x1234567890abcdef!2sCoimbra%2C%20Portugal!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus"
                 width="100%"
@@ -71,3 +72,4 @@ const Footer = () => {
     </footer>;
 };
 export default Footer;
+
