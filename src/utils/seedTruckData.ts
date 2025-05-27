@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -239,10 +238,7 @@ const truckSeedData = [
 // Function to seed the database with predefined truck data
 export const seedTruckDatabase = async () => {
   try {
-    // Clear confirmation with the user before proceeding
-    if (!window.confirm("This will add 15 sample trucks to your database. Proceed?")) {
-      return;
-    }
+    console.log("Starting to seed database with sample trucks...");
     
     // Insert each truck into the database
     for (const truck of truckSeedData) {
@@ -277,3 +273,6 @@ export const seedTruckDatabase = async () => {
     console.error("Error seeding database:", error);
   }
 };
+
+// Auto-run the seeding function when this module is imported
+seedTruckDatabase();
