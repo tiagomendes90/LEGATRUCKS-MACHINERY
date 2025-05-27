@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
 const Footer = () => {
@@ -26,18 +27,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Services */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Services</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li>Sales & Leasing</li>
-              <li>Maintenance & Repair</li>
-              <li>Parts & Accessories</li>
-              <li>Financing Options</li>
-            </ul>
-          </div>
-
-          {/* Contact Info */}
+          {/* Contact Info - moved from 4th column to 3rd */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <div className="space-y-3">
@@ -53,6 +43,23 @@ const Footer = () => {
                 <MapPin className="h-4 w-4" />
                 <span className="text-slate-50">123 Industrial Ave, City, ST 12345</span>
               </div>
+            </div>
+          </div>
+
+          {/* Google Maps - replacing the contact column */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Location</h3>
+            <div className="w-full h-48 rounded-lg overflow-hidden">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3048.7637956098767!2d-8.426515284616394!3d40.21101797938528!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd22f8f6b2f5f5b7%3A0x1234567890abcdef!2sCoimbra%2C%20Portugal!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="rounded-lg"
+              ></iframe>
             </div>
           </div>
         </div>
