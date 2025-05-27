@@ -21,6 +21,13 @@ const TruckCategory = () => {
           name: "Titan Heavy Hauler",
           price: "$125,000",
           priceNumber: 125000,
+          year: 2022,
+          mileage: 45000,
+          brand: "volvo",
+          condition: "used",
+          engine: "cummins-x15",
+          transmission: "manual",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
           specs: ["40-ton capacity", "Cummins X15 Engine", "18-speed transmission", "Air suspension"]
         },
@@ -29,6 +36,13 @@ const TruckCategory = () => {
           name: "MaxLoad Pro",
           price: "$135,000",
           priceNumber: 135000,
+          year: 2023,
+          mileage: 25000,
+          brand: "scania",
+          condition: "certified",
+          engine: "detroit-dd15",
+          transmission: "automated-manual",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
           specs: ["45-ton capacity", "Detroit DD15 Engine", "Automated transmission", "Advanced safety systems"]
         },
@@ -37,6 +51,13 @@ const TruckCategory = () => {
           name: "Industrial Beast",
           price: "$145,000",
           priceNumber: 145000,
+          year: 2024,
+          mileage: 12000,
+          brand: "caterpillar",
+          condition: "new",
+          engine: "caterpillar-c15",
+          transmission: "automatic",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
           specs: ["50-ton capacity", "Caterpillar C15 Engine", "Heavy-duty chassis", "Off-road capability"]
         }
@@ -51,6 +72,13 @@ const TruckCategory = () => {
           name: "Regional Express",
           price: "$75,000",
           priceNumber: 75000,
+          year: 2021,
+          mileage: 65000,
+          brand: "daf",
+          condition: "used",
+          engine: "paccar-px-9",
+          transmission: "manual",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&h=300&fit=crop",
           specs: ["25-ton capacity", "Paccar PX-9 Engine", "10-speed transmission", "Fuel efficient design"]
         },
@@ -59,6 +87,13 @@ const TruckCategory = () => {
           name: "Urban Hauler",
           price: "$85,000",
           priceNumber: 85000,
+          year: 2022,
+          mileage: 35000,
+          brand: "iveco",
+          condition: "certified",
+          engine: "cummins-x15",
+          transmission: "automatic",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=500&h=300&fit=crop",
           specs: ["30-ton capacity", "Cummins B6.7 Engine", "City-optimized steering", "Low emission certified"]
         },
@@ -67,6 +102,13 @@ const TruckCategory = () => {
           name: "Fleet Master",
           price: "$80,000",
           priceNumber: 80000,
+          year: 2023,
+          mileage: 18000,
+          brand: "volvo",
+          condition: "used",
+          engine: "volvo-d13",
+          transmission: "automated-manual",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=500&h=300&fit=crop",
           specs: ["28-ton capacity", "Volvo D8 Engine", "Comfortable cab", "Advanced telematics"]
         }
@@ -81,6 +123,13 @@ const TruckCategory = () => {
           name: "City Runner",
           price: "$45,000",
           priceNumber: 45000,
+          year: 2020,
+          mileage: 85000,
+          brand: "ford",
+          condition: "used",
+          engine: "ford-ecoboost",
+          transmission: "manual",
+          fuel: "gasoline",
           image: "https://images.unsplash.com/photo-1615729947596-a598e5de0ab3?w=500&h=300&fit=crop",
           specs: ["10-ton capacity", "Ford EcoBoost Engine", "6-speed manual", "Compact design"]
         },
@@ -89,6 +138,13 @@ const TruckCategory = () => {
           name: "Delivery Pro",
           price: "$52,000",
           priceNumber: 52000,
+          year: 2021,
+          mileage: 42000,
+          brand: "isuzu",
+          condition: "certified",
+          engine: "isuzu-4hk1",
+          transmission: "automatic",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=500&h=300&fit=crop",
           specs: ["12-ton capacity", "Isuzu 4HK1 Engine", "Automatic transmission", "Easy loading design"]
         },
@@ -97,6 +153,13 @@ const TruckCategory = () => {
           name: "Urban Express",
           price: "$48,000",
           priceNumber: 48000,
+          year: 2022,
+          mileage: 28000,
+          brand: "chevrolet",
+          condition: "used",
+          engine: "chevrolet-duramax",
+          transmission: "automatic",
+          fuel: "diesel",
           image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
           specs: ["8-ton capacity", "Chevrolet Duramax", "Excellent fuel economy", "Tight turning radius"]
         }
@@ -117,6 +180,14 @@ const TruckCategory = () => {
     searchTerm: string;
     minPrice: string;
     maxPrice: string;
+    minYear: string;
+    maxYear: string;
+    maxMileage: string;
+    engineType: string;
+    transmission: string;
+    fuelType: string;
+    condition: string;
+    brand: string;
     sortBy: string;
   }) => {
     if (!data) return;
@@ -130,12 +201,50 @@ const TruckCategory = () => {
       );
     }
 
+    // Filter by brand
+    if (filters.brand) {
+      filtered = filtered.filter(truck => truck.brand === filters.brand);
+    }
+
+    // Filter by condition
+    if (filters.condition) {
+      filtered = filtered.filter(truck => truck.condition === filters.condition);
+    }
+
     // Filter by price range
     if (filters.minPrice) {
       filtered = filtered.filter(truck => truck.priceNumber >= parseInt(filters.minPrice));
     }
     if (filters.maxPrice) {
       filtered = filtered.filter(truck => truck.priceNumber <= parseInt(filters.maxPrice));
+    }
+
+    // Filter by year range
+    if (filters.minYear) {
+      filtered = filtered.filter(truck => truck.year >= parseInt(filters.minYear));
+    }
+    if (filters.maxYear) {
+      filtered = filtered.filter(truck => truck.year <= parseInt(filters.maxYear));
+    }
+
+    // Filter by mileage
+    if (filters.maxMileage) {
+      filtered = filtered.filter(truck => truck.mileage <= parseInt(filters.maxMileage));
+    }
+
+    // Filter by engine type
+    if (filters.engineType) {
+      filtered = filtered.filter(truck => truck.engine === filters.engineType);
+    }
+
+    // Filter by transmission
+    if (filters.transmission) {
+      filtered = filtered.filter(truck => truck.transmission === filters.transmission);
+    }
+
+    // Filter by fuel type
+    if (filters.fuelType) {
+      filtered = filtered.filter(truck => truck.fuel === filters.fuelType);
     }
 
     // Sort results
@@ -146,6 +255,18 @@ const TruckCategory = () => {
           break;
         case "price-high":
           filtered.sort((a, b) => b.priceNumber - a.priceNumber);
+          break;
+        case "year-new":
+          filtered.sort((a, b) => b.year - a.year);
+          break;
+        case "year-old":
+          filtered.sort((a, b) => a.year - b.year);
+          break;
+        case "mileage-low":
+          filtered.sort((a, b) => a.mileage - b.mileage);
+          break;
+        case "mileage-high":
+          filtered.sort((a, b) => b.mileage - a.mileage);
           break;
         case "name-asc":
           filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -210,6 +331,11 @@ const TruckCategory = () => {
                 <CardHeader>
                   <CardTitle className="text-xl">{truck.name}</CardTitle>
                   <CardDescription className="text-2xl font-bold text-orange-600">{truck.price}</CardDescription>
+                  {truck.year && truck.mileage && (
+                    <div className="text-sm text-gray-500">
+                      {truck.year} • {truck.mileage.toLocaleString()} miles
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 mb-6">
