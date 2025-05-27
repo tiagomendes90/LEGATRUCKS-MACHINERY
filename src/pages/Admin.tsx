@@ -36,6 +36,7 @@ const Admin = () => {
     transmission: "",
     description: "",
     horsepower: "",
+    category: "",
     features: [] as string[],
     images: [] as string[]
   });
@@ -61,6 +62,7 @@ const Admin = () => {
       transmission: newTruck.transmission,
       description: newTruck.description,
       horsepower: parseInt(newTruck.horsepower) || 0,
+      category: newTruck.category,
       features: newTruck.features,
       images: newTruck.images
     };
@@ -78,6 +80,7 @@ const Admin = () => {
           transmission: "",
           description: "",
           horsepower: "",
+          category: "",
           features: [],
           images: []
         });
@@ -333,7 +336,7 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="condition">Condition</Label>
                       <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})}>
@@ -345,6 +348,19 @@ const Admin = () => {
                           <SelectItem value="used">Used</SelectItem>
                           <SelectItem value="certified">Certified Pre-Owned</SelectItem>
                           <SelectItem value="refurbished">Refurbished</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="category">Category</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, category: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="heavy-duty">Heavy Duty</SelectItem>
+                          <SelectItem value="medium-duty">Medium Duty</SelectItem>
+                          <SelectItem value="light-duty">Light Duty</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
