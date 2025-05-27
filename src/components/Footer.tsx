@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,21 +42,21 @@ const Footer = () => {
               <p className="text-white text-sm mb-3">
                 Subscribe to get latest news updates and informations
               </p>
-              <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+              <form onSubmit={handleNewsletterSubmit} className="relative">
                 <Input
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white pr-12"
                   required
                 />
-                <Button 
+                <button 
                   type="submit" 
-                  className="w-full bg-white text-orange-500 hover:bg-white/90 font-medium"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 transition-colors"
                 >
-                  Subscribe
-                </Button>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
               </form>
             </div>
             
