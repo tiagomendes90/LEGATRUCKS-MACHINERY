@@ -1,5 +1,4 @@
 
-
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
 const Footer = () => {
@@ -65,11 +64,10 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+        <div className="border-t border-gray-700 mt-8 pt-2 text-center text-gray-400">
           <p className="font-normal text-slate-50">© 2025 Lega. All rights reserved.</p>
         </div>
       </div>
     </footer>;
 };
 export default Footer;
-
