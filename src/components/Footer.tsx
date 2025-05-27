@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
 const Footer = () => {
-  return <footer className="text-white bg-orange-500 py-[50px]">
+  return <footer className="text-white bg-orange-500 my-0 py-[30px]">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -57,7 +57,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-1 text-center py-0 my-0 mx-0">
-          <p className="font-normal text-slate-50">
+          <p className="text-slate-50 font-thin py-0">
 
 © 2025 Lega. All rights reserved.</p>
         </div>
