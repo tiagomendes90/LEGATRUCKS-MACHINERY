@@ -24,13 +24,13 @@ const Footer = () => {
           <div>
             <div className="flex items-center mb-6">
               <img 
-                src="/lovable-uploads/d6edba1e-f8cd-45b8-ae55-992d54ea7de1.png" 
+                src="./lovable-uploads/d6edba1e-f8cd-45b8-ae55-992d54ea7de1.png" 
                 alt="LEGA Logo" 
                 className="h-10 w-auto object-contain"
                 onError={(e) => {
-                  console.log('Footer logo failed to load, trying alternative approach');
+                  console.log('Footer logo failed to load, trying without slash');
                   const target = e.target as HTMLImageElement;
-                  target.src = "/lovable-uploads/d6edba1e-f8cd-45b8-ae55-992d54ea7de1.png";
+                  target.src = "lovable-uploads/d6edba1e-f8cd-45b8-ae55-992d54ea7de1.png";
                 }}
                 onLoad={() => {
                   console.log('Footer logo loaded successfully');

@@ -46,13 +46,13 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img 
-              src="/lovable-uploads/8eb9fcab-dc27-4552-85d8-caec92deceec.png" 
+              src="./lovable-uploads/8eb9fcab-dc27-4552-85d8-caec92deceec.png" 
               alt="LEGA Logo" 
               className="h-12 w-auto object-contain"
               onError={(e) => {
-                console.log('Navbar logo failed to load, trying alternative path');
+                console.log('Navbar logo failed to load, trying without slash');
                 const target = e.target as HTMLImageElement;
-                target.src = "/lovable-uploads/8eb9fcab-dc27-4552-85d8-caec92deceec.png";
+                target.src = "lovable-uploads/8eb9fcab-dc27-4552-85d8-caec92deceec.png";
               }}
               onLoad={() => {
                 console.log('Navbar logo loaded successfully');
