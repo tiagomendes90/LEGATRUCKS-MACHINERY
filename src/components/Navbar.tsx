@@ -42,22 +42,30 @@ const Navbar = () => {
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-orange-500 shadow-lg border-b border-orange-600' : 'bg-transparent'}`}>
       <div className="container mx-auto px-6">
-        <div className="flex justify-between items-center py-4 mx-0">
+        <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <div className="p-2">
-              <img 
-                src="/lovable-uploads/f7e0c7af-aa58-4de9-b8df-dd8b2f1b46c6.png" 
-                alt="LEGA Logo" 
-                className="h-10 w-auto"
-                onError={(e) => {
-                  console.log('Logo failed to load:', e);
-                }}
-                onLoad={() => {
-                  console.log('Logo loaded successfully');
-                }}
-              />
-            </div>
+          <Link to="/" className="flex items-center group">
+            <img 
+              src="/lovable-uploads/f7e0c7af-aa58-4de9-b8df-dd8b2f1b46c6.png" 
+              alt="LEGA Logo" 
+              className="h-12 w-auto object-contain"
+              onError={(e) => {
+                console.log('Navbar logo failed to load:', e);
+                // Fallback to text if image fails
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent && !parent.querySelector('.logo-fallback')) {
+                  const fallback = document.createElement('div');
+                  fallback.className = 'logo-fallback text-white font-bold text-xl';
+                  fallback.textContent = 'LEGA';
+                  parent.appendChild(fallback);
+                }
+              }}
+              onLoad={() => {
+                console.log('Navbar logo loaded successfully');
+              }}
+            />
           </Link>
 
           {/* Desktop Navigation - Right Justified */}
