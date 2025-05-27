@@ -16,6 +16,7 @@ import Navbar from "@/components/Navbar";
 import EditTruckModal from "@/components/EditTruckModal";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import RealOrderManagement from "@/components/RealOrderManagement";
+import FeaturedTrucksManager from "@/components/FeaturedTrucksManager";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -168,8 +169,9 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="inventory" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="featured">Featured</TabsTrigger>
             <TabsTrigger value="add-truck">Add Truck</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -255,6 +257,10 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="featured">
+            <FeaturedTrucksManager />
           </TabsContent>
 
           <TabsContent value="add-truck">

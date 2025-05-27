@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,51 +5,64 @@ import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Truck, Users, Shield, Award } from "lucide-react";
 import { useTrucks } from "@/hooks/useTrucks";
+import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Autoplay from "embla-carousel-autoplay";
 
 const Index = () => {
   const { data: trucks } = useTrucks();
+  const { data: featuredTrucksData } = useFeaturedTrucks();
 
-  // Get the first 3 trucks from database as featured trucks, or fallback to static data
-  const featuredTrucks = trucks && trucks.length > 0 
-    ? trucks.slice(0, 3).map(truck => ({
-        id: truck.id,
-        name: `${truck.brand} ${truck.model}`,
-        type: truck.category?.split('-').map(word => 
+  // Use featured trucks from database, fallback to first 3 trucks, then static data
+  const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0
+    ? featuredTrucksData.map(featured => ({
+        id: featured.trucks.id,
+        name: `${featured.trucks.brand} ${featured.trucks.model}`,
+        type: featured.trucks.category?.split('-').map(word => 
           word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' ') || 'Truck',
-        price: `$${truck.price.toLocaleString()}`,
-        image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
-        features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
+        price: `$${featured.trucks.price.toLocaleString()}`,
+        image: featured.trucks.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
+        features: featured.trucks.features?.slice(0, 3) || [`${featured.trucks.year} model`, "Premium engine", "Advanced transmission"]
       }))
-    : [
-        {
-          id: 1,
-          name: "Heavy Duty Titan",
-          type: "Heavy Duty",
-          price: "$125,000",
-          image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
-          features: ["40-ton capacity", "Diesel engine", "All-terrain"]
-        },
-        {
-          id: 2,
-          name: "Medium Duty Pro",
-          type: "Medium Duty",
-          price: "$75,000",
-          image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
-          features: ["25-ton capacity", "Fuel efficient", "City optimized"]
-        },
-        {
-          id: 3,
-          name: "Light Duty Express",
-          type: "Light Duty",
-          price: "$45,000",
-          image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
-          features: ["10-ton capacity", "Urban delivery", "Compact design"]
-        }
-      ];
+    : trucks && trucks.length > 0 
+      ? trucks.slice(0, 3).map(truck => ({
+          id: truck.id,
+          name: `${truck.brand} ${truck.model}`,
+          type: truck.category?.split('-').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ') || 'Truck',
+          price: `$${truck.price.toLocaleString()}`,
+          image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
+          features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
+        }))
+      : [
+          {
+            id: 1,
+            name: "Heavy Duty Titan",
+            type: "Heavy Duty",
+            price: "$125,000",
+            image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
+            features: ["40-ton capacity", "Diesel engine", "All-terrain"]
+          },
+          {
+            id: 2,
+            name: "Medium Duty Pro",
+            type: "Medium Duty",
+            price: "$75,000",
+            image: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=300&fit=crop",
+            features: ["25-ton capacity", "Fuel efficient", "City optimized"]
+          },
+          {
+            id: 3,
+            name: "Light Duty Express",
+            type: "Light Duty",
+            price: "$45,000",
+            image: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=500&h=300&fit=crop",
+            features: ["10-ton capacity", "Urban delivery", "Compact design"]
+          }
+        ];
 
   // Get unique brands from the trucks database
   const uniqueBrands = trucks ? [...new Set(trucks.map(truck => truck.brand))] : [];
