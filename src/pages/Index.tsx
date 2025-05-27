@@ -54,7 +54,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-white">
+      <section className="bg-white py-[133px]">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center group">
