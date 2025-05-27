@@ -54,7 +54,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="bg-white py-[133px]">
+      <section className="bg-white py-[120px]">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center group">
@@ -90,7 +90,7 @@ const Index = () => {
       </section>
 
       {/* Featured Trucks */}
-      <section className="py-16 bg-slate-50">
+      <section className="bg-slate-50 py-[90px]">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Trucks</h2>
           <div className="grid md:grid-cols-3 gap-8">
