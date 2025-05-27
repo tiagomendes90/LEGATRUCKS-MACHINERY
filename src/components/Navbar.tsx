@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -57,9 +58,9 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && <div className={`lg:hidden py-4 border-t transition-colors ${isScrolled ? 'border-orange-600' : 'border-white/20'}`}>
+        {isOpen && <div className="lg:hidden py-4 border-t border-orange-600 bg-orange-500">
             <div className="flex flex-col space-y-2">
-              {navItems.map(item => <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 ${isActive(item.path) ? isScrolled ? "bg-orange-600 text-white" : "bg-white/20 text-white" : isScrolled ? "text-white hover:bg-orange-600 hover:text-white" : "text-white hover:bg-white/10 hover:text-white"}`}>
+              {navItems.map(item => <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)} className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 ${isActive(item.path) ? "bg-orange-600 text-white" : "text-white hover:bg-orange-600 hover:text-white"}`}>
                   {item.name}
                 </Link>)}
             </div>
