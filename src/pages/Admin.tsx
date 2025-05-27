@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -191,7 +192,6 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAddTruck} className="space-y-6">
-                  {/* Basic Information */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="brand">Brand</Label>
@@ -208,7 +208,7 @@ const Admin = () => {
                           <SelectItem value="iveco">Iveco</SelectItem>
                           <SelectItem value="kenworth">Kenworth</SelectItem>
                           <SelectItem value="peterbilt">Peterbilt</SelectItem>
-                          <SelectItem value="freightliner">Freightliner</Freightliner>
+                          <SelectItem value="freightliner">Freightliner</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -224,7 +224,6 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  {/* Vehicle Details */}
                   <div className="grid md:grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="year">Year</Label>
@@ -263,7 +262,6 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  {/* Condition and Engine */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="condition">Condition</Label>
@@ -292,7 +290,6 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  {/* Engine and Transmission */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="engine">Engine</Label>
@@ -326,7 +323,6 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  {/* Description */}
                   <div>
                     <Label htmlFor="description">Description</Label>
                     <Textarea
@@ -352,7 +348,6 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
-          
           <TabsContent value="orders">
             <Card>
               <CardHeader>
