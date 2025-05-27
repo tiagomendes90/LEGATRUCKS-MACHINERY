@@ -160,7 +160,7 @@ const Index = () => {
                         <Card className="border-0 shadow-none">
                           <CardContent className="flex aspect-square items-center justify-center p-6 py-0 px-0">
                             <div className="text-center">
-                              <div className="bg-gradient-to-br from-ble-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                              <div className="bg-gradient-to-br from-blue-500 to-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                                 <Truck className="h-8 w-8 text-white" />
                               </div>
                               <h3 className="text-xl font-bold text-slate-800 uppercase tracking-wider">
