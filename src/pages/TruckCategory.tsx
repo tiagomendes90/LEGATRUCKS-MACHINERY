@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -193,19 +192,15 @@ const TruckCategory = () => {
 
       <section className="py-16">
         <div className="container mx-auto px-6">
-          {/* Add filter component only for heavy-duty category */}
-          {category === "heavy-duty" && (
-            <TruckFilter onFilterChange={handleFilterChange} />
-          )}
+          {/* Add filter component for all categories */}
+          <TruckFilter onFilterChange={handleFilterChange} />
 
           {/* Results count */}
-          {category === "heavy-duty" && (
-            <div className="mb-6">
-              <p className="text-gray-600">
-                Showing {trucksToShow.length} of {categoryTrucks.length} trucks
-              </p>
-            </div>
-          )}
+          <div className="mb-6">
+            <p className="text-gray-600">
+              Showing {trucksToShow.length} of {categoryTrucks.length} trucks
+            </p>
+          </div>
 
           {/* Trucks Grid */}
           {trucksToShow.length > 0 ? (
@@ -283,7 +278,7 @@ const TruckCategory = () => {
           )}
 
           {/* No results message for filtered results */}
-          {category === "heavy-duty" && categoryTrucks.length > 0 && trucksToShow.length === 0 && (
+          {categoryTrucks.length > 0 && trucksToShow.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No trucks match your current filters.</p>
               <p className="text-gray-400">Try adjusting your search criteria.</p>
