@@ -1,6 +1,8 @@
+
 import { Link } from "react-router-dom";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+
 const Footer = () => {
   return <footer className="text-white bg-orange-500 my-0 mx-0 px-[20px] py-[50px]">
       <div className="container mx-auto px-6">
@@ -16,15 +18,14 @@ const Footer = () => {
             
           </div>
 
-          {/* Quick Links */}
+          {/* Info Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 my-0 text-white py-0">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4 my-0 text-white py-0">Info</h3>
             <Separator className="bg-white/30 mb-4 py-0 my-0" />
             <ul className="space-y-2 py-[10px]">
-              <li><Link to="/trucks/heavy-duty" className="text-white hover:text-gray-200 transition-colors">Heavy Duty Trucks</Link></li>
-              <li><Link to="/trucks/medium-duty" className="text-white hover:text-gray-200 transition-colors">Medium Duty Trucks</Link></li>
-              <li><Link to="/trucks/light-duty" className="text-white hover:text-gray-200 transition-colors">Light Duty Trucks</Link></li>
-              <li><Link to="/about" className="text-white hover:text-gray-200 transition-colors">About Us</Link></li>
+              <li><Link to="/terms" className="text-white hover:text-gray-200 transition-colors">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="text-white hover:text-gray-200 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/admin" className="text-white hover:text-gray-200 transition-colors">Admin</Link></li>
             </ul>
           </div>
 
@@ -66,4 +67,5 @@ const Footer = () => {
       </div>
     </footer>;
 };
+
 export default Footer;
