@@ -45,11 +45,17 @@ const Navbar = () => {
         <div className="flex justify-between items-center py-4 mx-0">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
-            <div className={`p-2 rounded-lg transition-colors ${isScrolled ? 'bg-white/10 group-hover:bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+            <div className="p-2">
               <img 
                 src="/lovable-uploads/f7e0c7af-aa58-4de9-b8df-dd8b2f1b46c6.png" 
                 alt="LEGA Logo" 
-                className="h-8 w-auto"
+                className="h-10 w-auto"
+                onError={(e) => {
+                  console.log('Logo failed to load:', e);
+                }}
+                onLoad={() => {
+                  console.log('Logo loaded successfully');
+                }}
               />
             </div>
           </Link>

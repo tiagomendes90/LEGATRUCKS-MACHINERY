@@ -14,7 +14,13 @@ const Footer = () => {
                 <img 
                   src="/lovable-uploads/f7e0c7af-aa58-4de9-b8df-dd8b2f1b46c6.png" 
                   alt="LEGA Logo" 
-                  className="h-8 w-auto brightness-0 invert"
+                  className="h-8 w-auto filter brightness-0 invert"
+                  onError={(e) => {
+                    console.log('Footer logo failed to load:', e);
+                  }}
+                  onLoad={() => {
+                    console.log('Footer logo loaded successfully');
+                  }}
                 />
               </div>
             </div>
