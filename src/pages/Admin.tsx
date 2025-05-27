@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,16 +7,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTrucks, useAddTruck, useDeleteTruck } from "@/hooks/useTrucks";
+import { useTrucks, useAddTruck, useDeleteTruck, Truck } from "@/hooks/useTrucks";
+import { useUpdateTruck } from "@/hooks/useUpdateTruck";
 import Navbar from "@/components/Navbar";
+import EditTruckModal from "@/components/EditTruckModal";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import OrderManagement from "@/components/OrderManagement";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
   const addTruckMutation = useAddTruck();
   const deleteTruckMutation = useDeleteTruck();
+  const updateTruckMutation = useUpdateTruck();
   const { signOut, user } = useAuth();
 
   const [newTruck, setNewTruck] = useState({
@@ -34,6 +38,11 @@ const Admin = () => {
     features: [] as string[],
     images: [] as string[]
   });
+
+  const [editingTruck, setEditingTruck] = useState<Truck | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [conditionFilter, setConditionFilter] = useState("all");
 
   const { toast } = useToast();
 
@@ -79,6 +88,17 @@ const Admin = () => {
     deleteTruckMutation.mutate(id);
   };
 
+  const handleEditTruck = (truck: Truck) => {
+    setEditingTruck(truck);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = (updates: Partial<Truck>) => {
+    if (editingTruck) {
+      updateTruckMutation.mutate({ id: editingTruck.id, updates });
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     toast({
@@ -87,11 +107,18 @@ const Admin = () => {
     });
   };
 
+  const filteredTrucks = trucks.filter(truck => {
+    const matchesSearch = truck.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         truck.model.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCondition = conditionFilter === "all" || truck.condition === conditionFilter;
+    return matchesSearch && matchesCondition;
+  });
+
   const stats = [
     { title: "Total Inventory", value: trucks.length.toString(), icon: <Package className="h-8 w-8" />, color: "bg-blue-500" },
-    { title: "Monthly Sales", value: "$2.4M", icon: <DollarSign className="h-8 w-8" />, color: "bg-green-500" },
-    { title: "Active Customers", value: "1,234", icon: <Users className="h-8 w-8" />, color: "bg-purple-500" },
-    { title: "Growth Rate", value: "+15%", icon: <BarChart3 className="h-8 w-8" />, color: "bg-orange-500" }
+    { title: "Total Value", value: `$${(trucks.reduce((sum, truck) => sum + truck.price, 0) / 1000000).toFixed(1)}M`, icon: <DollarSign className="h-8 w-8" />, color: "bg-green-500" },
+    { title: "Avg. Price", value: `$${trucks.length > 0 ? Math.round(trucks.reduce((sum, truck) => sum + truck.price, 0) / trucks.length / 1000) : 0}K`, icon: <BarChart3 className="h-8 w-8" />, color: "bg-purple-500" },
+    { title: "New Trucks", value: trucks.filter(truck => truck.condition === "new").length.toString(), icon: <Users className="h-8 w-8" />, color: "bg-orange-500" }
   ];
 
   if (isLoading) {
@@ -148,22 +175,60 @@ const Admin = () => {
           <TabsContent value="inventory">
             <Card>
               <CardHeader>
-                <CardTitle>Truck Inventory</CardTitle>
-                <CardDescription>Manage your truck inventory and update availability</CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Truck Inventory</CardTitle>
+                    <CardDescription>Manage your truck inventory and update availability</CardDescription>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        placeholder="Search trucks..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 w-64"
+                      />
+                    </div>
+                    <Select value={conditionFilter} onValueChange={setConditionFilter}>
+                      <SelectTrigger className="w-40">
+                        <Filter className="h-4 w-4 mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Conditions</SelectItem>
+                        <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="used">Used</SelectItem>
+                        <SelectItem value="certified">Certified</SelectItem>
+                        <SelectItem value="refurbished">Refurbished</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {trucks.map((truck) => (
+                  {filteredTrucks.map((truck) => (
                     <div key={truck.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{truck.brand} {truck.model}</h3>
-                        <p className="text-gray-600">{truck.year} • {truck.condition}</p>
-                        <p className="font-medium text-green-600">${truck.price.toLocaleString()}</p>
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <h3 className="font-semibold text-lg">{truck.brand} {truck.model}</h3>
+                            <p className="text-gray-600">{truck.year} • {truck.condition} • {truck.mileage?.toLocaleString()} miles</p>
+                            <p className="font-medium text-green-600">${truck.price.toLocaleString()}</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <Badge variant="default">Available</Badge>
+                        <Badge variant={truck.condition === "new" ? "default" : "secondary"}>
+                          {truck.condition}
+                        </Badge>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditTruck(truck)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -179,6 +244,11 @@ const Admin = () => {
                       </div>
                     </div>
                   ))}
+                  {filteredTrucks.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      No trucks found matching your criteria.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -349,67 +419,23 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="orders">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Orders</CardTitle>
-                <CardDescription>Track and manage customer orders</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold">Order #1001</h3>
-                      <Badge>Pending</Badge>
-                    </div>
-                    <p className="text-gray-600">Heavy Duty Titan - ABC Logistics</p>
-                    <p className="text-sm text-gray-500">Order Date: Nov 20, 2024</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold">Order #1002</h3>
-                      <Badge variant="secondary">Completed</Badge>
-                    </div>
-                    <p className="text-gray-600">Medium Pro - XYZ Transport</p>
-                    <p className="text-sm text-gray-500">Order Date: Nov 18, 2024</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <OrderManagement />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Business Analytics</CardTitle>
-                <CardDescription>Track your business performance and insights</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="p-6 bg-blue-50 rounded-lg">
-                    <h3 className="font-semibold text-lg mb-2">Sales Trends</h3>
-                    <p className="text-3xl font-bold text-blue-600">+15%</p>
-                    <p className="text-sm text-gray-600">vs last month</p>
-                  </div>
-                  <div className="p-6 bg-green-50 rounded-lg">
-                    <h3 className="font-semibold text-lg mb-2">Revenue</h3>
-                    <p className="text-3xl font-bold text-green-600">$2.4M</p>
-                    <p className="text-sm text-gray-600">This month</p>
-                  </div>
-                  <div className="p-6 bg-purple-50 rounded-lg">
-                    <h3 className="font-semibold text-lg mb-2">Top Category</h3>
-                    <p className="text-3xl font-bold text-purple-600">Heavy Duty</p>
-                    <p className="text-sm text-gray-600">45% of sales</p>
-                  </div>
-                  <div className="p-6 bg-orange-50 rounded-lg">
-                    <h3 className="font-semibold text-lg mb-2">Customer Satisfaction</h3>
-                    <p className="text-3xl font-bold text-orange-600">4.8/5</p>
-                    <p className="text-sm text-gray-600">Average rating</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AnalyticsDashboard />
           </TabsContent>
         </Tabs>
+
+        <EditTruckModal 
+          truck={editingTruck}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingTruck(null);
+          }}
+          onSave={handleSaveEdit}
+        />
       </div>
     </div>
   );
