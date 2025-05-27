@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -200,7 +199,7 @@ const TruckCategory = () => {
       <Navbar />
       
       {/* Category Header */}
-      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-16">
+      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-16 mt-20">
         <div className="container mx-auto px-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{data.title}</h1>
           <p className="text-xl text-blue-100 max-w-3xl">{data.description}</p>
