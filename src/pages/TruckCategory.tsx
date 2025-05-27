@@ -1,17 +1,22 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TruckFilter from "@/components/TruckFilter";
 import { useTrucks } from "@/hooks/useTrucks";
 
+const TRUCKS_PER_PAGE = 12;
+
 const TruckCategory = () => {
   const { category } = useParams();
   const { data: allTrucks, isLoading, error } = useTrucks();
   const [filteredTrucks, setFilteredTrucks] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const categoryData = {
     "heavy-duty": {
@@ -35,6 +40,7 @@ const TruckCategory = () => {
     if (allTrucks && category) {
       const categoryTrucks = allTrucks.filter(truck => truck.category === category);
       setFilteredTrucks(categoryTrucks);
+      setCurrentPage(1); // Reset to first page when category changes
     }
   }, [allTrucks, category]);
 
@@ -137,6 +143,20 @@ const TruckCategory = () => {
     }
 
     setFilteredTrucks(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  // Calculate pagination
+  const categoryTrucks = allTrucks ? allTrucks.filter(truck => truck.category === category) : [];
+  const trucksToShow = filteredTrucks.length > 0 ? filteredTrucks : categoryTrucks;
+  const totalPages = Math.ceil(trucksToShow.length / TRUCKS_PER_PAGE);
+  const startIndex = (currentPage - 1) * TRUCKS_PER_PAGE;
+  const endIndex = startIndex + TRUCKS_PER_PAGE;
+  const currentTrucks = trucksToShow.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (isLoading) {
@@ -175,9 +195,6 @@ const TruckCategory = () => {
     );
   }
 
-  const categoryTrucks = allTrucks ? allTrucks.filter(truck => truck.category === category) : [];
-  const trucksToShow = filteredTrucks.length > 0 ? filteredTrucks : categoryTrucks;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -195,81 +212,132 @@ const TruckCategory = () => {
           {/* Add filter component for all categories */}
           <TruckFilter onFilterChange={handleFilterChange} />
 
-          {/* Results count */}
-          <div className="mb-6">
+          {/* Results count and pagination info */}
+          <div className="mb-6 flex justify-between items-center">
             <p className="text-gray-600">
-              Showing {trucksToShow.length} of {categoryTrucks.length} trucks
+              Showing {startIndex + 1}-{Math.min(endIndex, trucksToShow.length)} of {trucksToShow.length} trucks
+              {totalPages > 1 && (
+                <span className="ml-2 text-gray-500">
+                  (Page {currentPage} of {totalPages})
+                </span>
+              )}
             </p>
           </div>
 
           {/* Trucks Grid */}
-          {trucksToShow.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {trucksToShow.map((truck) => (
-                <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={truck.images && truck.images.length > 0 ? truck.images[0] : "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop"} 
-                      alt={truck.model}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <Badge className="absolute top-4 left-4 bg-blue-600">
-                      {data.title.split(' ')[0]} {data.title.split(' ')[1]}
-                    </Badge>
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-xl">{truck.brand} {truck.model}</CardTitle>
-                    <CardDescription className="text-2xl font-bold text-orange-600">
-                      ${truck.price.toLocaleString()}
-                    </CardDescription>
-                    <div className="text-sm text-gray-500">
-                      {truck.year} • {truck.mileage ? truck.mileage.toLocaleString() : '0'} miles
+          {currentTrucks.length > 0 ? (
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+                {currentTrucks.map((truck) => (
+                  <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+                    <div className="relative overflow-hidden">
+                      <img 
+                        src={truck.images && truck.images.length > 0 ? truck.images[0] : "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop"} 
+                        alt={truck.model}
+                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <Badge className="absolute top-4 left-4 bg-blue-600">
+                        {data.title.split(' ')[0]} {data.title.split(' ')[1]}
+                      </Badge>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 mb-6">
-                      {truck.features && truck.features.length > 0 ? (
-                        truck.features.slice(0, 4).map((feature, index) => (
-                          <div key={index} className="flex items-center text-sm text-gray-600">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                            {feature}
-                          </div>
-                        ))
-                      ) : (
-                        <>
-                          <div className="flex items-center text-sm text-gray-600">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                            {truck.engine} Engine
-                          </div>
-                          <div className="flex items-center text-sm text-gray-600">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                            {truck.transmission} Transmission
-                          </div>
-                          <div className="flex items-center text-sm text-gray-600">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                            {truck.condition} Condition
-                          </div>
-                          {truck.horsepower && (
+                    <CardHeader>
+                      <CardTitle className="text-xl">{truck.brand} {truck.model}</CardTitle>
+                      <CardDescription className="text-2xl font-bold text-orange-600">
+                        ${truck.price.toLocaleString()}
+                      </CardDescription>
+                      <div className="text-sm text-gray-500">
+                        {truck.year} • {truck.mileage ? truck.mileage.toLocaleString() : '0'} miles
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 mb-6">
+                        {truck.features && truck.features.length > 0 ? (
+                          truck.features.slice(0, 4).map((feature, index) => (
+                            <div key={index} className="flex items-center text-sm text-gray-600">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                              {feature}
+                            </div>
+                          ))
+                        ) : (
+                          <>
                             <div className="flex items-center text-sm text-gray-600">
                               <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                              {truck.horsepower} HP
+                              {truck.engine} Engine
                             </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button className="flex-1 bg-slate-800 hover:bg-slate-700">
-                        View Details
-                      </Button>
-                      <Button variant="outline" className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
-                        Get Quote
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                              {truck.transmission} Transmission
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                              {truck.condition} Condition
+                            </div>
+                            {truck.horsepower && (
+                              <div className="flex items-center text-sm text-gray-600">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                                {truck.horsepower} HP
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button className="flex-1 bg-slate-800 hover:bg-slate-700">
+                          View Details
+                        </Button>
+                        <Button variant="outline" className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
+                          Get Quote
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage > 1) handlePageChange(currentPage - 1);
+                        }}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(page);
+                          }}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                        }}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No {data.title.toLowerCase()} found.</p>
