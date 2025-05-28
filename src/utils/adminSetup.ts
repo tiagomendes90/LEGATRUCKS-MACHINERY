@@ -29,7 +29,7 @@ export const ensureAdminProfile = async () => {
 
   if (!existingProfile) {
     console.log('Creating new admin profile...');
-    // Create new profile
+    // Create new profile with proper error handling
     const { data: newProfile, error: createError } = await supabase
       .from('profiles')
       .insert([{
@@ -42,6 +42,21 @@ export const ensureAdminProfile = async () => {
 
     if (createError) {
       console.error('Error creating profile:', createError);
+      // If it's a unique constraint violation, the profile might already exist
+      if (createError.code === '23505') {
+        console.log('Profile already exists, fetching it...');
+        const { data: fetchedProfile, error: refetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (refetchError) {
+          throw refetchError;
+        }
+        
+        return fetchedProfile;
+      }
       throw createError;
     }
 
