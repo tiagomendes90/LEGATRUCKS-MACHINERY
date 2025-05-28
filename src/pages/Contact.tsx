@@ -9,7 +9,6 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -19,13 +18,14 @@ const Contact = () => {
     interest: "",
     message: ""
   });
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
       title: "Message Sent!",
-      description: "Thank you for your inquiry. Our team will contact you within 24 hours.",
+      description: "Thank you for your inquiry. Our team will contact you within 24 hours."
     });
     setFormData({
       name: "",
@@ -36,17 +36,17 @@ const Contact = () => {
       message: ""
     });
   };
-
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-16">
+      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[130px]">
         <div className="container mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
@@ -71,55 +71,28 @@ const Contact = () => {
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          value={formData.name}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
-                          placeholder="John Doe"
-                          required
-                          className="mt-1"
-                        />
+                        <Input id="name" value={formData.name} onChange={e => handleInputChange("name", e.target.value)} placeholder="John Doe" required className="mt-1" />
                       </div>
                       <div>
                         <Label htmlFor="email">Email Address *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange("email", e.target.value)}
-                          placeholder="john@company.com"
-                          required
-                          className="mt-1"
-                        />
+                        <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange("email", e.target.value)} placeholder="john@company.com" required className="mt-1" />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange("phone", e.target.value)}
-                          placeholder="(555) 123-4567"
-                          className="mt-1"
-                        />
+                        <Input id="phone" value={formData.phone} onChange={e => handleInputChange("phone", e.target.value)} placeholder="(555) 123-4567" className="mt-1" />
                       </div>
                       <div>
                         <Label htmlFor="company">Company Name</Label>
-                        <Input
-                          id="company"
-                          value={formData.company}
-                          onChange={(e) => handleInputChange("company", e.target.value)}
-                          placeholder="Your Company"
-                          className="mt-1"
-                        />
+                        <Input id="company" value={formData.company} onChange={e => handleInputChange("company", e.target.value)} placeholder="Your Company" className="mt-1" />
                       </div>
                     </div>
 
                     <div>
                       <Label htmlFor="interest">What are you interested in?</Label>
-                      <Select onValueChange={(value) => handleInputChange("interest", value)}>
+                      <Select onValueChange={value => handleInputChange("interest", value)}>
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select truck type" />
                         </SelectTrigger>
@@ -136,14 +109,7 @@ const Contact = () => {
 
                     <div>
                       <Label htmlFor="message">Message</Label>
-                      <Textarea
-                        id="message"
-                        value={formData.message}
-                        onChange={(e) => handleInputChange("message", e.target.value)}
-                        placeholder="Tell us about your truck needs, budget, timeline, or any questions you have..."
-                        rows={5}
-                        className="mt-1"
-                      />
+                      <Textarea id="message" value={formData.message} onChange={e => handleInputChange("message", e.target.value)} placeholder="Tell us about your truck needs, budget, timeline, or any questions you have..." rows={5} className="mt-1" />
                     </div>
 
                     <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
@@ -225,8 +191,6 @@ const Contact = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Contact;
