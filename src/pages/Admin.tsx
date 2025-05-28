@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import RealOrderManagement from "@/components/RealOrderManagement";
 import FeaturedTrucksManager from "@/components/FeaturedTrucksManager";
 import { seedTruckDatabase } from "@/utils/seedTruckData";
+import { ensureAdminProfile } from "@/utils/adminSetup";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -47,6 +48,27 @@ const Admin = () => {
   const [conditionFilter, setConditionFilter] = useState("all");
 
   const { toast } = useToast();
+
+  // Ensure admin profile on component mount
+  useEffect(() => {
+    const setupAdmin = async () => {
+      if (user) {
+        try {
+          await ensureAdminProfile();
+          console.log('Admin profile ensured');
+        } catch (error) {
+          console.error('Failed to ensure admin profile:', error);
+          toast({
+            title: "Profile Setup Error",
+            description: "Failed to set up admin profile. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    setupAdmin();
+  }, [user, toast]);
 
   const handleAddTruck = (e: React.FormEvent) => {
     e.preventDefault();

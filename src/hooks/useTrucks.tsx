@@ -26,12 +26,17 @@ export const useTrucks = () => {
   return useQuery({
     queryKey: ['trucks'],
     queryFn: async () => {
+      console.log('Fetching trucks...');
       const { data, error } = await supabase
         .from('trucks')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching trucks:', error);
+        throw error;
+      }
+      console.log('Trucks fetched successfully:', data?.length || 0);
       return data as Truck[];
     },
   });
@@ -43,13 +48,46 @@ export const useAddTruck = () => {
 
   return useMutation({
     mutationFn: async (truck: Omit<Truck, 'id' | 'created_at' | 'updated_at'>) => {
+      console.log('Attempting to add truck:', truck.brand, truck.model);
+      
+      // First check if user is logged in and has admin role
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('You must be logged in to add trucks');
+      }
+
+      console.log('User authenticated:', user.email);
+
+      // Check user profile and role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw new Error('Unable to verify user permissions');
+      }
+
+      if (!profile || profile.role !== 'admin') {
+        throw new Error('You must be an admin to add trucks');
+      }
+
+      console.log('User has admin role, proceeding with truck creation');
+
       const { data, error } = await supabase
         .from('trucks')
         .insert([truck])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting truck:', error);
+        throw error;
+      }
+      
+      console.log('Truck added successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -60,6 +98,7 @@ export const useAddTruck = () => {
       });
     },
     onError: (error: any) => {
+      console.error('Add truck mutation error:', error);
       toast({
         title: "Error",
         description: `Failed to add truck: ${error.message}`,
