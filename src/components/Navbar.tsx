@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -35,7 +36,7 @@ const Navbar = () => {
   }, []);
   return <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-orange-500 shadow-lg border-b border-orange-600' : 'bg-transparent'}`}>
       <div className="container mx-auto px-6">
-        <div className="flex justify-between items-center py-4 px-0">
+        <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img src="/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png" alt="LEGA Logo" className="h-10 w-auto object-contain" />
