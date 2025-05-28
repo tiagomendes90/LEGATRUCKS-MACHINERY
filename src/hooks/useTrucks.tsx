@@ -50,31 +50,30 @@ export const useAddTruck = () => {
     mutationFn: async (truck: Omit<Truck, 'id' | 'created_at' | 'updated_at'>) => {
       console.log('Attempting to add truck:', truck.brand, truck.model);
       
-      // First check if user is logged in and has admin role
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // First check if user is logged in
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('User authentication error:', userError);
         throw new Error('You must be logged in to add trucks');
       }
 
       console.log('User authenticated:', user.email);
 
-      // Check user profile and role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
+      // Check if user has admin role using the new is_admin function
+      const { data: isAdminResult, error: adminError } = await supabase
+        .rpc('is_admin');
 
-      if (profileError) {
-        console.error('Profile error:', profileError);
-        throw new Error('Unable to verify user permissions');
+      if (adminError) {
+        console.error('Admin check error:', adminError);
+        throw new Error('Unable to verify admin permissions');
       }
 
-      if (!profile || profile.role !== 'admin') {
+      if (!isAdminResult) {
+        console.log('User is not admin, current user ID:', user.id);
         throw new Error('You must be an admin to add trucks');
       }
 
-      console.log('User has admin role, proceeding with truck creation');
+      console.log('User confirmed as admin, proceeding with truck creation');
 
       const { data, error } = await supabase
         .from('trucks')
