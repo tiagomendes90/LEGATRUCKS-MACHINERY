@@ -18,6 +18,7 @@ import RealOrderManagement from "@/components/RealOrderManagement";
 import FeaturedTrucksManager from "@/components/FeaturedTrucksManager";
 import { seedTruckDatabase } from "@/utils/seedTruckData";
 import { ensureAdminProfile, forceCreateAdminProfile } from "@/utils/adminSetup";
+import { supabase } from "@/integrations/supabase/client";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
