@@ -48,6 +48,7 @@ export const useAddTruck = () => {
 
   return useMutation({
     mutationFn: async (truck: Omit<Truck, 'id' | 'created_at' | 'updated_at'>) => {
+      console.log('=== STARTING TRUCK ADDITION PROCESS ===');
       console.log('Attempting to add truck:', truck.brand, truck.model);
       
       // First check if user is logged in
@@ -57,24 +58,44 @@ export const useAddTruck = () => {
         throw new Error('You must be logged in to add trucks');
       }
 
-      console.log('User authenticated:', user.email);
+      console.log('✓ User authenticated:', user.email);
+      console.log('✓ User ID:', user.id);
+
+      // Check if user profile exists
+      console.log('Checking user profile...');
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Profile check error:', profileError);
+      } else {
+        console.log('✓ User profile found:', profile);
+      }
 
       // Check if user has admin role using the new is_admin function
+      console.log('Checking admin status with is_admin function...');
       const { data: isAdminResult, error: adminError } = await supabase
         .rpc('is_admin');
 
+      console.log('Admin function result:', isAdminResult);
       if (adminError) {
-        console.error('Admin check error:', adminError);
+        console.error('❌ Admin check error:', adminError);
         throw new Error('Unable to verify admin permissions');
       }
 
       if (!isAdminResult) {
-        console.log('User is not admin, current user ID:', user.id);
+        console.log('❌ User is not admin');
+        console.log('Current user ID:', user.id);
+        console.log('Profile data:', profile);
         throw new Error('You must be an admin to add trucks');
       }
 
-      console.log('User confirmed as admin, proceeding with truck creation');
+      console.log('✓ User confirmed as admin, proceeding with truck creation');
 
+      console.log('Attempting to insert truck into database...');
       const { data, error } = await supabase
         .from('trucks')
         .insert([truck])
@@ -82,11 +103,18 @@ export const useAddTruck = () => {
         .single();
 
       if (error) {
-        console.error('Error inserting truck:', error);
+        console.error('❌ Error inserting truck:', error);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
-      console.log('Truck added successfully:', data);
+      console.log('✓ Truck added successfully:', data);
+      console.log('=== TRUCK ADDITION PROCESS COMPLETED ===');
       return data;
     },
     onSuccess: () => {
