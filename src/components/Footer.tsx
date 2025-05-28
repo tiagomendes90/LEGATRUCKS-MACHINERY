@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -106,21 +107,26 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Google Maps */}
+          {/* Location Card */}
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Location</h3>
             <Separator className="bg-white/30 mb-4" />
-            <div className="w-full h-32 rounded-lg overflow-hidden">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3048.7637956098767!2d-8.426515284616394!3d40.21101797938528!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd22f8f6b2f5f5b7%3A0x1234567890abcdef!2sCoimbra%2C%20Portugal!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade" 
-                className="rounded-lg"
-              />
+            <div className="w-full h-32 rounded-lg overflow-hidden bg-white/10 flex items-center justify-center">
+              <div className="text-center">
+                <MapPin className="h-8 w-8 text-white mx-auto mb-2" />
+                <p className="text-white text-sm">
+                  Joane, Braga<br />
+                  Portugal
+                </p>
+                <a 
+                  href="https://maps.google.com/?q=Joane,Braga,Portugal" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-white/80 hover:text-white text-xs underline mt-1 inline-block"
+                >
+                  View on Google Maps
+                </a>
+              </div>
             </div>
           </div>
         </div>
