@@ -17,7 +17,7 @@ import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import RealOrderManagement from "@/components/RealOrderManagement";
 import FeaturedTrucksManager from "@/components/FeaturedTrucksManager";
 import { seedTruckDatabase } from "@/utils/seedTruckData";
-import { ensureAdminProfile } from "@/utils/adminSetup";
+import { ensureAdminProfile, forceCreateAdminProfile } from "@/utils/adminSetup";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -49,20 +49,50 @@ const Admin = () => {
 
   const { toast } = useToast();
 
-  // Ensure admin profile on component mount
+  // Enhanced admin profile setup on component mount
   useEffect(() => {
     const setupAdmin = async () => {
       if (user) {
         try {
+          console.log('Setting up admin profile for:', user.email);
           await ensureAdminProfile();
-          console.log('Admin profile ensured');
+          console.log('Admin profile setup completed');
+          
+          // Verify the profile was created correctly
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          console.log('Current profile:', profile);
+          
+          if (!profile || profile.role !== 'admin') {
+            console.log('Profile verification failed, force creating...');
+            await forceCreateAdminProfile();
+          }
         } catch (error) {
-          console.error('Failed to ensure admin profile:', error);
+          console.error('Failed to set up admin profile:', error);
           toast({
             title: "Profile Setup Error",
-            description: "Failed to set up admin profile. Please try again.",
+            description: "Failed to set up admin profile. Attempting force creation...",
             variant: "destructive",
           });
+          
+          try {
+            await forceCreateAdminProfile();
+            toast({
+              title: "Profile Created",
+              description: "Admin profile created successfully.",
+            });
+          } catch (forceError) {
+            console.error('Force creation failed:', forceError);
+            toast({
+              title: "Critical Error",
+              description: "Unable to create admin profile. Please contact support.",
+              variant: "destructive",
+            });
+          }
         }
       }
     };
