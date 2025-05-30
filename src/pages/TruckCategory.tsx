@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +12,17 @@ import { useTrucks } from "@/hooks/useTrucks";
 const TRUCKS_PER_PAGE = 12;
 
 const TruckCategory = () => {
-  const { category } = useParams();
+  const location = useLocation();
   const { data: allTrucks, isLoading, error } = useTrucks();
   const [displayTrucks, setDisplayTrucks] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Get category from the pathname
+  const category = location.pathname.substring(1); // Remove the leading slash
+
+  console.log('Current pathname:', location.pathname);
+  console.log('Extracted category:', category);
+  console.log('All trucks:', allTrucks?.length || 0);
 
   const categoryData = {
     "trucks": {
@@ -38,7 +44,12 @@ const TruckCategory = () => {
   // Set initial trucks filtered by category when data loads
   useEffect(() => {
     if (allTrucks && category) {
-      const categoryTrucks = allTrucks.filter(truck => truck.category === category);
+      console.log('Filtering trucks for category:', category);
+      const categoryTrucks = allTrucks.filter(truck => {
+        console.log('Truck category:', truck.category, 'Target category:', category);
+        return truck.category === category;
+      });
+      console.log('Filtered trucks:', categoryTrucks.length);
       setDisplayTrucks(categoryTrucks);
       setCurrentPage(1);
     }
