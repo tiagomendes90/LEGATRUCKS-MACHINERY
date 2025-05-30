@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +17,7 @@ import RealOrderManagement from "@/components/RealOrderManagement";
 import FeaturedTrucksManager from "@/components/FeaturedTrucksManager";
 import { ensureAdminProfile, forceCreateAdminProfile } from "@/utils/adminSetup";
 import { supabase } from "@/integrations/supabase/client";
+import { useBrands } from "@/hooks/useBrands";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -25,6 +25,8 @@ const Admin = () => {
   const deleteTruckMutation = useDeleteTruck();
   const updateTruckMutation = useUpdateTruck();
   const { signOut, user } = useAuth();
+
+  const { data: allBrands = [] } = useBrands();
 
   const [newTruck, setNewTruck] = useState({
     brand: "",
@@ -335,15 +337,11 @@ const Admin = () => {
                           <SelectValue placeholder="Select brand" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="volvo">Volvo</SelectItem>
-                          <SelectItem value="scania">Scania</SelectItem>
-                          <SelectItem value="mercedes">Mercedes-Benz</SelectItem>
-                          <SelectItem value="man">MAN</SelectItem>
-                          <SelectItem value="daf">DAF</SelectItem>
-                          <SelectItem value="iveco">Iveco</SelectItem>
-                          <SelectItem value="kenworth">Kenworth</SelectItem>
-                          <SelectItem value="peterbilt">Peterbilt</SelectItem>
-                          <SelectItem value="freightliner">Freightliner</SelectItem>
+                          {allBrands.map((brand) => (
+                            <SelectItem key={brand.id} value={brand.slug}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

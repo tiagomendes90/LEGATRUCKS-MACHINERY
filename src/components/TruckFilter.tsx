@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Filter, X, ChevronDown, ChevronUp } from "lucide-react";
+import { useBrands } from "@/hooks/useBrands";
+import { useFilterOptions } from "@/hooks/useFilterOptions";
 
 interface TruckFilterProps {
   category: string;
@@ -20,41 +23,6 @@ interface TruckFilterProps {
   }) => void;
 }
 
-const brandsByCategory = {
-  trucks: [
-    "DAF", "Demag", "faun", "ford", "Freightliner", "FUSO", "Ginaf", "Grove", "Hako", 
-    "HN Schörling", "Iveco", "Kamaz", "Liebherr", "Mack", "Magirus Deutz", "MAN", 
-    "Meiller", "Mercedes Benz", "Mitsubishi", "Nissan", "Opel", "Palfinger", "Peugeot", 
-    "Renault", "Ruthmann", "Scania", "Schmidt", "Skoda", "Steyr", "Tatras", "Toyota", 
-    "Unimog", "Volkswagen", "Volvo", "Yanmar", "Other"
-  ],
-  machinery: [
-    "AUSA", "Ahlmann", "Artison", "Atlas", "Atlas Copco", "Avant Tecno", "BOMAG", "BT", 
-    "Baumann", "Bell", "Bobcat", "Brave", "CAT", "Calves", "Capricorn", "Case", "Cesab", 
-    "Chandler", "Clark", "Combilift", "Crown", "Daewoo", "Demag", "Dieci", "Ditch Witch", 
-    "Doosan", "Dresser", "Dynapac", "EP", "Eurocomach", "Fermec", "Fiat", "Furukawa", 
-    "Gehl", "Gehlmax", "General Terms and Conditions", "Grove", "Hako", "Halla", "Hamm", 
-    "Hangcha", "Hanix", "Hanomag", "Haulotte", "Hinowa", "Hitachi", "Hubtex", "Hydrema", 
-    "Hyster", "Hyundai", "IHC", "IHI", "Irion", "JCB", "JLG", "Jungheinrich", "Kaercher", 
-    "Kaeser", "Kobelco", "Komatsu", "Krupp", "Kubota", "Lansing", "Lannen", "Liebherr", 
-    "Linde", "Linden", "Locust", "Mantsinen", "Manitou", "Marooka", "Max Holland", "Mecalac", 
-    "Merlo", "Michigan", "Mitsubishi", "Moffett", "Multicar", "Neuson", "Nissan", "O&K", 
-    "OK", "Orenstein & Koppel", "Palfinger", "Pimespo", "Piquersa", "Rammax", "Sakai", 
-    "Sambron", "Schäffer", "Schaeff", "Sennebogen", "Sichelschmidt", "Simit", "Skoda", 
-    "Smitma", "SMV", "Spijkstaal", "Squid", "Stahl", "Steinbock", "Still", "Tadano", 
-    "Takeuchi", "TC", "TCM", "Terberg", "Terex", "Toyota", "Unimog", "Volvo", "Weidemann", 
-    "Wacker Neuson", "Yanmar", "Zeppelin", "Zettelmeyer", "Other"
-  ],
-  agriculture: [
-    "Accord", "Agco / Massey Ferguson", "Amazon", "Avant Tecno", "Becker", "Belarus", 
-    "miner", "Branson", "Busatis", "BvL - Van Lengerich", "Carraro", "Case", "Case IH", 
-    "Claas", "Corvus", "Deutz-Fahr", "Doll", "Dücker", "Düvelsdorf", "Eberhardt", 
-    "Eicher", "Drive", "Farmall", "Farmtech", "Fella", "Fendt", "Fiat", "Fliegl", 
-    "ford", "Progress", "Photon", "frost", "Gaspardo", "GIANT", "Goldoni", "Grimme", 
-    "Güldner", "Gutbrod"
-  ]
-};
-
 const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -66,6 +34,12 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const [sortBy, setSortBy] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [showAdditionalFilters, setShowAdditionalFilters] = useState(false);
+
+  // Fetch brands and filter options from database
+  const { data: brands = [], isLoading: brandsLoading } = useBrands(category);
+  const { data: yearOptions = [] } = useFilterOptions(category, 'year');
+  const { data: priceOptions = [] } = useFilterOptions(category, 'price');
+  const { data: hoursOptions = [] } = useFilterOptions(category, 'hours');
 
   const handleFilterChange = () => {
     onFilterChange({
@@ -103,8 +77,6 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
 
   const hasActiveFilters = brand || model || yearFrom || operatingHoursUntil || priceUntil || location || sortBy;
 
-  const currentBrands = brandsByCategory[category as keyof typeof brandsByCategory] || [];
-
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -129,14 +101,14 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Brand
             </label>
-            <Select value={brand} onValueChange={setBrand}>
+            <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
               <SelectTrigger>
-                <SelectValue placeholder="Select brand" />
+                <SelectValue placeholder={brandsLoading ? "Loading brands..." : "Select brand"} />
               </SelectTrigger>
               <SelectContent className="bg-white border shadow-lg z-50">
-                {currentBrands.map((brandName) => (
-                  <SelectItem key={brandName} value={brandName.toLowerCase().replace(/\s+/g, '-')}>
-                    {brandName}
+                {brands.map((brandItem) => (
+                  <SelectItem key={brandItem.id} value={brandItem.slug}>
+                    {brandItem.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -167,14 +139,11 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border shadow-lg z-50">
-                  <SelectItem value="2000">2000</SelectItem>
-                  <SelectItem value="2005">2005</SelectItem>
-                  <SelectItem value="2010">2010</SelectItem>
-                  <SelectItem value="2015">2015</SelectItem>
-                  <SelectItem value="2020">2020</SelectItem>
-                  <SelectItem value="2023">2023</SelectItem>
-                  <SelectItem value="2024">2024</SelectItem>
-                  <SelectItem value="2025">2025</SelectItem>
+                  {yearOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.option_value}>
+                      {option.option_label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Input
@@ -200,11 +169,11 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   <SelectValue placeholder="Select hours" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border shadow-lg z-50">
-                  <SelectItem value="1000">1,000h</SelectItem>
-                  <SelectItem value="2500">2,500h</SelectItem>
-                  <SelectItem value="5000">5,000h</SelectItem>
-                  <SelectItem value="7500">7,500h</SelectItem>
-                  <SelectItem value="10000">10,000h</SelectItem>
+                  {hoursOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.option_value}>
+                      {option.option_label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Input
@@ -247,11 +216,11 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   <SelectValue placeholder="Select price range" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border shadow-lg z-50">
-                  <SelectItem value="10000">10,000€</SelectItem>
-                  <SelectItem value="25000">25,000€</SelectItem>
-                  <SelectItem value="50000">50,000€</SelectItem>
-                  <SelectItem value="75000">75,000€</SelectItem>
-                  <SelectItem value="90000">90,000€</SelectItem>
+                  {priceOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.option_value}>
+                      {option.option_label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Input

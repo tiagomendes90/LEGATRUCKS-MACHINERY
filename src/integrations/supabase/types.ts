@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      brands: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       featured_trucks: {
         Row: {
           created_at: string
@@ -40,6 +67,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      filter_options: {
+        Row: {
+          category: string
+          created_at: string | null
+          filter_type: string
+          id: string
+          option_label: string
+          option_value: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          filter_type: string
+          id?: string
+          option_label: string
+          option_value: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          filter_type?: string
+          id?: string
+          option_label?: string
+          option_value?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       orders: {
         Row: {

@@ -17,6 +17,7 @@ export interface Truck {
   description: string;
   horsepower?: number;
   category?: string;
+  subcategory?: string; // Added subcategory field
   features?: string[];
   images?: string[];
   created_at?: string;
