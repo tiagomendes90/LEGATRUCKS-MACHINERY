@@ -9,6 +9,7 @@ import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Autoplay from "embla-carousel-autoplay";
 
 const Index = () => {
   const { data: trucks } = useTrucks();
@@ -172,11 +173,19 @@ const Index = () => {
       <section className="bg-white px-0 py-[30px]">
         <div className="container mx-auto py-0 my-0 px-[24px]">
           <div className="flex justify-center">
-            <Carousel opts={{
-              align: "start",
-              loop: true,
-              slidesToScroll: 1
-            }} className="w-full max-w-5xl">
+            <Carousel 
+              opts={{
+                align: "start",
+                loop: true,
+                slidesToScroll: 1
+              }} 
+              plugins={[
+                Autoplay({
+                  delay: 2000,
+                })
+              ]}
+              className="w-full max-w-5xl"
+            >
               <CarouselContent className="-ml-2 md:-ml-4">
                 {uniqueBrands.length > 0 ? uniqueBrands.map((brand, index) => (
                   <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
