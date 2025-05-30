@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -172,9 +171,7 @@ const Index = () => {
             <Carousel opts={{
             align: "start",
             loop: true
-          }} plugins={[Autoplay({
-            delay: 2000
-          })]} className="w-full max-w-5xl">
+          }} className="w-full max-w-5xl">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {uniqueBrands.length > 0 ? uniqueBrands.map((brand, index) => <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                     <div className="p-1">
