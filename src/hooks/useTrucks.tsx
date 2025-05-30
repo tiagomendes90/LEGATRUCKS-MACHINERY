@@ -27,7 +27,7 @@ export const useTrucks = () => {
   return useQuery({
     queryKey: ['trucks'],
     queryFn: async () => {
-      console.log('Fetching trucks...');
+      console.log('Fetching trucks from database...');
       const { data, error } = await supabase
         .from('trucks')
         .select('*')
@@ -38,7 +38,8 @@ export const useTrucks = () => {
         throw error;
       }
 
-      console.log('Trucks fetched successfully:', data?.length || 0);
+      console.log('Trucks fetched successfully:', data?.length || 0, 'trucks found');
+      // Only return what's actually in the database, don't add any default data
       return data || [];
     },
   });
