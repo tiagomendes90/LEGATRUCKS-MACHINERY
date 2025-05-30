@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,7 +113,8 @@ const Index = () => {
               <Carousel opts={{
                 align: "start",
                 loop: true,
-                slidesToScroll: 3
+                skipSnaps: false,
+                dragFree: false
               }} className="w-full">
                 <CarouselContent className="-ml-4">
                   {featuredTrucks.map((truck, index) => (
