@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Truck } from "@/hooks/useTrucks";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
+import { useBrands } from "@/hooks/useBrands";
 
 interface EditTruckModalProps {
   truck: Truck | null;
@@ -19,6 +19,7 @@ interface EditTruckModalProps {
 const EditTruckModal = ({ truck, isOpen, onClose, onSave }: EditTruckModalProps) => {
   const [formData, setFormData] = useState<Partial<Truck>>({});
   const { data: subcategoryOptions = [] } = useFilterOptions('trucks', 'subcategory');
+  const { data: brands = [] } = useBrands('trucks');
 
   useEffect(() => {
     if (truck) {
@@ -66,15 +67,11 @@ const EditTruckModal = ({ truck, isOpen, onClose, onSave }: EditTruckModalProps)
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="volvo">Volvo</SelectItem>
-                  <SelectItem value="scania">Scania</SelectItem>
-                  <SelectItem value="mercedes">Mercedes-Benz</SelectItem>
-                  <SelectItem value="man">MAN</SelectItem>
-                  <SelectItem value="daf">DAF</SelectItem>
-                  <SelectItem value="iveco">Iveco</SelectItem>
-                  <SelectItem value="kenworth">Kenworth</SelectItem>
-                  <SelectItem value="peterbilt">Peterbilt</SelectItem>
-                  <SelectItem value="freightliner">Freightliner</SelectItem>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.slug}>
+                      {brand.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
