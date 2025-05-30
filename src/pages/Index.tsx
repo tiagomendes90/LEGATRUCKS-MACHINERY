@@ -1,9 +1,8 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Truck, Users, Shield, Award } from "lucide-react";
 import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
@@ -15,7 +14,7 @@ const Index = () => {
   const { data: trucks } = useTrucks();
   const { data: featuredTrucksData } = useFeaturedTrucks();
 
-  // Use featured trucks from database, fallback to first 3 trucks from inventory
+  // Use featured trucks from database, fallback to first 6 trucks from inventory for carousel
   const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0
     ? featuredTrucksData.map(featured => ({
         id: featured.trucks.id,
@@ -28,7 +27,7 @@ const Index = () => {
         features: featured.trucks.features?.slice(0, 3) || [`${featured.trucks.year} model`, "Premium engine", "Advanced transmission"]
       }))
     : trucks && trucks.length > 0 
-      ? trucks.slice(0, 3).map(truck => ({
+      ? trucks.slice(0, 6).map(truck => ({
           id: truck.id,
           name: `${truck.brand} ${truck.model}`,
           type: truck.category?.split('-').map(word => 
@@ -105,39 +104,50 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Trucks */}
+      {/* Featured Trucks Carousel */}
       <section className="bg-slate-50 py-[90px]">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Trucks</h2>
           {featuredTrucks.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-8">
-              {featuredTrucks.map((truck, index) => (
-                <Card key={truck.id || index} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={truck.image} 
-                      alt={truck.name} 
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
-                    />
-                    <Badge className="absolute top-4 left-4 bg-blue-600">{truck.type}</Badge>
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-xl">{truck.name}</CardTitle>
-                    <CardDescription className="text-2xl font-bold text-orange-600">{truck.price}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-4">
-                      {truck.features.map((feature, index) => (
-                        <li key={index} className="text-sm text-gray-600 flex items-center">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button className="w-full bg-slate-800 hover:bg-slate-700">View Details</Button>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="relative">
+              <Carousel opts={{
+                align: "start",
+                loop: true
+              }} className="w-full max-w-7xl mx-auto">
+                <CarouselContent className="-ml-4">
+                  {featuredTrucks.map((truck, index) => (
+                    <CarouselItem key={truck.id || index} className="pl-4 md:basis-1/3">
+                      <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
+                        <div className="relative overflow-hidden">
+                          <img 
+                            src={truck.image} 
+                            alt={truck.name} 
+                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+                          />
+                          <Badge className="absolute top-4 left-4 bg-blue-600">{truck.type}</Badge>
+                        </div>
+                        <CardHeader>
+                          <CardTitle className="text-xl">{truck.name}</CardTitle>
+                          <CardDescription className="text-2xl font-bold text-orange-600">{truck.price}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-2 mb-4">
+                            {truck.features.map((feature, index) => (
+                              <li key={index} className="text-sm text-gray-600 flex items-center">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                          <Button className="w-full bg-slate-800 hover:bg-slate-700">View Details</Button>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-2" />
+                <CarouselNext className="right-2" />
+              </Carousel>
             </div>
           ) : (
             <div className="text-center py-16">
