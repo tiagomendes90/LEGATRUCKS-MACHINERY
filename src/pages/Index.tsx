@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,6 @@ import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Autoplay from "embla-carousel-autoplay";
 
 const Index = () => {
   const { data: trucks } = useTrucks();
@@ -109,14 +109,15 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Trucks</h2>
           {featuredTrucks.length > 0 ? (
-            <div className="relative">
+            <div className="relative max-w-7xl mx-auto">
               <Carousel opts={{
                 align: "start",
-                loop: true
-              }} className="w-full max-w-7xl mx-auto">
+                loop: true,
+                slidesToScroll: 3
+              }} className="w-full">
                 <CarouselContent className="-ml-4">
                   {featuredTrucks.map((truck, index) => (
-                    <CarouselItem key={truck.id || index} className="pl-4 md:basis-1/3">
+                    <CarouselItem key={truck.id || index} className="pl-4 basis-full md:basis-1/3">
                       <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
                         <div className="relative overflow-hidden">
                           <img 
@@ -145,8 +146,8 @@ const Index = () => {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
+                <CarouselPrevious className="-left-12 top-1/2 -translate-y-1/2" />
+                <CarouselNext className="-right-12 top-1/2 -translate-y-1/2" />
               </Carousel>
             </div>
           ) : (
