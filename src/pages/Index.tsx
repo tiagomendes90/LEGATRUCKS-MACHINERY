@@ -22,7 +22,7 @@ const Index = () => {
         name: `${featured.trucks.brand} ${featured.trucks.model}`,
         type: featured.trucks.category?.split('-').map(word => 
           word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ') || 'Truck',
+        ).join(' ') || 'Vehicle',
         price: `$${featured.trucks.price.toLocaleString()}`,
         image: featured.trucks.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
         features: featured.trucks.features?.slice(0, 3) || [`${featured.trucks.year} model`, "Premium engine", "Advanced transmission"]
@@ -31,9 +31,7 @@ const Index = () => {
       ? trucks.slice(0, 6).map(truck => ({
           id: truck.id,
           name: `${truck.brand} ${truck.model}`,
-          type: truck.category?.split('-').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' ') || 'Truck',
+          type: truck.category?.charAt(0).toUpperCase() + truck.category?.slice(1) || 'Vehicle',
           price: `$${truck.price.toLocaleString()}`,
           image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
           features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
@@ -108,7 +106,7 @@ const Index = () => {
       {/* Featured Trucks Carousel */}
       <section className="bg-slate-50 py-[90px]">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Trucks</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">Featured Vehicles</h2>
           {featuredTrucks.length > 0 ? (
             <div className="relative max-w-7xl mx-auto">
               <Carousel opts={{
@@ -121,24 +119,24 @@ const Index = () => {
                 }
               }} className="w-full">
                 <CarouselContent className="-ml-4">
-                  {featuredTrucks.map((truck, index) => (
-                    <CarouselItem key={truck.id || index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                  {featuredTrucks.map((vehicle, index) => (
+                    <CarouselItem key={vehicle.id || index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                       <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
                         <div className="relative overflow-hidden">
                           <img 
-                            src={truck.image} 
-                            alt={truck.name} 
+                            src={vehicle.image} 
+                            alt={vehicle.name} 
                             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
                           />
-                          <Badge className="absolute top-4 left-4 bg-blue-600">{truck.type}</Badge>
+                          <Badge className="absolute top-4 left-4 bg-blue-600">{vehicle.type}</Badge>
                         </div>
                         <CardHeader>
-                          <CardTitle className="text-xl">{truck.name}</CardTitle>
-                          <CardDescription className="text-2xl font-bold text-orange-600">{truck.price}</CardDescription>
+                          <CardTitle className="text-xl">{vehicle.name}</CardTitle>
+                          <CardDescription className="text-2xl font-bold text-orange-600">{vehicle.price}</CardDescription>
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2 mb-4">
-                            {truck.features.map((feature, index) => (
+                            {vehicle.features.map((feature, index) => (
                               <li key={index} className="text-sm text-gray-600 flex items-center">
                                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                                 {feature}
@@ -160,16 +158,16 @@ const Index = () => {
               <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Truck className="h-12 w-12 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Featured Trucks</h3>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Featured Vehicles</h3>
               <p className="text-gray-500 max-w-md mx-auto">
-                No trucks are currently featured. Add some trucks to your inventory or set featured trucks in the admin panel.
+                No vehicles are currently featured. Add some vehicles to your inventory or set featured vehicles in the admin panel.
               </p>
             </div>
           )}
         </div>
       </section>
 
-      {/* Truck Brands Carousel */}
+      {/* Vehicle Brands Carousel */}
       <section className="bg-white px-0 py-[30px]">
         <div className="container mx-auto py-0 my-0 px-[24px]">
           <div className="flex justify-center">
@@ -205,7 +203,7 @@ const Index = () => {
                     </div>
                   </CarouselItem>
                 )) :
-                // Fallback brands if no trucks in database
+                // Fallback brands if no vehicles in database
                 ['Volvo', 'Scania', 'Mercedes', 'MAN', 'Iveco', 'DAF'].map((brand, index) => (
                   <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                     <div className="p-1">

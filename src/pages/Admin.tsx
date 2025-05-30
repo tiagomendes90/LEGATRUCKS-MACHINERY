@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,7 +176,7 @@ const Admin = () => {
     { title: "Total Inventory", value: trucks.length.toString(), icon: <Package className="h-8 w-8" />, color: "bg-blue-500" },
     { title: "Total Value", value: `$${(trucks.reduce((sum, truck) => sum + truck.price, 0) / 1000000).toFixed(1)}M`, icon: <DollarSign className="h-8 w-8" />, color: "bg-green-500" },
     { title: "Avg. Price", value: `$${trucks.length > 0 ? Math.round(trucks.reduce((sum, truck) => sum + truck.price, 0) / trucks.length / 1000) : 0}K`, icon: <BarChart3 className="h-8 w-8" />, color: "bg-purple-500" },
-    { title: "New Trucks", value: trucks.filter(truck => truck.condition === "new").length.toString(), icon: <Users className="h-8 w-8" />, color: "bg-orange-500" }
+    { title: "New Vehicles", value: trucks.filter(truck => truck.condition === "new").length.toString(), icon: <Users className="h-8 w-8" />, color: "bg-orange-500" }
   ];
 
   if (isLoading) {
@@ -206,7 +207,7 @@ const Admin = () => {
               className="bg-blue-600 text-white hover:bg-blue-700"
             >
               <Database className="h-4 w-4 mr-2" />
-              Seed Sample Trucks
+              Seed Sample Vehicles
             </Button>
           </div>
         </div>
@@ -234,7 +235,7 @@ const Admin = () => {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="featured">Featured</TabsTrigger>
-            <TabsTrigger value="add-truck">Add Truck</TabsTrigger>
+            <TabsTrigger value="add-truck">Add Vehicle</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -244,14 +245,14 @@ const Admin = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Truck Inventory</CardTitle>
-                    <CardDescription>Manage your truck inventory and update availability</CardDescription>
+                    <CardTitle>Vehicle Inventory</CardTitle>
+                    <CardDescription>Manage your vehicle inventory and update availability</CardDescription>
                   </div>
                   <div className="flex gap-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Search trucks..."
+                        placeholder="Search vehicles..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 w-64"
@@ -290,6 +291,9 @@ const Admin = () => {
                         <Badge variant={truck.condition === "new" ? "default" : "secondary"}>
                           {truck.condition}
                         </Badge>
+                        <Badge variant="outline">
+                          {truck.category}
+                        </Badge>
                         <div className="flex gap-2">
                           <Button 
                             size="sm" 
@@ -313,7 +317,7 @@ const Admin = () => {
                   ))}
                   {filteredTrucks.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      No trucks found matching your criteria.
+                      No vehicles found matching your criteria.
                     </div>
                   )}
                 </div>
@@ -328,8 +332,8 @@ const Admin = () => {
           <TabsContent value="add-truck">
             <Card>
               <CardHeader>
-                <CardTitle>Add New Truck</CardTitle>
-                <CardDescription>Add a new truck to your inventory with detailed specifications</CardDescription>
+                <CardTitle>Add New Vehicle</CardTitle>
+                <CardDescription>Add a new vehicle to your inventory with detailed specifications</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAddTruck} className="space-y-6">
@@ -425,9 +429,9 @@ const Admin = () => {
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="heavy-duty">Heavy Duty</SelectItem>
-                          <SelectItem value="medium-duty">Medium Duty</SelectItem>
-                          <SelectItem value="light-duty">Light Duty</SelectItem>
+                          <SelectItem value="trucks">Trucks</SelectItem>
+                          <SelectItem value="machinery">Machinery</SelectItem>
+                          <SelectItem value="agriculture">Agriculture</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -483,7 +487,7 @@ const Admin = () => {
                       id="description"
                       value={newTruck.description}
                       onChange={(e) => setNewTruck({...newTruck, description: e.target.value})}
-                      placeholder="Detailed description of the truck, features, and selling points..."
+                      placeholder="Detailed description of the vehicle, features, and selling points..."
                       rows={4}
                       required
                     />
@@ -495,7 +499,7 @@ const Admin = () => {
                     disabled={addTruckMutation.isPending}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {addTruckMutation.isPending ? "Adding Truck..." : "Add Truck to Inventory"}
+                    {addTruckMutation.isPending ? "Adding Vehicle..." : "Add Vehicle to Inventory"}
                   </Button>
                 </form>
               </CardContent>

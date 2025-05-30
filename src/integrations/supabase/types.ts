@@ -130,6 +130,7 @@ export type Database = {
           mileage: number | null
           model: string
           price: number
+          subcategory: string | null
           transmission: string
           updated_at: string | null
           year: number
@@ -148,6 +149,7 @@ export type Database = {
           mileage?: number | null
           model: string
           price: number
+          subcategory?: string | null
           transmission: string
           updated_at?: string | null
           year: number
@@ -166,6 +168,7 @@ export type Database = {
           mileage?: number | null
           model?: string
           price?: number
+          subcategory?: string | null
           transmission?: string
           updated_at?: string | null
           year?: number
@@ -187,7 +190,21 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      vehicle_category: "trucks" | "machinery" | "agriculture"
+      vehicle_subcategory:
+        | "tractor-unit"
+        | "truck-over"
+        | "light-trucks"
+        | "excavators"
+        | "loaders"
+        | "loaders-backhoe"
+        | "dumpers"
+        | "motor-grades"
+        | "compactors"
+        | "asphalt-equipment"
+        | "cranes"
+        | "forklift"
+        | "teleunder"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -302,6 +319,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      vehicle_category: ["trucks", "machinery", "agriculture"],
+      vehicle_subcategory: [
+        "tractor-unit",
+        "truck-over",
+        "light-trucks",
+        "excavators",
+        "loaders",
+        "loaders-backhoe",
+        "dumpers",
+        "motor-grades",
+        "compactors",
+        "asphalt-equipment",
+        "cranes",
+        "forklift",
+        "teleunder",
+      ],
+    },
   },
 } as const
