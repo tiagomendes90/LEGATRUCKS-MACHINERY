@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +24,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center mb-6">
               <img 
-                src="/lovable-uploads/0bf9bd98-c82c-4645-90df-75df81be4ec2.png" 
+                src="/lovable-uploads/1a81f82c-9a4f-4f4f-8f58-da6ed2f213dc.png" 
                 alt="LEGA Logo" 
                 className="h-10 w-auto object-contain brightness-0 invert"
               />
