@@ -56,17 +56,13 @@ const TruckCategory = () => {
   }, [allTrucks, category]);
 
   const handleFilterChange = (filters: {
-    searchTerm: string;
-    minPrice: string;
-    maxPrice: string;
-    minYear: string;
-    maxYear: string;
-    maxMileage: string;
-    engineType: string;
-    transmission: string;
-    fuelType: string;
-    condition: string;
     brand: string;
+    model: string;
+    yearFrom: string;
+    operatingHoursUntil: string;
+    priceType: string;
+    priceUntil: string;
+    location: string;
     sortBy: string;
   }) => {
     if (!allTrucks || !category) return;
@@ -74,56 +70,40 @@ const TruckCategory = () => {
     // Start with trucks from the current category
     let filtered = allTrucks.filter(truck => truck.category === category);
 
-    // Apply search term filter
-    if (filters.searchTerm && filters.searchTerm.trim()) {
-      const searchLower = filters.searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(truck => {
-        const brandMatch = truck.brand && truck.brand.toLowerCase().includes(searchLower);
-        const modelMatch = truck.model && truck.model.toLowerCase().includes(searchLower);
-        const descriptionMatch = truck.description && truck.description.toLowerCase().includes(searchLower);
-        return brandMatch || modelMatch || descriptionMatch;
-      });
-    }
-
     // Apply brand filter
     if (filters.brand) {
       filtered = filtered.filter(truck => truck.brand === filters.brand);
     }
 
-    // Apply condition filter
-    if (filters.condition) {
-      filtered = filtered.filter(truck => truck.condition === filters.condition);
+    // Apply model filter
+    if (filters.model && filters.model.trim()) {
+      const modelLower = filters.model.toLowerCase().trim();
+      filtered = filtered.filter(truck => 
+        truck.model && truck.model.toLowerCase().includes(modelLower)
+      );
     }
 
-    // Apply price range filters
-    if (filters.minPrice) {
-      filtered = filtered.filter(truck => truck.price >= parseInt(filters.minPrice));
-    }
-    if (filters.maxPrice) {
-      filtered = filtered.filter(truck => truck.price <= parseInt(filters.maxPrice));
+    // Apply year from filter
+    if (filters.yearFrom) {
+      filtered = filtered.filter(truck => truck.year >= parseInt(filters.yearFrom));
     }
 
-    // Apply year range filters
-    if (filters.minYear) {
-      filtered = filtered.filter(truck => truck.year >= parseInt(filters.minYear));
-    }
-    if (filters.maxYear) {
-      filtered = filtered.filter(truck => truck.year <= parseInt(filters.maxYear));
+    // Apply operating hours filter (using mileage as proxy for operating hours)
+    if (filters.operatingHoursUntil) {
+      filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.operatingHoursUntil));
     }
 
-    // Apply mileage filter
-    if (filters.maxMileage) {
-      filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.maxMileage));
+    // Apply price filter
+    if (filters.priceUntil) {
+      filtered = filtered.filter(truck => truck.price <= parseInt(filters.priceUntil));
     }
 
-    // Apply engine type filter
-    if (filters.engineType) {
-      filtered = filtered.filter(truck => truck.engine === filters.engineType);
-    }
-
-    // Apply transmission filter
-    if (filters.transmission) {
-      filtered = filtered.filter(truck => truck.transmission === filters.transmission);
+    // Apply location filter (basic text search in description)
+    if (filters.location && filters.location.trim()) {
+      const locationLower = filters.location.toLowerCase().trim();
+      filtered = filtered.filter(truck => 
+        truck.description && truck.description.toLowerCase().includes(locationLower)
+      );
     }
 
     // Apply sorting
@@ -141,10 +121,10 @@ const TruckCategory = () => {
         case "year-old":
           filtered.sort((a, b) => a.year - b.year);
           break;
-        case "mileage-low":
+        case "hours-low":
           filtered.sort((a, b) => (a.mileage || 0) - (b.mileage || 0));
           break;
-        case "mileage-high":
+        case "hours-high":
           filtered.sort((a, b) => (b.mileage || 0) - (a.mileage || 0));
           break;
         case "name-asc":
@@ -257,7 +237,7 @@ const TruckCategory = () => {
                         ${truck.price.toLocaleString()}
                       </CardDescription>
                       <div className="text-sm text-gray-500">
-                        {truck.year} • {truck.mileage ? truck.mileage.toLocaleString() : '0'} miles
+                        {truck.year} • {truck.mileage ? truck.mileage.toLocaleString() : '0'} hours
                       </div>
                     </CardHeader>
                     <CardContent>
