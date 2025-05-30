@@ -72,7 +72,10 @@ const TruckCategory = () => {
 
     // Apply brand filter
     if (filters.brand) {
-      filtered = filtered.filter(truck => truck.brand === filters.brand);
+      filtered = filtered.filter(truck => {
+        const truckBrand = truck.brand.toLowerCase().replace(/\s+/g, '-');
+        return truckBrand === filters.brand;
+      });
     }
 
     // Apply model filter
@@ -201,7 +204,7 @@ const TruckCategory = () => {
 
       <section className="py-16">
         <div className="container mx-auto px-6">
-          <TruckFilter onFilterChange={handleFilterChange} />
+          <TruckFilter category={category} onFilterChange={handleFilterChange} />
 
           {/* Results count and pagination info */}
           <div className="mb-6 flex justify-between items-center">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Filter, X, ChevronDown, ChevronUp } from "lucide-react";
 
 interface TruckFilterProps {
+  category: string;
   onFilterChange: (filters: {
     brand: string;
     model: string;
@@ -20,7 +20,42 @@ interface TruckFilterProps {
   }) => void;
 }
 
-const TruckFilter = ({ onFilterChange }: TruckFilterProps) => {
+const brandsByCategory = {
+  trucks: [
+    "DAF", "Demag", "faun", "ford", "Freightliner", "FUSO", "Ginaf", "Grove", "Hako", 
+    "HN Schörling", "Iveco", "Kamaz", "Liebherr", "Mack", "Magirus Deutz", "MAN", 
+    "Meiller", "Mercedes Benz", "Mitsubishi", "Nissan", "Opel", "Palfinger", "Peugeot", 
+    "Renault", "Ruthmann", "Scania", "Schmidt", "Skoda", "Steyr", "Tatras", "Toyota", 
+    "Unimog", "Volkswagen", "Volvo", "Yanmar", "Other"
+  ],
+  machinery: [
+    "AUSA", "Ahlmann", "Artison", "Atlas", "Atlas Copco", "Avant Tecno", "BOMAG", "BT", 
+    "Baumann", "Bell", "Bobcat", "Brave", "CAT", "Calves", "Capricorn", "Case", "Cesab", 
+    "Chandler", "Clark", "Combilift", "Crown", "Daewoo", "Demag", "Dieci", "Ditch Witch", 
+    "Doosan", "Dresser", "Dynapac", "EP", "Eurocomach", "Fermec", "Fiat", "Furukawa", 
+    "Gehl", "Gehlmax", "General Terms and Conditions", "Grove", "Hako", "Halla", "Hamm", 
+    "Hangcha", "Hanix", "Hanomag", "Haulotte", "Hinowa", "Hitachi", "Hubtex", "Hydrema", 
+    "Hyster", "Hyundai", "IHC", "IHI", "Irion", "JCB", "JLG", "Jungheinrich", "Kaercher", 
+    "Kaeser", "Kobelco", "Komatsu", "Krupp", "Kubota", "Lansing", "Lannen", "Liebherr", 
+    "Linde", "Linden", "Locust", "Mantsinen", "Manitou", "Marooka", "Max Holland", "Mecalac", 
+    "Merlo", "Michigan", "Mitsubishi", "Moffett", "Multicar", "Neuson", "Nissan", "O&K", 
+    "OK", "Orenstein & Koppel", "Palfinger", "Pimespo", "Piquersa", "Rammax", "Sakai", 
+    "Sambron", "Schäffer", "Schaeff", "Sennebogen", "Sichelschmidt", "Simit", "Skoda", 
+    "Smitma", "SMV", "Spijkstaal", "Squid", "Stahl", "Steinbock", "Still", "Tadano", 
+    "Takeuchi", "TC", "TCM", "Terberg", "Terex", "Toyota", "Unimog", "Volvo", "Weidemann", 
+    "Wacker Neuson", "Yanmar", "Zeppelin", "Zettelmeyer", "Other"
+  ],
+  agriculture: [
+    "Accord", "Agco / Massey Ferguson", "Amazon", "Avant Tecno", "Becker", "Belarus", 
+    "miner", "Branson", "Busatis", "BvL - Van Lengerich", "Carraro", "Case", "Case IH", 
+    "Claas", "Corvus", "Deutz-Fahr", "Doll", "Dücker", "Düvelsdorf", "Eberhardt", 
+    "Eicher", "Drive", "Farmall", "Farmtech", "Fella", "Fendt", "Fiat", "Fliegl", 
+    "ford", "Progress", "Photon", "frost", "Gaspardo", "GIANT", "Goldoni", "Grimme", 
+    "Güldner", "Gutbrod"
+  ]
+};
+
+const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [yearFrom, setYearFrom] = useState("");
@@ -68,6 +103,8 @@ const TruckFilter = ({ onFilterChange }: TruckFilterProps) => {
 
   const hasActiveFilters = brand || model || yearFrom || operatingHoursUntil || priceUntil || location || sortBy;
 
+  const currentBrands = brandsByCategory[category as keyof typeof brandsByCategory] || [];
+
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -97,20 +134,11 @@ const TruckFilter = ({ onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder="Select brand" />
               </SelectTrigger>
               <SelectContent className="bg-white border shadow-lg z-50">
-                <SelectItem value="volvo">Volvo</SelectItem>
-                <SelectItem value="scania">Scania</SelectItem>
-                <SelectItem value="mercedes">Mercedes-Benz</SelectItem>
-                <SelectItem value="man">MAN</SelectItem>
-                <SelectItem value="daf">DAF</SelectItem>
-                <SelectItem value="iveco">Iveco</SelectItem>
-                <SelectItem value="kenworth">Kenworth</SelectItem>
-                <SelectItem value="peterbilt">Peterbilt</SelectItem>
-                <SelectItem value="freightliner">Freightliner</SelectItem>
-                <SelectItem value="caterpillar">Caterpillar</SelectItem>
-                <SelectItem value="john-deere">John Deere</SelectItem>
-                <SelectItem value="case">Case</SelectItem>
-                <SelectItem value="new-holland">New Holland</SelectItem>
-                <SelectItem value="kubota">Kubota</SelectItem>
+                {currentBrands.map((brandName) => (
+                  <SelectItem key={brandName} value={brandName.toLowerCase().replace(/\s+/g, '-')}>
+                    {brandName}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
