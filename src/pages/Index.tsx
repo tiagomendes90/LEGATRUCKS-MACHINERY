@@ -113,8 +113,7 @@ const Index = () => {
               <Carousel opts={{
                 align: "start",
                 loop: true,
-                skipSnaps: false,
-                dragFree: false
+                containScroll: "trimSnaps"
               }} className="w-full">
                 <CarouselContent className="-ml-4">
                   {featuredTrucks.map((truck, index) => (
