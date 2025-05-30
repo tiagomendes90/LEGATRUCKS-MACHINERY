@@ -14,6 +14,7 @@ interface TruckFilterProps {
   onFilterChange: (filters: {
     brand: string;
     model: string;
+    subcategory: string;
     yearFrom: string;
     operatingHoursUntil: string;
     priceType: string;
@@ -26,6 +27,7 @@ interface TruckFilterProps {
 const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [yearFrom, setYearFrom] = useState("");
   const [operatingHoursUntil, setOperatingHoursUntil] = useState("");
   const [priceType, setPriceType] = useState("gross");
@@ -37,6 +39,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
 
   // Fetch brands and filter options from database
   const { data: brands = [], isLoading: brandsLoading } = useBrands(category);
+  const { data: subcategoryOptions = [] } = useFilterOptions(category, 'subcategory');
   const { data: yearOptions = [] } = useFilterOptions(category, 'year');
   const { data: priceOptions = [] } = useFilterOptions(category, 'price');
   const { data: hoursOptions = [] } = useFilterOptions(category, 'hours');
@@ -45,6 +48,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
     onFilterChange({
       brand,
       model,
+      subcategory,
       yearFrom,
       operatingHoursUntil,
       priceType,
@@ -57,6 +61,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const clearFilters = () => {
     setBrand("");
     setModel("");
+    setSubcategory("");
     setYearFrom("");
     setOperatingHoursUntil("");
     setPriceType("gross");
@@ -66,6 +71,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
     onFilterChange({
       brand: "",
       model: "",
+      subcategory: "",
       yearFrom: "",
       operatingHoursUntil: "",
       priceType: "gross",
@@ -75,7 +81,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
     });
   };
 
-  const hasActiveFilters = brand || model || yearFrom || operatingHoursUntil || priceUntil || location || sortBy;
+  const hasActiveFilters = brand || model || subcategory || yearFrom || operatingHoursUntil || priceUntil || location || sortBy;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
@@ -126,6 +132,25 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               onChange={(e) => setModel(e.target.value)}
               className="w-full"
             />
+          </div>
+
+          {/* Subcategory */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Subcategory
+            </label>
+            <Select value={subcategory} onValueChange={setSubcategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select subcategory" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border shadow-lg z-50">
+                {subcategoryOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.option_value}>
+                    {option.option_label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Year of construction from */}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +19,7 @@ import FeaturedTrucksManager from "@/components/FeaturedTrucksManager";
 import { ensureAdminProfile, forceCreateAdminProfile } from "@/utils/adminSetup";
 import { supabase } from "@/integrations/supabase/client";
 import { useBrands } from "@/hooks/useBrands";
+import { useFilterOptions } from "@/hooks/useFilterOptions";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -29,6 +29,7 @@ const Admin = () => {
   const { signOut, user } = useAuth();
 
   const { data: allBrands = [] } = useBrands();
+  const { data: subcategoryOptions = [] } = useFilterOptions('trucks', 'subcategory');
 
   const [newTruck, setNewTruck] = useState({
     brand: "",
@@ -42,6 +43,7 @@ const Admin = () => {
     description: "",
     horsepower: "",
     category: "",
+    subcategory: "",
     features: [] as string[],
     images: [] as string[]
   });
@@ -119,6 +121,7 @@ const Admin = () => {
       description: newTruck.description,
       horsepower: parseInt(newTruck.horsepower) || 0,
       category: newTruck.category,
+      subcategory: newTruck.subcategory,
       features: newTruck.features,
       images: newTruck.images
     };
@@ -137,6 +140,7 @@ const Admin = () => {
           description: "",
           horsepower: "",
           category: "",
+          subcategory: "",
           features: [],
           images: []
         });
@@ -288,6 +292,11 @@ const Admin = () => {
                         <Badge variant="outline">
                           {truck.category}
                         </Badge>
+                        {truck.subcategory && (
+                          <Badge variant="outline">
+                            {truck.subcategory}
+                          </Badge>
+                        )}
                         <div className="flex gap-2">
                           <Button 
                             size="sm" 
@@ -397,7 +406,7 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-6">
+                  <div className="grid md:grid-cols-4 gap-6">
                     <div>
                       <Label htmlFor="condition">Condition</Label>
                       <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})}>
@@ -422,6 +431,21 @@ const Admin = () => {
                           <SelectItem value="trucks">Trucks</SelectItem>
                           <SelectItem value="machinery">Machinery</SelectItem>
                           <SelectItem value="agriculture">Agriculture</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="subcategory">Subcategory</Label>
+                      <Select onValueChange={(value) => setNewTruck({...newTruck, subcategory: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subcategoryOptions.map((option) => (
+                            <SelectItem key={option.id} value={option.option_value}>
+                              {option.option_label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
