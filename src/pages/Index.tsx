@@ -86,7 +86,7 @@ const Index = () => {
             </div>
             <div className="text-center group">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 48 24" focusable="false" aria-hidden="true" fill="none">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 24" focusable="false" aria-hidden="true" fill="none" className="h-250 w-250 rounded-3xl ">
                   <path fillRule="evenodd" clipRule="evenodd" d="M17.5 12.75C15.9812 12.75 14.75 13.9812 14.75 15.5C14.75 17.0188 15.9812 18.25 17.5 18.25C19.0188 18.25 20.25 17.0188 20.25 15.5C20.25 13.9812 19.0188 12.75 17.5 12.75ZM16.25 15.5C16.25 14.8096 16.8096 14.25 17.5 14.25C18.1904 14.25 18.75 14.8096 18.75 15.5C18.75 16.1904 18.1904 16.75 17.5 16.75C16.8096 16.75 16.25 16.1904 16.25 15.5Z" fill="#7C3AED" />
                   <path fillRule="evenodd" clipRule="evenodd" d="M13.847 4H12V2H25V4H23.7208L24.7402 7.05821L27 7.24653V5H29V7.4132L32.9124 7.73923C35.2059 7.93036 36.8655 10.0127 36.54 12.2911L36.2016 14.6599C37.2851 15.3755 38 16.6043 38 18C38 20.2091 36.2091 22 34 22C31.7909 22 30 20.2091 30 18H23.5018C22.5223 20.349 20.204 22 17.5 22C13.9101 22 11 19.0899 11 15.5C11 13.7535 11.6888 12.1679 12.8096 11H11.9142L10.7071 12.2071L9.29285 10.7929L11.0857 9H13.1327L13.847 4ZM34 14C34.0922 14 34.1836 14.0031 34.2742 14.0093L34.5601 12.0083C34.7228 10.8691 33.8931 9.82789 32.7463 9.73232L24.2645 9.02551L23.0662 9.82435C22.6343 10.1123 22.174 10.3498 21.6943 10.5342C22.1919 10.9549 22.6255 11.4491 22.9782 12H26C27.1046 12 28 12.8954 28 14V16H30.5351C31.2267 14.8044 32.5194 14 34 14ZM15.153 9H19.1833C20.1705 9 21.1355 8.70781 21.9568 8.16025L22.8098 7.59163L21.6126 4H15.8673L15.153 9ZM26 14H23.8261C23.9398 14.4815 24 14.9837 24 15.5C24 15.6682 23.9936 15.835 23.9811 16H26V14ZM22 15.5C22 13.0147 19.9853 11 17.5 11C15.0147 11 13 13.0147 13 15.5C13 17.9853 15.0147 20 17.5 20C19.9853 20 22 17.9853 22 15.5ZM34 16C32.8954 16 32 16.8954 32 18C32 19.1046 32.8954 20 34 20C35.1046 20 36 19.1046 36 18C36 16.8954 35.1046 16 34 16Z" fill="#7C3AED" />
                 </svg>
@@ -96,7 +96,7 @@ const Index = () => {
             </div>
             <div className="text-center group">
               <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 64 32">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 32" className="h-250 w-250 rounded-3xl ">
                   <path className="fill-orange-600" d="M18.6,22.7v-4h1.7v-2.7h-1.7V5.3h1.7v-2.7h-1.7c-1.5,0-2.7,1.2-2.7,2.7v2.7h-6.3c-1.5,0-2.9.9-3.6,2.2l-3.1,6.2h0c-.2.4-.3.8-.3,1.2v7.7h6.7c.3,2.3,2.3,4,4.6,4s4.3-1.7,4.6-4h1.8v-2.7h-1.7ZM8.4,11.4h0c.2-.5.7-.7,1.2-.7h1v5.3h-4.5l2.3-4.6ZM14,26.7c-1.1,0-2-.9-2-2s.9-2,2-2,2,.9,2,2-.9,2-2,2ZM16,20.5c-.6-.3-1.3-.5-2-.5-1.9,0-3.5,1.1-4.2,2.7h-4.5v-4h5.3c1.5,0,2.7-1.2,2.7-2.7v-5.3h2.7v9.8Z" />
                   <polygon className="fill-none stroke-orange-600 stroke-2" strokeLinecap="round" strokeLinejoin="round" points="39.2 27.8 23.5 27.8 23.5 3.8 33.7 3.8 39.2 9.7 39.2 27.8" />
                   <polygon className="fill-none stroke-orange-600 stroke-2" strokeLinecap="round" strokeLinejoin="round" points="33.7 3.8 33.7 9.8 39.2 9.8 33.7 3.8" />
