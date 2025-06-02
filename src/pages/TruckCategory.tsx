@@ -27,15 +27,15 @@ const TruckCategory = () => {
   const categoryData = {
     "trucks": {
       title: "Trucks",
-      description: "Powerful trucks designed for the toughest jobs and maximum payload capacity"
+      description: "Robust vehicles for road transport — from tractor units for heavy loads to rigid and light trucks for urban delivery."
     },
     "machinery": {
       title: "Machinery", 
-      description: "Heavy machinery perfect for construction, mining and industrial operations"
+      description: "Essential equipment for construction and infrastructure — excavators, loaders, cranes, compactors, and more for digging, lifting, grading, and paving."
     },
     "agriculture": {
       title: "Agriculture",
-      description: "Specialized agricultural equipment for farming and crop management"
+      description: "Agricultural solutions designed to boost productivity — harvesters, plows, seeders, and mowers for every stage of fieldwork."
     }
   };
 
