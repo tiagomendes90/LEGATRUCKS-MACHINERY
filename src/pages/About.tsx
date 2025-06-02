@@ -122,7 +122,7 @@ const About = () => {
             <Button size="lg" className="bg-orange-500 hover:bg-orange-600 px-8 py-6 text-lg">
               Browse Our Inventory
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-900 px-8 py-6 text-lg">
+            <Button size="lg" variant="outline" className="border-white text-white hover:text-blue-900 px-8 py-6 text-lg bg-neutral-100">
               Contact Our Team
             </Button>
           </div>
