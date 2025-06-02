@@ -41,7 +41,7 @@ const About = () => {
       <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[130px]">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">About TruckHub</h1>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">About LEGA</h1>
             <p className="text-xl md:text-2xl text-blue-100 leading-relaxed">
               For over two decades, we've been the trusted partner for businesses seeking premium commercial trucks. 
               Our commitment to quality, service, and innovation has made us a leader in the industry.
