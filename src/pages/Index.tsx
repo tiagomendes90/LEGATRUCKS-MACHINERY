@@ -73,7 +73,7 @@ const Index = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">TRUCKS</h3>
-              <p className="text-gray-600 text-base">Robust vehicles for road transportks for urban delivery.</p>
+              <p className="text-gray-600 text-base">Robust vehicles for road transports for urban delivery.</p>
             </div>
             <div className="text-center group">
               <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
