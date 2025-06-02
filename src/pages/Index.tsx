@@ -73,7 +73,7 @@ const Index = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">TRUCKS</h3>
-              <p className="text-gray-600 text-xs">Robust vehicles for road transport - from tractor units for heavy loads to rigid and light trucks for urban delivery.</p>
+              <p className="text-gray-600 text-base">Robust vehicles for road transportks for urban delivery.</p>
             </div>
             <div className="text-center group">
               <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
@@ -82,7 +82,7 @@ const Index = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">MACHINERY</h3>
-              <p className="text-gray-600 text-xs">Essential equipment for construction and infrastructure - excavators, loaders, cranes, compactors, and more for digging, lifting, grading, and paving.</p>
+              <p className="text-gray-600 text-base">Essential equipment for construction and infrastructure.</p>
             </div>
             <div className="text-center group">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
@@ -92,7 +92,7 @@ const Index = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">AGRICULTURE</h3>
-              <p className="text-gray-600 text-xs">Agricultural solutions designed to boost productivity — harvesters, plows, seeders, and mowers for every stage of fieldwork.</p>
+              <p className="text-gray-600 text-base">Agricultural solutions designed to boost productivity.</p>
             </div>
             <div className="text-center group">
               <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
@@ -108,7 +108,7 @@ const Index = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">WANT TO SELL?</h3>
-              <p className="text-gray-600 text-base">We also buy used trucks, machinery, and agricultural equipment. If you have vehicles or machines for sale, we’re open to offers and evaluations.</p>
+              <p className="text-gray-600 text-base">We buy used trucks, machinery, and agricultural equipment.</p>
             </div>
           </div>
         </div>
