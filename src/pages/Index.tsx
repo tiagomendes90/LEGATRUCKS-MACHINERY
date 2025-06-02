@@ -108,7 +108,7 @@ const Index = () => {
                 </svg>
               </div>
               <h3 className="font-semibold text-lg mb-2">WANT TO SELL?</h3>
-              <p className="text-gray-600 text-xs">We also buy used trucks, machinery, and agricultural equipment. If you have vehicles or machines for sale, we’re open to offers and evaluations.</p>
+              <p className="text-gray-600 text-base">We also buy used trucks, machinery, and agricultural equipment. If you have vehicles or machines for sale, we’re open to offers and evaluations.</p>
             </div>
           </div>
         </div>
