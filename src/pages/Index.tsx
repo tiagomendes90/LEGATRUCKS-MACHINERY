@@ -77,21 +77,20 @@ const Index = () => {
               <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
                 <Shield className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Reliable Service</h3>
+              <h3 className="font-semibold text-lg mb-2">MACHINERY</h3>
               <p className="text-gray-600">24/7 support and comprehensive warranty coverage</p>
             </div>
             <div className="text-center group">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
-                <Users className="h-8 w-8 text-purple-600" />
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">MA<Users className="h-8 w-8 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Expert Team</h3>
+              <h3 className="font-semibold text-lg mb-2">AGRICULTURE</h3>
               <p className="text-gray-600">Experienced professionals to guide your purchase</p>
             </div>
             <div className="text-center group">
               <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
                 <Award className="h-8 w-8 text-orange-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Industry Leader</h3>
+              <h3 className="font-semibold text-lg mb-2">WANT TO SELL?</h3>
               <p className="text-gray-600">Trusted by businesses nationwide for over 20 years</p>
             </div>
           </div>
