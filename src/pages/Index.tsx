@@ -7,6 +7,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Truck, Users, Shield, Award } from "lucide-react";
 import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
+import { useBrands } from "@/hooks/useBrands";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Autoplay from "embla-carousel-autoplay";
@@ -14,6 +15,7 @@ import Autoplay from "embla-carousel-autoplay";
 const Index = () => {
   const { data: trucks } = useTrucks();
   const { data: featuredTrucksData } = useFeaturedTrucks();
+  const { data: allBrands } = useBrands();
 
   // Use featured trucks from database, fallback to first 6 trucks from inventory for carousel
   const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0
@@ -37,9 +39,6 @@ const Index = () => {
           features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
         }))
       : [];
-
-  // Get unique brands from the trucks database
-  const uniqueBrands = trucks ? [...new Set(trucks.map(truck => truck.brand))] : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -185,8 +184,8 @@ const Index = () => {
               className="w-full max-w-5xl"
             >
               <CarouselContent className="-ml-2 md:-ml-4">
-                {uniqueBrands.length > 0 ? uniqueBrands.map((brand, index) => (
-                  <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
+                {allBrands && allBrands.length > 0 ? allBrands.map((brand, index) => (
+                  <CarouselItem key={brand.id} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                     <div className="p-1">
                       <Card className="border-0 shadow-none">
                         <CardContent className="flex aspect-square items-center justify-center p-6">
@@ -195,7 +194,7 @@ const Index = () => {
                               <Truck className="h-8 w-8 text-white" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-800 uppercase tracking-wider">
-                              {brand}
+                              {brand.name}
                             </h3>
                           </div>
                         </CardContent>
@@ -203,7 +202,7 @@ const Index = () => {
                     </div>
                   </CarouselItem>
                 )) :
-                // Fallback brands if no vehicles in database
+                // Fallback brands if no brands in database
                 ['Volvo', 'Scania', 'Mercedes', 'MAN', 'Iveco', 'DAF'].map((brand, index) => (
                   <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
                     <div className="p-1">
@@ -223,8 +222,6 @@ const Index = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="-left-12 top-1/2 -translate-y-1/2" />
-              <CarouselNext className="-right-12 top-1/2 -translate-y-1/2" />
             </Carousel>
           </div>
         </div>
