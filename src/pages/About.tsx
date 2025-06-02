@@ -115,9 +115,7 @@ const About = () => {
       <section className="py-20 bg-gradient-to-r from-blue-900 to-slate-800 text-white">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Work With Us?</h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Experience the TruckHub difference. Let our expert team help you find the perfect truck for your business needs.
-          </p>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">Experience the LEGA difference. Let our expert team help you find the perfect truck for your business needs.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-orange-500 hover:bg-orange-600 px-8 py-6 text-lg">
               Browse Our Inventory
