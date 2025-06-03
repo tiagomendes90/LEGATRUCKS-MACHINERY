@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,15 +100,16 @@ const Contact = () => {
                           <SelectValue placeholder="Select your interest" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="heavy-duty">Heavy Duty Trucks</SelectItem>
-                          <SelectItem value="medium-duty">Medium Duty Trucks</SelectItem>
-                          <SelectItem value="light-duty">Light Duty Trucks</SelectItem>
-                          <SelectItem value="machinery">Construction Machinery</SelectItem>
-                          <SelectItem value="agriculture">Agricultural Equipment</SelectItem>
-                          <SelectItem value="want-to-sell">Want to Sell Your Vehicle</SelectItem>
-                          <SelectItem value="fleet">Fleet Solutions</SelectItem>
+                          <SelectItem value="buying-truck">Buying a Truck</SelectItem>
+                          <SelectItem value="want-to-sell">Want to Sell My Vehicle</SelectItem>
                           <SelectItem value="financing">Financing Options</SelectItem>
-                          <SelectItem value="service">Service & Maintenance</SelectItem>
+                          <SelectItem value="leasing">Leasing Options</SelectItem>
+                          <SelectItem value="parts-service">Parts & Service</SelectItem>
+                          <SelectItem value="warranty">Warranty Information</SelectItem>
+                          <SelectItem value="trade-in">Trade-In Evaluation</SelectItem>
+                          <SelectItem value="fleet-solutions">Fleet Solutions</SelectItem>
+                          <SelectItem value="insurance">Insurance Services</SelectItem>
+                          <SelectItem value="general-inquiry">General Inquiry</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -120,11 +120,7 @@ const Contact = () => {
                         id="message" 
                         value={formData.message} 
                         onChange={e => handleInputChange("message", e.target.value)} 
-                        placeholder={
-                          formData.interest === "want-to-sell" 
-                            ? "Tell us about the vehicle you want to sell: brand, model, year, condition, mileage, and any other relevant details..." 
-                            : "Tell us about your truck needs, budget, timeline, or any questions you have..."
-                        }
+                        placeholder="Please tell us more about your inquiry, requirements, or questions. We're here to help!"
                         rows={5} 
                         className="mt-1" 
                       />
