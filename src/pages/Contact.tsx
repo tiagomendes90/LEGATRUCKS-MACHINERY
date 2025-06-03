@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -18,9 +20,8 @@ const Contact = () => {
     interest: "",
     message: ""
   });
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
@@ -36,13 +37,16 @@ const Contact = () => {
       message: ""
     });
   };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-  return <div className="min-h-screen bg-gray-50">
+
+  return (
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
@@ -94,12 +98,15 @@ const Contact = () => {
                       <Label htmlFor="interest">What are you interested in?</Label>
                       <Select onValueChange={value => handleInputChange("interest", value)}>
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select truck type" />
+                          <SelectValue placeholder="Select your interest" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="heavy-duty">Heavy Duty Trucks</SelectItem>
                           <SelectItem value="medium-duty">Medium Duty Trucks</SelectItem>
                           <SelectItem value="light-duty">Light Duty Trucks</SelectItem>
+                          <SelectItem value="machinery">Construction Machinery</SelectItem>
+                          <SelectItem value="agriculture">Agricultural Equipment</SelectItem>
+                          <SelectItem value="want-to-sell">Want to Sell Your Vehicle</SelectItem>
                           <SelectItem value="fleet">Fleet Solutions</SelectItem>
                           <SelectItem value="financing">Financing Options</SelectItem>
                           <SelectItem value="service">Service & Maintenance</SelectItem>
@@ -109,7 +116,18 @@ const Contact = () => {
 
                     <div>
                       <Label htmlFor="message">Message</Label>
-                      <Textarea id="message" value={formData.message} onChange={e => handleInputChange("message", e.target.value)} placeholder="Tell us about your truck needs, budget, timeline, or any questions you have..." rows={5} className="mt-1" />
+                      <Textarea 
+                        id="message" 
+                        value={formData.message} 
+                        onChange={e => handleInputChange("message", e.target.value)} 
+                        placeholder={
+                          formData.interest === "want-to-sell" 
+                            ? "Tell us about the vehicle you want to sell: brand, model, year, condition, mileage, and any other relevant details..." 
+                            : "Tell us about your truck needs, budget, timeline, or any questions you have..."
+                        }
+                        rows={5} 
+                        className="mt-1" 
+                      />
                     </div>
 
                     <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
@@ -191,6 +209,8 @@ const Contact = () => {
       </section>
 
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default Contact;
