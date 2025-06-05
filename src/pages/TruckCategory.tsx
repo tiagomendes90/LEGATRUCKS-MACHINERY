@@ -7,6 +7,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TruckFilter from "@/components/TruckFilter";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { useTrucks } from "@/hooks/useTrucks";
 
 const TRUCKS_PER_PAGE = 12;
@@ -348,6 +349,7 @@ const TruckCategory = () => {
       </section>
 
       <Footer />
+      <WhatsAppFloat />
     </div>
   );
 };
