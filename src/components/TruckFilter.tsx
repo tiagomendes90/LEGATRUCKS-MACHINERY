@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -734,7 +735,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   <Checkbox 
                     id="particle-filter"
                     checked={particleFilter}
-                    onCheckedChange={setParticleFilter}
+                    onCheckedChange={(checked) => setParticleFilter(checked === true)}
                   />
                   <Label htmlFor="particle-filter">Particle filter</Label>
                 </div>
@@ -751,7 +752,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                     <Checkbox 
                       id={`equip-${equip}`}
                       checked={equipment.includes(equip)}
-                      onCheckedChange={(checked) => handleEquipmentChange(equip, checked as boolean)}
+                      onCheckedChange={(checked) => handleEquipmentChange(equip, checked === true)}
                     />
                     <Label htmlFor={`equip-${equip}`} className="text-sm">{equip}</Label>
                   </div>
@@ -813,7 +814,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                       <Checkbox 
                         id={`wheel-${formula}`}
                         checked={wheelFormula.includes(formula)}
-                        onCheckedChange={(checked) => handleWheelFormulaChange(formula, checked as boolean)}
+                        onCheckedChange={(checked) => handleWheelFormulaChange(formula, checked === true)}
                       />
                       <Label htmlFor={`wheel-${formula}`} className="text-sm">{formula}</Label>
                     </div>
@@ -845,7 +846,10 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                     </SelectContent>
                   </Select>
                   <div className="flex items-center space-x-2 mt-2">
-                    <Checkbox id="trailer-hitch" />
+                    <Checkbox 
+                      id="trailer-hitch"
+                      onCheckedChange={(checked) => console.log('Trailer hitch:', checked)}
+                    />
                     <Label htmlFor="trailer-hitch" className="text-sm">Trailer hitch fixed</Label>
                   </div>
                 </div>
@@ -894,7 +898,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                       <Checkbox 
                         id={`interior-${interiorItem}`}
                         checked={interior.includes(interiorItem)}
-                        onCheckedChange={(checked) => handleInteriorChange(interiorItem, checked as boolean)}
+                        onCheckedChange={(checked) => handleInteriorChange(interiorItem, checked === true)}
                       />
                       <Label htmlFor={`interior-${interiorItem}`} className="text-sm">{interiorItem}</Label>
                     </div>
@@ -927,7 +931,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                       <Checkbox 
                         id={`color-${colorOption.name}`}
                         checked={bodyColor.includes(colorOption.name)}
-                        onCheckedChange={(checked) => handleBodyColorChange(colorOption.name, checked as boolean)}
+                        onCheckedChange={(checked) => handleBodyColorChange(colorOption.name, checked === true)}
                       />
                       <div className={`w-4 h-4 rounded ${colorOption.color}`}></div>
                       <Label htmlFor={`color-${colorOption.name}`} className="text-sm">{colorOption.name}</Label>
