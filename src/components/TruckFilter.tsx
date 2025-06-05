@@ -4,9 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useBrands } from "@/hooks/useBrands";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
+import { useTrucks } from "@/hooks/useTrucks";
 
 interface TruckFilterProps {
   category: string;
@@ -21,6 +23,34 @@ interface TruckFilterProps {
     location: string;
     sortBy: string;
     mileageTo?: string;
+    vehicleCondition?: string;
+    yearUntil?: string;
+    mileageFrom?: string;
+    priceFrom?: string;
+    performance?: string;
+    performanceUntil?: string;
+    weightFrom?: string;
+    weightUntil?: string;
+    fuelType?: string[];
+    gearbox?: string;
+    cylinderFrom?: string;
+    cylinderUntil?: string;
+    tankSizeFrom?: string;
+    tankSizeUntil?: string;
+    pollutantClass?: string;
+    environmentalSticker?: string;
+    particleFilter?: boolean;
+    equipment?: string[];
+    airConditioning?: string;
+    axles?: string;
+    wheelFormula?: string[];
+    permissibleWeightFrom?: string;
+    permissibleWeightUntil?: string;
+    hydraulicSystem?: string;
+    cruiseControl?: string;
+    driversCab?: string;
+    interior?: string[];
+    bodyColor?: string[];
   }) => void;
 }
 
@@ -37,12 +67,49 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const [mileageTo, setMileageTo] = useState("");
   const [showAdditionalFilters, setShowAdditionalFilters] = useState(false);
 
-  // Fetch brands and filter options from database
+  // Additional filter states
+  const [vehicleCondition, setVehicleCondition] = useState("");
+  const [yearUntil, setYearUntil] = useState("");
+  const [mileageFrom, setMileageFrom] = useState("");
+  const [priceFrom, setPriceFrom] = useState("");
+  const [performance, setPerformance] = useState("");
+  const [performanceUntil, setPerformanceUntil] = useState("");
+  const [weightFrom, setWeightFrom] = useState("");
+  const [weightUntil, setWeightUntil] = useState("");
+  const [fuelType, setFuelType] = useState<string[]>([]);
+  const [gearbox, setGearbox] = useState("");
+  const [cylinderFrom, setCylinderFrom] = useState("");
+  const [cylinderUntil, setCylinderUntil] = useState("");
+  const [tankSizeFrom, setTankSizeFrom] = useState("");
+  const [tankSizeUntil, setTankSizeUntil] = useState("");
+  const [pollutantClass, setPollutantClass] = useState("");
+  const [environmentalSticker, setEnvironmentalSticker] = useState("");
+  const [particleFilter, setParticleFilter] = useState(false);
+  const [equipment, setEquipment] = useState<string[]>([]);
+  const [airConditioning, setAirConditioning] = useState("");
+  const [axles, setAxles] = useState("");
+  const [wheelFormula, setWheelFormula] = useState<string[]>([]);
+  const [permissibleWeightFrom, setPermissibleWeightFrom] = useState("");
+  const [permissibleWeightUntil, setPermissibleWeightUntil] = useState("");
+  const [hydraulicSystem, setHydraulicSystem] = useState("");
+  const [cruiseControl, setCruiseControl] = useState("");
+  const [driversCab, setDriversCab] = useState("");
+  const [interior, setInterior] = useState<string[]>([]);
+  const [bodyColor, setBodyColor] = useState<string[]>([]);
+
+  // Fetch data
   const { data: brands = [], isLoading: brandsLoading } = useBrands(category);
   const { data: subcategoryOptions = [] } = useFilterOptions(category, 'subcategory');
   const { data: yearOptions = [] } = useFilterOptions(category, 'year');
   const { data: priceOptions = [] } = useFilterOptions(category, 'price');
   const { data: hoursOptions = [] } = useFilterOptions(category, 'hours');
+  const { data: allTrucks = [] } = useTrucks();
+
+  // Calculate offers count based on current filters
+  const getOffersCount = () => {
+    const filteredTrucks = allTrucks.filter(truck => truck.category === category);
+    return `${filteredTrucks.length.toLocaleString()} offers`;
+  };
 
   const handleFilterChange = () => {
     onFilterChange({
@@ -56,6 +123,34 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
       location,
       sortBy,
       mileageTo,
+      vehicleCondition,
+      yearUntil,
+      mileageFrom,
+      priceFrom,
+      performance,
+      performanceUntil,
+      weightFrom,
+      weightUntil,
+      fuelType,
+      gearbox,
+      cylinderFrom,
+      cylinderUntil,
+      tankSizeFrom,
+      tankSizeUntil,
+      pollutantClass,
+      environmentalSticker,
+      particleFilter,
+      equipment,
+      airConditioning,
+      axles,
+      wheelFormula,
+      permissibleWeightFrom,
+      permissibleWeightUntil,
+      hydraulicSystem,
+      cruiseControl,
+      driversCab,
+      interior,
+      bodyColor,
     });
   };
 
@@ -70,6 +165,37 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
     setLocation("");
     setSortBy("");
     setMileageTo("");
+    
+    // Clear additional filters
+    setVehicleCondition("");
+    setYearUntil("");
+    setMileageFrom("");
+    setPriceFrom("");
+    setPerformance("");
+    setPerformanceUntil("");
+    setWeightFrom("");
+    setWeightUntil("");
+    setFuelType([]);
+    setGearbox("");
+    setCylinderFrom("");
+    setCylinderUntil("");
+    setTankSizeFrom("");
+    setTankSizeUntil("");
+    setPollutantClass("");
+    setEnvironmentalSticker("");
+    setParticleFilter(false);
+    setEquipment([]);
+    setAirConditioning("");
+    setAxles("");
+    setWheelFormula([]);
+    setPermissibleWeightFrom("");
+    setPermissibleWeightUntil("");
+    setHydraulicSystem("");
+    setCruiseControl("");
+    setDriversCab("");
+    setInterior([]);
+    setBodyColor([]);
+    
     onFilterChange({
       brand: "",
       model: "",
@@ -84,7 +210,6 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
     });
   };
 
-  // Get category-specific icon from homepage SVGs
   const getCategoryIcon = () => {
     switch (category) {
       case 'trucks':
@@ -117,19 +242,6 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
     }
   };
 
-  const getResultsCount = () => {
-    switch (category) {
-      case 'trucks':
-        return '26,781 offers';
-      case 'machinery':
-        return '13,075 offers';
-      case 'agriculture':
-        return '11,422 offers';
-      default:
-        return 'offers';
-    }
-  };
-
   const getCategoryTitle = () => {
     switch (category) {
       case 'trucks':
@@ -143,6 +255,46 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
     }
   };
 
+  const handleEquipmentChange = (equipmentItem: string, checked: boolean) => {
+    if (checked) {
+      setEquipment([...equipment, equipmentItem]);
+    } else {
+      setEquipment(equipment.filter(item => item !== equipmentItem));
+    }
+  };
+
+  const handleFuelTypeChange = (fuel: string, checked: boolean) => {
+    if (checked) {
+      setFuelType([...fuelType, fuel]);
+    } else {
+      setFuelType(fuelType.filter(item => item !== fuel));
+    }
+  };
+
+  const handleWheelFormulaChange = (formula: string, checked: boolean) => {
+    if (checked) {
+      setWheelFormula([...wheelFormula, formula]);
+    } else {
+      setWheelFormula(wheelFormula.filter(item => item !== formula));
+    }
+  };
+
+  const handleInteriorChange = (interiorItem: string, checked: boolean) => {
+    if (checked) {
+      setInterior([...interior, interiorItem]);
+    } else {
+      setInterior(interior.filter(item => item !== interiorItem));
+    }
+  };
+
+  const handleBodyColorChange = (color: string, checked: boolean) => {
+    if (checked) {
+      setBodyColor([...bodyColor, color]);
+    } else {
+      setBodyColor(bodyColor.filter(item => item !== color));
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border mb-8">
       <div className="p-6">
@@ -151,7 +303,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
           {getCategoryIcon()}
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{getCategoryTitle()}</h2>
-            <p className="text-gray-600">{getResultsCount()}</p>
+            <p className="text-gray-600">{getOffersCount()}</p>
           </div>
         </div>
 
@@ -287,7 +439,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               &nbsp;
             </label>
             <Button onClick={handleFilterChange} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium">
-              🔍 Search {getResultsCount()}
+              🔍 Search {getOffersCount()}
             </Button>
           </div>
         </div>
@@ -335,27 +487,454 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
 
         {/* Additional filters panel */}
         {showAdditionalFilters && (
-          <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Price information */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Price information
-                </label>
-                <RadioGroup value={priceType} onValueChange={setPriceType} className="flex gap-6">
+          <div className="mt-6 p-6 border rounded-lg bg-gray-50 space-y-8">
+            {/* Basic Data Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic data</h3>
+              
+              {/* Vehicle condition */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Vehicle condition</label>
+                <RadioGroup value={vehicleCondition} onValueChange={setVehicleCondition} className="flex gap-6">
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="gross" id="gross" />
-                    <Label htmlFor="gross">Gross price</Label>
+                    <RadioGroupItem value="any" id="condition-any" />
+                    <Label htmlFor="condition-any">Any</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="net" id="net" />
-                    <Label htmlFor="net">Net price</Label>
+                    <RadioGroupItem value="new" id="condition-new" />
+                    <Label htmlFor="condition-new">New</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="needed" id="condition-needed" />
+                    <Label htmlFor="condition-needed">Needed</Label>
                   </div>
                 </RadioGroup>
               </div>
 
-              {/* Additional options can be added here */}
-              <div></div>
+              {/* First registration range */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">First registration</label>
+                  <div className="flex gap-2">
+                    <Select value={yearFrom} onValueChange={setYearFrom}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="from" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-lg z-50">
+                        {yearOptions.map((option) => (
+                          <SelectItem key={option.id} value={option.option_value}>
+                            {option.option_label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={yearUntil} onValueChange={setYearUntil}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="until" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-lg z-50">
+                        {yearOptions.map((option) => (
+                          <SelectItem key={option.id} value={option.option_value}>
+                            {option.option_label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Mileage range */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Mileage</label>
+                  <div className="flex gap-2">
+                    <Input placeholder="from" value={mileageFrom} onChange={(e) => setMileageFrom(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">km</span>
+                    <Input placeholder="until" value={mileageTo} onChange={(e) => setMileageTo(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">km</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price range and VAT */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                  <div className="flex gap-2">
+                    <Input placeholder="from" value={priceFrom} onChange={(e) => setPriceFrom(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">€</span>
+                    <Input placeholder="until" value={priceUntil} onChange={(e) => setPriceUntil(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">€</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">VAT</label>
+                  <RadioGroup value={priceType} onValueChange={setPriceType} className="flex gap-6">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="gross" id="vat-gross" />
+                      <Label htmlFor="vat-gross">Gross</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="net" id="vat-net" />
+                      <Label htmlFor="vat-net">Net</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              {/* Performance and Weight */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Performance</label>
+                  <div className="flex gap-2">
+                    <Input placeholder="from" value={performance} onChange={(e) => setPerformance(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">PS</span>
+                    <Input placeholder="until" value={performanceUntil} onChange={(e) => setPerformanceUntil(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">PS</span>
+                  </div>
+                  <RadioGroup value="ps" className="flex gap-4 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="ps" id="perf-ps" />
+                      <Label htmlFor="perf-ps">PS</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="kw" id="perf-kw" />
+                      <Label htmlFor="perf-kw">kW</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Weight</label>
+                  <div className="flex gap-2">
+                    <Input placeholder="from" value={weightFrom} onChange={(e) => setWeightFrom(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">kg</span>
+                    <Input placeholder="until" value={weightUntil} onChange={(e) => setWeightUntil(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">kg</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Motor Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Motor</h3>
+              
+              {/* Fuel type */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Fuel type</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['petrol', 'Diesel', 'Electrical', 'LPG', 'Natural gas (CNG)', 'Hybrid (petrol/electric)', 'Hybrid (diesel/electric)', 'hydrogen', 'Other'].map((fuel) => (
+                    <div key={fuel} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`fuel-${fuel}`}
+                        checked={fuelType.includes(fuel)}
+                        onCheckedChange={(checked) => handleFuelTypeChange(fuel, checked as boolean)}
+                      />
+                      <Label htmlFor={`fuel-${fuel}`} className="text-sm">{fuel}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gearbox */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Gearbox</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['Automatic', 'Semi-automatic', 'manual transmission'].map((gear) => (
+                    <div key={gear} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`gear-${gear}`}
+                        checked={gearbox === gear}
+                        onCheckedChange={(checked) => setGearbox(checked ? gear : '')}
+                      />
+                      <Label htmlFor={`gear-${gear}`} className="text-sm">{gear}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cylinder and Tank size */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cylinder</label>
+                  <div className="flex gap-2">
+                    <Select value={cylinderFrom} onValueChange={setCylinderFrom}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="from" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-lg z-50">
+                        {Array.from({length: 12}, (_, i) => i + 1).map((num) => (
+                          <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={cylinderUntil} onValueChange={setCylinderUntil}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="until" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-lg z-50">
+                        {Array.from({length: 12}, (_, i) => i + 1).map((num) => (
+                          <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tank size</label>
+                  <div className="flex gap-2">
+                    <Input placeholder="from" value={tankSizeFrom} onChange={(e) => setTankSizeFrom(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">l</span>
+                    <Input placeholder="until" value={tankSizeUntil} onChange={(e) => setTankSizeUntil(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">l</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pollutant class and Environmental sticker */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pollutant class</label>
+                  <Select value={pollutantClass} onValueChange={setPollutantClass}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      <SelectItem value="euro1">Euro 1</SelectItem>
+                      <SelectItem value="euro2">Euro 2</SelectItem>
+                      <SelectItem value="euro3">Euro 3</SelectItem>
+                      <SelectItem value="euro4">Euro 4</SelectItem>
+                      <SelectItem value="euro5">Euro 5</SelectItem>
+                      <SelectItem value="euro6">Euro 6</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Environmental sticker</label>
+                  <Select value={environmentalSticker} onValueChange={setEnvironmentalSticker}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      <SelectItem value="green">Green</SelectItem>
+                      <SelectItem value="yellow">Yellow</SelectItem>
+                      <SelectItem value="red">Red</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Particle filter */}
+              <div className="mb-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="particle-filter"
+                    checked={particleFilter}
+                    onCheckedChange={setParticleFilter}
+                  />
+                  <Label htmlFor="particle-filter">Particle filter</Label>
+                </div>
+              </div>
+            </div>
+
+            {/* Equipment Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Equipment</h3>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                {['Tinted windows', 'EBS', 'crane', 'Air suspension', 'ABS', 'ESP', 'tail lift', 'All-wheel drive', 'compressor', 'alloy wheels'].map((equip) => (
+                  <div key={equip} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`equip-${equip}`}
+                      checked={equipment.includes(equip)}
+                      onCheckedChange={(checked) => handleEquipmentChange(equip, checked as boolean)}
+                    />
+                    <Label htmlFor={`equip-${equip}`} className="text-sm">{equip}</Label>
+                  </div>
+                ))}
+              </div>
+
+              {/* Air conditioning */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Air conditioning</label>
+                <RadioGroup value={airConditioning} onValueChange={setAirConditioning} className="flex gap-6">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="any" id="ac-any" />
+                    <Label htmlFor="ac-any">Any</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="none" id="ac-none" />
+                    <Label htmlFor="ac-none">No air conditioning or automatic</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="manual" id="ac-manual" />
+                    <Label htmlFor="ac-manual">Air conditioning or automatic</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="automatic" id="ac-auto" />
+                    <Label htmlFor="ac-auto">Automatic air conditioning</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Axles */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Axles</label>
+                <RadioGroup value={axles} onValueChange={setAxles} className="flex gap-6">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="any" id="axles-any" />
+                    <Label htmlFor="axles-any">Any</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="2" id="axles-2" />
+                    <Label htmlFor="axles-2">2</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="3" id="axles-3" />
+                    <Label htmlFor="axles-3">3</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="more" id="axles-more" />
+                    <Label htmlFor="axles-more">More than 3</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Wheel formula */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Wheel formula</label>
+                <div className="grid grid-cols-4 gap-3">
+                  {['4x2', '4x4', '6x2', '6x4', '6x6', '8x2', '8x4', '8x6', '8x8'].map((formula) => (
+                    <div key={formula} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`wheel-${formula}`}
+                        checked={wheelFormula.includes(formula)}
+                        onCheckedChange={(checked) => handleWheelFormulaChange(formula, checked as boolean)}
+                      />
+                      <Label htmlFor={`wheel-${formula}`} className="text-sm">{formula}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Permissible total weight and Hydraulic system */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Permissible total weight</label>
+                  <div className="flex gap-2">
+                    <Input placeholder="from" value={permissibleWeightFrom} onChange={(e) => setPermissibleWeightFrom(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">kg</span>
+                    <Input placeholder="until" value={permissibleWeightUntil} onChange={(e) => setPermissibleWeightUntil(e.target.value)} />
+                    <span className="flex items-center text-sm text-gray-500">kg</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Hydraulic system</label>
+                  <Select value={hydraulicSystem} onValueChange={setHydraulicSystem}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      <SelectItem value="fixed">Trailer hitch fixed</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Checkbox id="trailer-hitch" />
+                    <Label htmlFor="trailer-hitch" className="text-sm">Trailer hitch fixed</Label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cruise control and Driver's cab */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cruise control</label>
+                  <Select value={cruiseControl} onValueChange={setCruiseControl}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Driver's cab</label>
+                  <RadioGroup value={driversCab} onValueChange={setDriversCab} className="flex gap-6">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="any" id="cab-any" />
+                      <Label htmlFor="cab-any">Any</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="long-distance" id="cab-long" />
+                      <Label htmlFor="cab-long">Long-distance transport</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="local" id="cab-local" />
+                      <Label htmlFor="cab-local">Local transport</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              {/* Interior options */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Interior</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {['navigation system', 'Show right-hand drive', 'Retarder/Intarder', 'Parking air conditioning', 'Auxiliary heating', 'Virtual side mirrors'].map((interiorItem) => (
+                    <div key={interiorItem} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`interior-${interiorItem}`}
+                        checked={interior.includes(interiorItem)}
+                        onCheckedChange={(checked) => handleInteriorChange(interiorItem, checked as boolean)}
+                      />
+                      <Label htmlFor={`interior-${interiorItem}`} className="text-sm">{interiorItem}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Body color */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Body color</label>
+                <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                  {[
+                    { name: 'Black', color: 'bg-black' },
+                    { name: 'Beige', color: 'bg-amber-100' },
+                    { name: 'Gray', color: 'bg-gray-500' },
+                    { name: 'Brown', color: 'bg-amber-800' },
+                    { name: 'White', color: 'bg-white border' },
+                    { name: 'Orange', color: 'bg-orange-500' },
+                    { name: 'Blue', color: 'bg-blue-500' },
+                    { name: 'Yellow', color: 'bg-yellow-400' },
+                    { name: 'Red', color: 'bg-red-500' },
+                    { name: 'Green', color: 'bg-green-500' },
+                    { name: 'Silver', color: 'bg-gray-300' },
+                    { name: 'Gold', color: 'bg-yellow-600' },
+                    { name: 'Violet', color: 'bg-purple-500' },
+                    { name: 'Frosted', color: 'bg-gray-200' },
+                    { name: 'Metallic', color: 'bg-gray-400' }
+                  ].map((colorOption) => (
+                    <div key={colorOption.name} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`color-${colorOption.name}`}
+                        checked={bodyColor.includes(colorOption.name)}
+                        onCheckedChange={(checked) => handleBodyColorChange(colorOption.name, checked as boolean)}
+                      />
+                      <div className={`w-4 h-4 rounded ${colorOption.color}`}></div>
+                      <Label htmlFor={`color-${colorOption.name}`} className="text-sm">{colorOption.name}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
