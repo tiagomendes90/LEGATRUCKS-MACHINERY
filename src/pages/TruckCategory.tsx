@@ -64,6 +64,7 @@ const TruckCategory = () => {
     priceUntil: string;
     location: string;
     sortBy: string;
+    mileageTo?: string;
   }) => {
     if (!allTrucks || !category) return;
 
@@ -94,6 +95,11 @@ const TruckCategory = () => {
     // Apply operating hours filter (using mileage as proxy for operating hours)
     if (filters.operatingHoursUntil) {
       filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.operatingHoursUntil));
+    }
+
+    // Apply mileage filter (for trucks category)
+    if (filters.mileageTo) {
+      filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.mileageTo));
     }
 
     // Apply price filter
