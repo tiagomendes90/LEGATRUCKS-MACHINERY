@@ -9,6 +9,7 @@ import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
 import { useBrands } from "@/hooks/useBrands";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import Autoplay from "embla-carousel-autoplay";
 
 const Index = () => {
@@ -230,6 +231,7 @@ const Index = () => {
       </section>
 
       <Footer />
+      <WhatsAppFloat />
     </div>;
 };
 export default Index;
