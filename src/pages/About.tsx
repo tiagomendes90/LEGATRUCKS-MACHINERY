@@ -1,8 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Award, Wrench, Globe } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
 const About = () => {
   const stats = [{
     number: "20+",
@@ -17,6 +19,7 @@ const About = () => {
     number: "24/7",
     label: "Support Available"
   }];
+
   const values = [{
     icon: <Award className="h-8 w-8 text-blue-600" />,
     title: "Quality Excellence",
@@ -34,19 +37,19 @@ const About = () => {
     title: "Industry Leadership",
     description: "We stay ahead of industry trends and innovations to provide our customers with the most advanced trucking solutions."
   }];
-  return <div className="min-h-screen bg-white">
+
+  return (
+    <div className="min-h-screen bg-white">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[130px]">
+      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[150px] bg-blue-500">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl font-bold mb-6 md:text-5xl">About LEGA</h1>
-            <p className="text-xl text-blue-100 leading-relaxed md:text-xl">
-              For over two decades, we've been the trusted partner for businesses seeking premium commercial trucks. 
-              Our commitment to quality, service, and innovation has made us a leader in the industry.
-            </p>
-          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">About LEGA</h1>
+          <p className="text-xl text-blue-100 max-w-3xl">
+            For over two decades, we've been the trusted partner for businesses seeking premium commercial trucks. 
+            Our commitment to quality, service, and innovation has made us a leader in the industry.
+          </p>
         </div>
       </section>
 
@@ -54,10 +57,12 @@ const About = () => {
       <section className="py-16 bg-slate-50">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => <div key={index} className="text-center">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
                 <div className="text-4xl md:text-5xl font-bold text-blue-600 mb-2">{stat.number}</div>
                 <div className="text-lg text-gray-600">{stat.label}</div>
-              </div>)}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -98,7 +103,8 @@ const About = () => {
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center text-slate-800 mb-16">Our Values</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
+            {values.map((value, index) => (
+              <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="pt-6">
                   <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     {value.icon}
@@ -106,7 +112,8 @@ const About = () => {
                   <h3 className="text-xl font-semibold mb-3 text-slate-800">{value.title}</h3>
                   <p className="text-gray-600 leading-relaxed">{value.description}</p>
                 </CardContent>
-              </Card>)}
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -120,7 +127,7 @@ const About = () => {
             <Button size="lg" className="bg-orange-500 hover:bg-orange-600 px-8 py-6 text-lg">
               Browse Our Inventory
             </Button>
-            <Button size="lg" variant="outline" className="bg-BLUE-500 BLUE px-8 py-6 text-lg bg-sky-300 hover:bg-sky-200">
+            <Button size="lg" variant="outline" className="bg-sky-300 hover:bg-sky-200 text-slate-800 px-8 py-6 text-lg">
               Contact Our Team
             </Button>
           </div>
@@ -128,6 +135,8 @@ const About = () => {
       </section>
 
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default About;
