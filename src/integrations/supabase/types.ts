@@ -235,6 +235,119 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_specifications: {
+        Row: {
+          abs_brakes: boolean | null
+          adaptive_cruise_control: boolean | null
+          air_conditioning: boolean | null
+          axle_configuration: string | null
+          blind_spot_monitoring: boolean | null
+          bucket_capacity: number | null
+          cabin_type: string | null
+          collision_avoidance: boolean | null
+          crane_capacity: string | null
+          created_at: string
+          cruise_control: boolean | null
+          drive_type: string | null
+          ebs_brakes: boolean | null
+          esp_system: boolean | null
+          euro_standard: string | null
+          fuel_consumption: number | null
+          fuel_type: string | null
+          hydraulic_system: string | null
+          id: string
+          lane_departure_warning: boolean | null
+          lifting_capacity: number | null
+          loading_capacity: number | null
+          max_reach: number | null
+          noise_level: number | null
+          operating_weight: number | null
+          pto_available: boolean | null
+          retarder: boolean | null
+          suspension_type: string | null
+          truck_id: string
+          updated_at: string
+          winch_available: boolean | null
+          working_pressure: number | null
+        }
+        Insert: {
+          abs_brakes?: boolean | null
+          adaptive_cruise_control?: boolean | null
+          air_conditioning?: boolean | null
+          axle_configuration?: string | null
+          blind_spot_monitoring?: boolean | null
+          bucket_capacity?: number | null
+          cabin_type?: string | null
+          collision_avoidance?: boolean | null
+          crane_capacity?: string | null
+          created_at?: string
+          cruise_control?: boolean | null
+          drive_type?: string | null
+          ebs_brakes?: boolean | null
+          esp_system?: boolean | null
+          euro_standard?: string | null
+          fuel_consumption?: number | null
+          fuel_type?: string | null
+          hydraulic_system?: string | null
+          id?: string
+          lane_departure_warning?: boolean | null
+          lifting_capacity?: number | null
+          loading_capacity?: number | null
+          max_reach?: number | null
+          noise_level?: number | null
+          operating_weight?: number | null
+          pto_available?: boolean | null
+          retarder?: boolean | null
+          suspension_type?: string | null
+          truck_id: string
+          updated_at?: string
+          winch_available?: boolean | null
+          working_pressure?: number | null
+        }
+        Update: {
+          abs_brakes?: boolean | null
+          adaptive_cruise_control?: boolean | null
+          air_conditioning?: boolean | null
+          axle_configuration?: string | null
+          blind_spot_monitoring?: boolean | null
+          bucket_capacity?: number | null
+          cabin_type?: string | null
+          collision_avoidance?: boolean | null
+          crane_capacity?: string | null
+          created_at?: string
+          cruise_control?: boolean | null
+          drive_type?: string | null
+          ebs_brakes?: boolean | null
+          esp_system?: boolean | null
+          euro_standard?: string | null
+          fuel_consumption?: number | null
+          fuel_type?: string | null
+          hydraulic_system?: string | null
+          id?: string
+          lane_departure_warning?: boolean | null
+          lifting_capacity?: number | null
+          loading_capacity?: number | null
+          max_reach?: number | null
+          noise_level?: number | null
+          operating_weight?: number | null
+          pto_available?: boolean | null
+          retarder?: boolean | null
+          suspension_type?: string | null
+          truck_id?: string
+          updated_at?: string
+          winch_available?: boolean | null
+          working_pressure?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_specifications_truck_id_fkey"
+            columns: ["truck_id"]
+            isOneToOne: false
+            referencedRelation: "trucks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
