@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -169,6 +170,7 @@ const TruckCategory = () => {
           <div className="text-lg">Loading vehicles...</div>
         </div>
         <Footer />
+        <WhatsAppFloat />
       </div>
     );
   }
@@ -181,6 +183,7 @@ const TruckCategory = () => {
           <div className="text-lg text-red-600">Error loading vehicles: {error.message}</div>
         </div>
         <Footer />
+        <WhatsAppFloat />
       </div>
     );
   }
@@ -193,6 +196,7 @@ const TruckCategory = () => {
           <div className="text-lg">Category not found</div>
         </div>
         <Footer />
+        <WhatsAppFloat />
       </div>
     );
   }

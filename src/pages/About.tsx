@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Users, Award, Wrench, Globe } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 
 const About = () => {
   const stats = [{
@@ -135,6 +136,7 @@ const About = () => {
       </section>
 
       <Footer />
+      <WhatsAppFloat />
     </div>
   );
 };
