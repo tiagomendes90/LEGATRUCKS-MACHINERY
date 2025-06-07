@@ -1,12 +1,49 @@
 
 import { MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const WhatsAppFloat = () => {
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
 
   // Only show on mobile devices
   if (!isMobile) return null;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Only check scroll position on homepage
+      if (location.pathname === "/") {
+        // Hero section is typically full viewport height (100vh)
+        const scrollY = window.scrollY;
+        const viewportHeight = window.innerHeight;
+        
+        // Show WhatsApp button after scrolling past 80% of viewport height
+        setIsScrolledPastHero(scrollY > viewportHeight * 0.8);
+      } else {
+        // On other pages, always show the button
+        setIsScrolledPastHero(true);
+      }
+    };
+
+    // Set initial state
+    handleScroll();
+
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll);
+
+    // Cleanup
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location.pathname]);
+
+  // Hide on homepage when not scrolled past hero, and hide on contact/admin pages
+  const shouldHide = (location.pathname === "/" && !isScrolledPastHero) || 
+                    location.pathname === "/contact" || 
+                    location.pathname === "/admin";
+
+  if (shouldHide) return null;
 
   const handleWhatsAppClick = () => {
     // Replace with your actual WhatsApp number
