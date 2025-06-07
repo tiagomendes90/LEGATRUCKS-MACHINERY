@@ -5,12 +5,10 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const WhatsAppFloat = () => {
+  // Call all hooks at the top level, before any returns
   const isMobile = useIsMobile();
   const location = useLocation();
   const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
-
-  // Only show on mobile devices
-  if (!isMobile) return null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,6 +35,9 @@ const WhatsAppFloat = () => {
     // Cleanup
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname]);
+
+  // Only show on mobile devices - moved after all hooks
+  if (!isMobile) return null;
 
   // Hide on homepage when not scrolled past hero, and hide on contact/admin pages
   const shouldHide = (location.pathname === "/" && !isScrolledPastHero) || 
