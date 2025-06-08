@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,6 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -20,8 +18,9 @@ const Contact = () => {
     interest: "",
     message: ""
   });
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
@@ -37,25 +36,20 @@ const Contact = () => {
       message: ""
     });
   };
-
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[150px] bg-blue-500">
         <div className="container mx-auto px-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
-          <p className="text-xl text-blue-100 max-w-3xl">
-            Ready to find your perfect truck? Get in touch with our expert team for personalized service and competitive pricing.
-          </p>
+          <p className="text-xl text-blue-100 max-w-3xl">Ready to find your perfect vehicle? Get in touch with our expert team for personalized service and competitive pricing.</p>
         </div>
       </section>
 
@@ -117,14 +111,7 @@ const Contact = () => {
 
                     <div>
                       <Label htmlFor="message">Message</Label>
-                      <Textarea 
-                        id="message" 
-                        value={formData.message} 
-                        onChange={e => handleInputChange("message", e.target.value)} 
-                        placeholder="Please tell us more about your inquiry, requirements, or questions. We're here to help!"
-                        rows={5} 
-                        className="mt-1" 
-                      />
+                      <Textarea id="message" value={formData.message} onChange={e => handleInputChange("message", e.target.value)} placeholder="Please tell us more about your inquiry, requirements, or questions. We're here to help!" rows={5} className="mt-1" />
                     </div>
 
                     <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
@@ -206,8 +193,6 @@ const Contact = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Contact;
