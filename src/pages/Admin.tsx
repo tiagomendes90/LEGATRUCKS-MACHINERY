@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Home } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Home, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrucks, useAddTruck, useDeleteTruck, Truck } from "@/hooks/useTrucks";
@@ -56,11 +56,16 @@ const Admin = () => {
   const { data: subcategoryOptions = [] } = useFilterOptions(newTruck.category || 'trucks', 'subcategory');
 
   const [vehicleSpecifications, setVehicleSpecifications] = useState<Partial<VehicleSpecifications>>({});
+  const [vehicleMedia, setVehicleMedia] = useState({
+    photos: [] as string[],
+    videos: [] as string[]
+  });
 
   const [editingTruck, setEditingTruck] = useState<Truck | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [conditionFilter, setConditionFilter] = useState("all");
+  const [activeAddTruckTab, setActiveAddTruckTab] = useState("basic-info");
 
   const { toast } = useToast();
 
@@ -125,6 +130,17 @@ const Admin = () => {
     });
   };
 
+  const switchToTab = (tabValue: string) => {
+    setActiveAddTruckTab(tabValue);
+    // Use a small delay to ensure the tab content is rendered
+    setTimeout(() => {
+      const tabTrigger = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement;
+      if (tabTrigger) {
+        tabTrigger.click();
+      }
+    }, 100);
+  };
+
   const handleAddTruck = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -142,7 +158,7 @@ const Admin = () => {
       category: newTruck.category,
       subcategory: newTruck.subcategory,
       features: newTruck.features,
-      images: newTruck.images
+      images: [...newTruck.images, ...vehicleMedia.photos, ...vehicleMedia.videos]
     };
 
     try {
@@ -176,6 +192,8 @@ const Admin = () => {
         images: []
       });
       setVehicleSpecifications({});
+      setVehicleMedia({ photos: [], videos: [] });
+      setActiveAddTruckTab("basic-info");
     } catch (error) {
       console.error('Failed to add truck:', error);
     }
@@ -206,6 +224,34 @@ const Admin = () => {
 
   const handleGoHome = () => {
     navigate("/");
+  };
+
+  const handleAddPhoto = (photoUrl: string) => {
+    setVehicleMedia(prev => ({
+      ...prev,
+      photos: [...prev.photos, photoUrl]
+    }));
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setVehicleMedia(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddVideo = (videoUrl: string) => {
+    setVehicleMedia(prev => ({
+      ...prev,
+      videos: [...prev.videos, videoUrl]
+    }));
+  };
+
+  const handleRemoveVideo = (index: number) => {
+    setVehicleMedia(prev => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== index)
+    }));
   };
 
   const filteredTrucks = trucks.filter(truck => {
@@ -242,7 +288,7 @@ const Admin = () => {
           <div className="space-x-2">
             <Button onClick={handleGoHome} variant="outline">
               <Home className="h-4 w-4 mr-2" />
-              Go to Home
+              Lega Website
             </Button>
             <Button onClick={handleSignOut} variant="outline">
               <LogOut className="h-4 w-4 mr-2" />
@@ -373,11 +419,20 @@ const Admin = () => {
             <FeaturedTrucksManager />
           </TabsContent>
 
+          <TabsContent value="orders">
+            <RealOrderManagement />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AnalyticsDashboard />
+          </TabsContent>
+
           <TabsContent value="add-truck">
-            <Tabs defaultValue="basic-info" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="basic-info">Basic Information</TabsTrigger>
-                <TabsTrigger value="specifications">Technical Specifications</TabsTrigger>
+            <Tabs value={activeAddTruckTab} onValueChange={setActiveAddTruckTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="basic-info" data-value="basic-info">Basic Information</TabsTrigger>
+                <TabsTrigger value="specifications" data-value="specifications">Technical Specifications</TabsTrigger>
+                <TabsTrigger value="media" data-value="media">Photos & Videos</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic-info">
@@ -575,11 +630,7 @@ const Admin = () => {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => {
-                            // Switch to specifications tab
-                            const specsTab = document.querySelector('[value="specifications"]') as HTMLElement;
-                            specsTab?.click();
-                          }}
+                          onClick={() => switchToTab("specifications")}
                           className="flex-1"
                         >
                           Continue to Specifications
@@ -605,14 +656,18 @@ const Admin = () => {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => {
-                          // Switch back to basic info tab
-                          const basicTab = document.querySelector('[value="basic-info"]') as HTMLElement;
-                          basicTab?.click();
-                        }}
+                        onClick={() => switchToTab("basic-info")}
                         className="flex-1"
                       >
                         Back to Basic Information
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => switchToTab("media")}
+                        className="flex-1"
+                      >
+                        Continue to Photos & Videos
                       </Button>
                       <Button 
                         onClick={handleAddTruck}
@@ -620,21 +675,155 @@ const Admin = () => {
                         disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Adding Vehicle..." : "Add Vehicle with Specifications"}
+                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Add Vehicle with Specifications" : "Add Vehicle with Specifications"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="media">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Photos & Videos</CardTitle>
+                    <CardDescription>Add photos and videos to showcase the vehicle</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Photos Section */}
+                    <div>
+                      <Label className="text-base font-medium">Vehicle Photos</Label>
+                      <div className="mt-2 space-y-4">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Enter photo URL"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const input = e.target as HTMLInputElement;
+                                if (input.value.trim()) {
+                                  handleAddPhoto(input.value.trim());
+                                  input.value = '';
+                                }
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              const input = document.querySelector('input[placeholder="Enter photo URL"]') as HTMLInputElement;
+                              if (input?.value.trim()) {
+                                handleAddPhoto(input.value.trim());
+                                input.value = '';
+                              }
+                            }}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Add Photo
+                          </Button>
+                        </div>
+                        {vehicleMedia.photos.length > 0 && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {vehicleMedia.photos.map((photo, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={photo}
+                                  alt={`Vehicle photo ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg border"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleRemovePhoto(index)}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Videos Section */}
+                    <div>
+                      <Label className="text-base font-medium">Vehicle Videos</Label>
+                      <div className="mt-2 space-y-4">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Enter video URL"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const input = e.target as HTMLInputElement;
+                                if (input.value.trim()) {
+                                  handleAddVideo(input.value.trim());
+                                  input.value = '';
+                                }
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              const input = document.querySelector('input[placeholder="Enter video URL"]') as HTMLInputElement;
+                              if (input?.value.trim()) {
+                                handleAddVideo(input.value.trim());
+                                input.value = '';
+                              }
+                            }}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Add Video
+                          </Button>
+                        </div>
+                        {vehicleMedia.videos.length > 0 && (
+                          <div className="space-y-4">
+                            {vehicleMedia.videos.map((video, index) => (
+                              <div key={index} className="relative group p-4 border rounded-lg">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm text-gray-600 truncate mr-4">{video}</p>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleRemoveVideo(index)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => switchToTab("specifications")}
+                        className="flex-1"
+                      >
+                        Back to Specifications
+                      </Button>
+                      <Button 
+                        onClick={handleAddTruck}
+                        className="flex-1" 
+                        disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Adding Vehicle..." : "Add Vehicle with Media"}
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
-          </TabsContent>
-
-          <TabsContent value="orders">
-            <RealOrderManagement />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AnalyticsDashboard />
           </TabsContent>
         </Tabs>
 
