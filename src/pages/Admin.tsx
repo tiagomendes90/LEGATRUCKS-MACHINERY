@@ -31,10 +31,7 @@ const Admin = () => {
   const addSpecificationsMutation = useAddVehicleSpecifications();
   const { signOut, user } = useAuth();
 
-  // Get brands and subcategories based on selected category
-  const { data: allBrands = [] } = useBrands(newTruck.category);
-  const { data: subcategoryOptions = [] } = useFilterOptions(newTruck.category || 'trucks', 'subcategory');
-
+  // Move newTruck state declaration BEFORE the hooks that depend on it
   const [newTruck, setNewTruck] = useState({
     brand: "",
     model: "",
@@ -51,6 +48,10 @@ const Admin = () => {
     features: [] as string[],
     images: [] as string[]
   });
+
+  // Now these hooks can access newTruck.category safely
+  const { data: allBrands = [] } = useBrands(newTruck.category);
+  const { data: subcategoryOptions = [] } = useFilterOptions(newTruck.category || 'trucks', 'subcategory');
 
   const [vehicleSpecifications, setVehicleSpecifications] = useState<Partial<VehicleSpecifications>>({});
 
