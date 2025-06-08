@@ -31,8 +31,9 @@ const Admin = () => {
   const addSpecificationsMutation = useAddVehicleSpecifications();
   const { signOut, user } = useAuth();
 
-  const { data: allBrands = [] } = useBrands();
-  const { data: subcategoryOptions = [] } = useFilterOptions('trucks', 'subcategory');
+  // Get brands and subcategories based on selected category
+  const { data: allBrands = [] } = useBrands(newTruck.category);
+  const { data: subcategoryOptions = [] } = useFilterOptions(newTruck.category || 'trucks', 'subcategory');
 
   const [newTruck, setNewTruck] = useState({
     brand: "",
@@ -110,6 +111,16 @@ const Admin = () => {
 
     setupAdmin();
   }, [user, toast]);
+
+  // Reset subcategory and brand when category changes
+  const handleCategoryChange = (category: string) => {
+    setNewTruck({
+      ...newTruck,
+      category,
+      subcategory: "", // Reset subcategory
+      brand: "" // Reset brand
+    });
+  };
 
   const handleAddTruck = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -366,12 +377,48 @@ const Admin = () => {
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleAddTruck} className="space-y-6">
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid md:grid-cols-3 gap-6">
                         <div>
-                          <Label htmlFor="brand">Brand</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, brand: value})}>
+                          <Label htmlFor="category">Category *</Label>
+                          <Select onValueChange={handleCategoryChange} value={newTruck.category}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select brand" />
+                              <SelectValue placeholder="Select category first" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="trucks">Trucks</SelectItem>
+                              <SelectItem value="machinery">Machinery</SelectItem>
+                              <SelectItem value="agriculture">Agriculture</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="subcategory">Subcategory</Label>
+                          <Select 
+                            onValueChange={(value) => setNewTruck({...newTruck, subcategory: value})}
+                            value={newTruck.subcategory}
+                            disabled={!newTruck.category}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={!newTruck.category ? "Select category first" : "Select subcategory"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {subcategoryOptions.map((option) => (
+                                <SelectItem key={option.id} value={option.option_value}>
+                                  {option.option_label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="brand">Brand *</Label>
+                          <Select 
+                            onValueChange={(value) => setNewTruck({...newTruck, brand: value})}
+                            value={newTruck.brand}
+                            disabled={!newTruck.category}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={!newTruck.category ? "Select category first" : "Select brand"} />
                             </SelectTrigger>
                             <SelectContent>
                               {allBrands.map((brand) => (
@@ -382,8 +429,11 @@ const Admin = () => {
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                          <Label htmlFor="model">Model</Label>
+                          <Label htmlFor="model">Model *</Label>
                           <Input
                             id="model"
                             value={newTruck.model}
@@ -392,11 +442,25 @@ const Admin = () => {
                             required
                           />
                         </div>
+                        <div>
+                          <Label htmlFor="condition">Condition *</Label>
+                          <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})} value={newTruck.condition}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select condition" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="new">New</SelectItem>
+                              <SelectItem value="used">Used</SelectItem>
+                              <SelectItem value="certified">Certified Pre-Owned</SelectItem>
+                              <SelectItem value="refurbished">Refurbished</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
 
                       <div className="grid md:grid-cols-3 gap-6">
                         <div>
-                          <Label htmlFor="year">Year</Label>
+                          <Label htmlFor="year">Year *</Label>
                           <Input
                             id="year"
                             type="number"
@@ -420,7 +484,7 @@ const Admin = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="price">Price ($)</Label>
+                          <Label htmlFor="price">Price ($) *</Label>
                           <Input
                             id="price"
                             type="number"
@@ -432,46 +496,34 @@ const Admin = () => {
                         </div>
                       </div>
 
-                      <div className="grid md:grid-cols-4 gap-6">
+                      <div className="grid md:grid-cols-3 gap-6">
                         <div>
-                          <Label htmlFor="condition">Condition</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})}>
+                          <Label htmlFor="engine">Engine</Label>
+                          <Select onValueChange={(value) => setNewTruck({...newTruck, engine: value})} value={newTruck.engine}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select condition" />
+                              <SelectValue placeholder="Select engine" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="new">New</SelectItem>
-                              <SelectItem value="used">Used</SelectItem>
-                              <SelectItem value="certified">Certified Pre-Owned</SelectItem>
-                              <SelectItem value="refurbished">Refurbished</SelectItem>
+                              <SelectItem value="cummins-x15">Cummins X15</SelectItem>
+                              <SelectItem value="detroit-dd15">Detroit DD15</SelectItem>
+                              <SelectItem value="caterpillar-c15">Caterpillar C15</SelectItem>
+                              <SelectItem value="paccar-px-9">Paccar PX-9</SelectItem>
+                              <SelectItem value="volvo-d13">Volvo D13</SelectItem>
+                              <SelectItem value="mack-mp8">Mack MP8</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="category">Category</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, category: value})}>
+                          <Label htmlFor="transmission">Transmission</Label>
+                          <Select onValueChange={(value) => setNewTruck({...newTruck, transmission: value})} value={newTruck.transmission}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder="Select transmission" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="trucks">Trucks</SelectItem>
-                              <SelectItem value="machinery">Machinery</SelectItem>
-                              <SelectItem value="agriculture">Agriculture</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="subcategory">Subcategory</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, subcategory: value})}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select subcategory" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {subcategoryOptions.map((option) => (
-                                <SelectItem key={option.id} value={option.option_value}>
-                                  {option.option_label}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="manual">Manual</SelectItem>
+                              <SelectItem value="automatic">Automatic</SelectItem>
+                              <SelectItem value="automated-manual">Automated Manual</SelectItem>
+                              <SelectItem value="cvt">CVT</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -488,41 +540,8 @@ const Admin = () => {
                         </div>
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <Label htmlFor="engine">Engine</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, engine: value})}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select engine" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="cummins-x15">Cummins X15</SelectItem>
-                              <SelectItem value="detroit-dd15">Detroit DD15</SelectItem>
-                              <SelectItem value="caterpillar-c15">Caterpillar C15</SelectItem>
-                              <SelectItem value="paccar-px-9">Paccar PX-9</SelectItem>
-                              <SelectItem value="volvo-d13">Volvo D13</SelectItem>
-                              <SelectItem value="mack-mp8">Mack MP8</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="transmission">Transmission</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, transmission: value})}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select transmission" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="manual">Manual</SelectItem>
-                              <SelectItem value="automatic">Automatic</SelectItem>
-                              <SelectItem value="automated-manual">Automated Manual</SelectItem>
-                              <SelectItem value="cvt">CVT</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
                       <div>
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">Description *</Label>
                         <Textarea
                           id="description"
                           value={newTruck.description}
