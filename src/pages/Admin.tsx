@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrucks, useAddTruck, useDeleteTruck, Truck } from "@/hooks/useTrucks";
@@ -22,6 +22,7 @@ import { ensureAdminProfile, forceCreateAdminProfile } from "@/utils/adminSetup"
 import { supabase } from "@/integrations/supabase/client";
 import { useBrands } from "@/hooks/useBrands";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
+import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
   const { data: trucks = [], isLoading } = useTrucks();
@@ -30,6 +31,7 @@ const Admin = () => {
   const updateTruckMutation = useUpdateTruck();
   const addSpecificationsMutation = useAddVehicleSpecifications();
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
 
   // Move newTruck state declaration BEFORE the hooks that depend on it
   const [newTruck, setNewTruck] = useState({
@@ -202,6 +204,10 @@ const Admin = () => {
     });
   };
 
+  const handleGoHome = () => {
+    navigate("/");
+  };
+
   const filteredTrucks = trucks.filter(truck => {
     const matchesSearch = truck.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          truck.model.toLowerCase().includes(searchTerm.toLowerCase());
@@ -234,6 +240,10 @@ const Admin = () => {
             <p className="text-gray-600">Welcome back, {user?.email}</p>
           </div>
           <div className="space-x-2">
+            <Button onClick={handleGoHome} variant="outline">
+              <Home className="h-4 w-4 mr-2" />
+              Go to Home
+            </Button>
             <Button onClick={handleSignOut} variant="outline">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
@@ -553,14 +563,28 @@ const Admin = () => {
                         />
                       </div>
 
-                      <Button 
-                        type="submit" 
-                        className="w-full" 
-                        disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Adding Vehicle..." : "Add Vehicle to Inventory"}
-                      </Button>
+                      <div className="flex gap-4">
+                        <Button 
+                          type="submit" 
+                          className="flex-1" 
+                          disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Adding Vehicle..." : "Add Vehicle to Inventory"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            // Switch to specifications tab
+                            const specsTab = document.querySelector('[value="specifications"]') as HTMLElement;
+                            specsTab?.click();
+                          }}
+                          className="flex-1"
+                        >
+                          Continue to Specifications
+                        </Button>
+                      </div>
                     </form>
                   </CardContent>
                 </Card>
@@ -577,6 +601,28 @@ const Admin = () => {
                       specifications={vehicleSpecifications}
                       onSpecificationsChange={setVehicleSpecifications}
                     />
+                    <div className="mt-6 flex gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          // Switch back to basic info tab
+                          const basicTab = document.querySelector('[value="basic-info"]') as HTMLElement;
+                          basicTab?.click();
+                        }}
+                        className="flex-1"
+                      >
+                        Back to Basic Information
+                      </Button>
+                      <Button 
+                        onClick={handleAddTruck}
+                        className="flex-1" 
+                        disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Adding Vehicle..." : "Add Vehicle with Specifications"}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
