@@ -2,38 +2,40 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation();
 
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
     {
-      name: "Home",
+      name: t('nav.home'),
       path: "/"
     },
     {
-      name: "Trucks",
+      name: t('nav.trucks'),
       path: "/trucks"
     },
     {
-      name: "Machinery", 
+      name: t('nav.machinery'), 
       path: "/machinery"
     },
     {
-      name: "Agriculture",
+      name: t('nav.agriculture'),
       path: "/agriculture"
     },
     {
-      name: "About",
+      name: t('nav.about'),
       path: "/about"
     },
     {
-      name: "Contact",
+      name: t('nav.contact'),
       path: "/contact"
     }
   ];

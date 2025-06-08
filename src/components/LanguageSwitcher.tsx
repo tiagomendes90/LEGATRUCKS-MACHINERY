@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,21 +7,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const LanguageSwitcher = () => {
-  const [currentLanguage, setCurrentLanguage] = useState("EN");
+  const { i18n } = useTranslation();
 
   const languages = [
-    { code: "EN", name: "English", flag: "🇺🇸" },
-    { code: "FR", name: "Français", flag: "🇫🇷" },
-    { code: "PT", name: "Português", flag: "🇵🇹" },
+    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
+    { code: "pt", name: "Português", flag: "🇵🇹" },
   ];
 
   const handleLanguageChange = (langCode: string) => {
-    setCurrentLanguage(langCode);
-    // For now, we'll just update the state
-    // In a real implementation, you would integrate with i18n library
-    console.log(`Language changed to: ${langCode}`);
+    i18n.changeLanguage(langCode);
+  };
+
+  const getCurrentLanguageCode = () => {
+    return i18n.language?.substring(0, 2) || 'en';
+  };
+
+  const getCurrentLanguageDisplay = () => {
+    const currentLang = getCurrentLanguageCode();
+    return currentLang.toUpperCase();
   };
 
   return (
@@ -34,7 +40,7 @@ const LanguageSwitcher = () => {
           className="text-white hover:bg-white/10 gap-1 px-2"
         >
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{currentLanguage}</span>
+          <span className="hidden sm:inline">{getCurrentLanguageDisplay()}</span>
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
@@ -44,7 +50,7 @@ const LanguageSwitcher = () => {
             key={lang.code}
             onClick={() => handleLanguageChange(lang.code)}
             className={`cursor-pointer ${
-              currentLanguage === lang.code ? "bg-blue-50" : ""
+              getCurrentLanguageCode() === lang.code ? "bg-blue-50" : ""
             }`}
           >
             <span className="mr-2">{lang.flag}</span>

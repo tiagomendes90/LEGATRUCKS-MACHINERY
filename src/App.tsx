@@ -14,6 +14,7 @@ import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import "./i18n/config";
 
 const queryClient = new QueryClient();
 
