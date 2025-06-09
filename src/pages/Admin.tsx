@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Home, Upload, X } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Home, Upload, X, Star, ArrowLeft, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrucks, useAddTruck, useDeleteTruck, Truck } from "@/hooks/useTrucks";
@@ -24,6 +25,12 @@ import { useBrands } from "@/hooks/useBrands";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+
+interface VehicleMedia {
+  coverImage: string;
+  images: string[];
+  video: string;
+}
 
 const Admin = () => {
   const { t } = useTranslation();
@@ -58,9 +65,10 @@ const Admin = () => {
   const { data: subcategoryOptions = [] } = useFilterOptions(newTruck.category || 'trucks', 'subcategory');
 
   const [vehicleSpecifications, setVehicleSpecifications] = useState<Partial<VehicleSpecifications>>({});
-  const [vehicleMedia, setVehicleMedia] = useState({
-    photos: [] as string[],
-    videos: [] as string[]
+  const [vehicleMedia, setVehicleMedia] = useState<VehicleMedia>({
+    coverImage: "",
+    images: [],
+    video: ""
   });
 
   const [editingTruck, setEditingTruck] = useState<Truck | null>(null);
@@ -68,6 +76,8 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [conditionFilter, setConditionFilter] = useState("all");
   const [activeAddTruckTab, setActiveAddTruckTab] = useState("basic-info");
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isFormValid, setIsFormValid] = useState({ step1: false, step2: true, step3: true });
 
   const { toast } = useToast();
 
@@ -122,6 +132,19 @@ const Admin = () => {
     setupAdmin();
   }, [user, toast]);
 
+  // Validate form steps
+  useEffect(() => {
+    const step1Valid = newTruck.brand && newTruck.model && newTruck.year && newTruck.price && 
+                     newTruck.condition && newTruck.description && newTruck.category;
+    const step3Valid = vehicleMedia.coverImage && vehicleMedia.images.length > 0;
+    
+    setIsFormValid({
+      step1: !!step1Valid,
+      step2: true, // Specifications are optional
+      step3: !!step3Valid
+    });
+  }, [newTruck, vehicleMedia]);
+
   // Reset subcategory and brand when category changes
   const handleCategoryChange = (category: string) => {
     setNewTruck({
@@ -132,20 +155,47 @@ const Admin = () => {
     });
   };
 
-  const switchToTab = (tabValue: string) => {
-    setActiveAddTruckTab(tabValue);
-    // Use a small delay to ensure the tab content is rendered
-    setTimeout(() => {
-      const tabTrigger = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement;
-      if (tabTrigger) {
-        tabTrigger.click();
-      }
-    }, 100);
+  const getCurrentYear = () => new Date().getFullYear();
+
+  const handleNextStep = () => {
+    if (currentStep === 1 && !isFormValid.step1) {
+      toast({
+        title: "Incomplete Information",
+        description: "Please fill in all required fields before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+      setActiveAddTruckTab(currentStep === 1 ? "specifications" : "media");
+    }
   };
 
-  const handleAddTruck = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      setActiveAddTruckTab(currentStep === 2 ? "basic-info" : "specifications");
+    }
+  };
+
+  const handleAddTruck = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
+    if (!isFormValid.step1 || !isFormValid.step3) {
+      toast({
+        title: "Incomplete Form",
+        description: "Please complete all required steps before adding the vehicle.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const allImages = [vehicleMedia.coverImage, ...vehicleMedia.images];
+    if (vehicleMedia.video) {
+      allImages.push(vehicleMedia.video);
+    }
+
     const truckData = {
       brand: newTruck.brand,
       model: newTruck.model,
@@ -160,7 +210,7 @@ const Admin = () => {
       category: newTruck.category,
       subcategory: newTruck.subcategory,
       features: newTruck.features,
-      images: [...newTruck.images, ...vehicleMedia.photos, ...vehicleMedia.videos]
+      images: allImages
     };
 
     try {
@@ -194,8 +244,14 @@ const Admin = () => {
         images: []
       });
       setVehicleSpecifications({});
-      setVehicleMedia({ photos: [], videos: [] });
+      setVehicleMedia({ coverImage: "", images: [], video: "" });
+      setCurrentStep(1);
       setActiveAddTruckTab("basic-info");
+      
+      toast({
+        title: "Success",
+        description: "Vehicle added successfully!",
+      });
     } catch (error) {
       console.error('Failed to add truck:', error);
     }
@@ -228,31 +284,39 @@ const Admin = () => {
     navigate("/");
   };
 
-  const handleAddPhoto = (photoUrl: string) => {
+  const handleSetCoverImage = (imageUrl: string) => {
     setVehicleMedia(prev => ({
       ...prev,
-      photos: [...prev.photos, photoUrl]
+      coverImage: imageUrl
     }));
   };
 
-  const handleRemovePhoto = (index: number) => {
+  const handleAddImage = (imageUrl: string) => {
+    if (vehicleMedia.images.length >= 25) {
+      toast({
+        title: "Image Limit Reached",
+        description: "Maximum of 25 additional images allowed.",
+        variant: "destructive",
+      });
+      return;
+    }
     setVehicleMedia(prev => ({
       ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
+      images: [...prev.images, imageUrl]
     }));
   };
 
-  const handleAddVideo = (videoUrl: string) => {
+  const handleRemoveImage = (index: number) => {
     setVehicleMedia(prev => ({
       ...prev,
-      videos: [...prev.videos, videoUrl]
+      images: prev.images.filter((_, i) => i !== index)
     }));
   };
 
-  const handleRemoveVideo = (index: number) => {
+  const handleSetVideo = (videoUrl: string) => {
     setVehicleMedia(prev => ({
       ...prev,
-      videos: prev.videos.filter((_, i) => i !== index)
+      video: videoUrl
     }));
   };
 
@@ -430,402 +494,468 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="add-truck">
-            <Tabs value={activeAddTruckTab} onValueChange={setActiveAddTruckTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic-info" data-value="basic-info">{t('admin.basicInfo')}</TabsTrigger>
-                <TabsTrigger value="specifications" data-value="specifications">{t('admin.specifications')}</TabsTrigger>
-                <TabsTrigger value="media" data-value="media">{t('admin.photosVideos')}</TabsTrigger>
-              </TabsList>
+            <div className="space-y-6">
+              {/* Progress Steps */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`flex items-center space-x-2 ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                        1
+                      </div>
+                      <span className="font-medium">{t('admin.basicInfo')}</span>
+                    </div>
+                    <div className={`w-16 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                    <div className={`flex items-center space-x-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                        2
+                      </div>
+                      <span className="font-medium">{t('admin.specifications')}</span>
+                    </div>
+                    <div className={`w-16 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                    <div className={`flex items-center space-x-2 ${currentStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                        3
+                      </div>
+                      <span className="font-medium">{t('admin.photosVideos')}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <TabsContent value="basic-info">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t('admin.addVehicle')}</CardTitle>
-                    <CardDescription>Add a new vehicle to your inventory with basic information</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleAddTruck} className="space-y-6">
-                      <div className="grid md:grid-cols-3 gap-6">
-                        <div>
-                          <Label htmlFor="category">{t('admin.category')} *</Label>
-                          <Select onValueChange={handleCategoryChange} value={newTruck.category}>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('admin.selectCategory')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="trucks">{t('admin.trucks')}</SelectItem>
-                              <SelectItem value="machinery">{t('admin.machinery')}</SelectItem>
-                              <SelectItem value="agriculture">{t('admin.agriculture')}</SelectItem>
-                            </SelectContent>
-                          </Select>
+              <Tabs value={activeAddTruckTab} onValueChange={setActiveAddTruckTab} className="space-y-6">
+                <TabsContent value="basic-info">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Step 1: {t('admin.basicInfo')}</CardTitle>
+                      <CardDescription>Add basic vehicle information</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <form className="space-y-6">
+                        <div className="grid md:grid-cols-3 gap-6">
+                          <div>
+                            <Label htmlFor="category">{t('admin.category')} *</Label>
+                            <Select onValueChange={handleCategoryChange} value={newTruck.category}>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('admin.selectCategory')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="trucks">{t('admin.trucks')}</SelectItem>
+                                <SelectItem value="machinery">{t('admin.machinery')}</SelectItem>
+                                <SelectItem value="agriculture">{t('admin.agriculture')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="subcategory">{t('admin.subcategory')}</Label>
+                            <Select 
+                              onValueChange={(value) => setNewTruck({...newTruck, subcategory: value})}
+                              value={newTruck.subcategory}
+                              disabled={!newTruck.category}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectSubcategory')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {subcategoryOptions.map((option) => (
+                                  <SelectItem key={option.id} value={option.option_value}>
+                                    {option.option_label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="brand">{t('admin.brand')} *</Label>
+                            <Select 
+                              onValueChange={(value) => setNewTruck({...newTruck, brand: value})}
+                              value={newTruck.brand}
+                              disabled={!newTruck.category}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectBrand')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {allBrands.map((brand) => (
+                                  <SelectItem key={brand.id} value={brand.slug}>
+                                    {brand.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <Label htmlFor="model">{t('admin.model')} *</Label>
+                            <Input
+                              id="model"
+                              value={newTruck.model}
+                              onChange={(e) => setNewTruck({...newTruck, model: e.target.value})}
+                              placeholder="FH16"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="condition">{t('admin.condition')} *</Label>
+                            <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})} value={newTruck.condition}>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('admin.selectCondition')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="new">{t('admin.new')}</SelectItem>
+                                <SelectItem value="used">{t('admin.used')}</SelectItem>
+                                <SelectItem value="certified">{t('admin.certifiedPreOwned')}</SelectItem>
+                                <SelectItem value="refurbished">{t('admin.refurbished')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-6">
+                          <div>
+                            <Label htmlFor="year">{t('admin.year')} *</Label>
+                            <Input
+                              id="year"
+                              type="number"
+                              value={newTruck.year}
+                              onChange={(e) => setNewTruck({...newTruck, year: e.target.value})}
+                              placeholder="2024"
+                              min="1950"
+                              max={getCurrentYear() + 1}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="mileage">{t('admin.mileage')}</Label>
+                            <Input
+                              id="mileage"
+                              type="number"
+                              value={newTruck.mileage}
+                              onChange={(e) => setNewTruck({...newTruck, mileage: e.target.value})}
+                              placeholder="50000"
+                              min="0"
+                              max="2000000"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="price">{t('admin.price')} *</Label>
+                            <Input
+                              id="price"
+                              type="number"
+                              value={newTruck.price}
+                              onChange={(e) => setNewTruck({...newTruck, price: e.target.value})}
+                              placeholder="125000"
+                              min="1000"
+                              max="5000000"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-6">
+                          <div>
+                            <Label htmlFor="engine">{t('admin.engine')}</Label>
+                            <Select onValueChange={(value) => setNewTruck({...newTruck, engine: value})} value={newTruck.engine}>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('admin.selectEngine')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="cummins-x15">Cummins X15</SelectItem>
+                                <SelectItem value="detroit-dd15">Detroit DD15</SelectItem>
+                                <SelectItem value="caterpillar-c15">Caterpillar C15</SelectItem>
+                                <SelectItem value="paccar-px-9">Paccar PX-9</SelectItem>
+                                <SelectItem value="volvo-d13">Volvo D13</SelectItem>
+                                <SelectItem value="mack-mp8">Mack MP8</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="transmission">{t('admin.transmission')}</Label>
+                            <Select onValueChange={(value) => setNewTruck({...newTruck, transmission: value})} value={newTruck.transmission}>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t('admin.selectTransmission')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="manual">{t('admin.manual')}</SelectItem>
+                                <SelectItem value="automatic">{t('admin.automatic')}</SelectItem>
+                                <SelectItem value="automated-manual">{t('admin.automatedManual')}</SelectItem>
+                                <SelectItem value="cvt">{t('admin.cvt')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="horsepower">{t('admin.horsepower')}</Label>
+                            <Input
+                              id="horsepower"
+                              type="number"
+                              value={newTruck.horsepower}
+                              onChange={(e) => setNewTruck({...newTruck, horsepower: e.target.value})}
+                              placeholder="500"
+                              min="50"
+                              max="2000"
+                            />
+                          </div>
+                        </div>
+
                         <div>
-                          <Label htmlFor="subcategory">{t('admin.subcategory')}</Label>
-                          <Select 
-                            onValueChange={(value) => setNewTruck({...newTruck, subcategory: value})}
-                            value={newTruck.subcategory}
-                            disabled={!newTruck.category}
+                          <Label htmlFor="description">{t('admin.description')} *</Label>
+                          <Textarea
+                            id="description"
+                            value={newTruck.description}
+                            onChange={(e) => setNewTruck({...newTruck, description: e.target.value})}
+                            placeholder={t('admin.descriptionPlaceholder')}
+                            rows={4}
+                            required
+                          />
+                        </div>
+
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            onClick={handleNextStep}
+                            disabled={!isFormValid.step1}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectSubcategory')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {subcategoryOptions.map((option) => (
-                                <SelectItem key={option.id} value={option.option_value}>
-                                  {option.option_label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            Next: Specifications
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
                         </div>
-                        <div>
-                          <Label htmlFor="brand">{t('admin.brand')} *</Label>
-                          <Select 
-                            onValueChange={(value) => setNewTruck({...newTruck, brand: value})}
-                            value={newTruck.brand}
-                            disabled={!newTruck.category}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectBrand')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {allBrands.map((brand) => (
-                                <SelectItem key={brand.id} value={brand.slug}>
-                                  {brand.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <Label htmlFor="model">{t('admin.model')} *</Label>
-                          <Input
-                            id="model"
-                            value={newTruck.model}
-                            onChange={(e) => setNewTruck({...newTruck, model: e.target.value})}
-                            placeholder="FH16"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="condition">{t('admin.condition')} *</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})} value={newTruck.condition}>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('admin.selectCondition')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="new">{t('admin.new')}</SelectItem>
-                              <SelectItem value="used">{t('admin.used')}</SelectItem>
-                              <SelectItem value="certified">{t('admin.certifiedPreOwned')}</SelectItem>
-                              <SelectItem value="refurbished">{t('admin.refurbished')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-3 gap-6">
-                        <div>
-                          <Label htmlFor="year">{t('admin.year')} *</Label>
-                          <Input
-                            id="year"
-                            type="number"
-                            value={newTruck.year}
-                            onChange={(e) => setNewTruck({...newTruck, year: e.target.value})}
-                            placeholder="2024"
-                            min="2000"
-                            max="2024"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="mileage">{t('admin.mileage')}</Label>
-                          <Input
-                            id="mileage"
-                            type="number"
-                            value={newTruck.mileage}
-                            onChange={(e) => setNewTruck({...newTruck, mileage: e.target.value})}
-                            placeholder="50000"
-                            min="0"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="price">{t('admin.price')} *</Label>
-                          <Input
-                            id="price"
-                            type="number"
-                            value={newTruck.price}
-                            onChange={(e) => setNewTruck({...newTruck, price: e.target.value})}
-                            placeholder="125000"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-3 gap-6">
-                        <div>
-                          <Label htmlFor="engine">{t('admin.engine')}</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, engine: value})} value={newTruck.engine}>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('admin.selectEngine')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="cummins-x15">Cummins X15</SelectItem>
-                              <SelectItem value="detroit-dd15">Detroit DD15</SelectItem>
-                              <SelectItem value="caterpillar-c15">Caterpillar C15</SelectItem>
-                              <SelectItem value="paccar-px-9">Paccar PX-9</SelectItem>
-                              <SelectItem value="volvo-d13">Volvo D13</SelectItem>
-                              <SelectItem value="mack-mp8">Mack MP8</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="transmission">{t('admin.transmission')}</Label>
-                          <Select onValueChange={(value) => setNewTruck({...newTruck, transmission: value})} value={newTruck.transmission}>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('admin.selectTransmission')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="manual">{t('admin.manual')}</SelectItem>
-                              <SelectItem value="automatic">{t('admin.automatic')}</SelectItem>
-                              <SelectItem value="automated-manual">{t('admin.automatedManual')}</SelectItem>
-                              <SelectItem value="cvt">{t('admin.cvt')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="horsepower">{t('admin.horsepower')}</Label>
-                          <Input
-                            id="horsepower"
-                            type="number"
-                            value={newTruck.horsepower}
-                            onChange={(e) => setNewTruck({...newTruck, horsepower: e.target.value})}
-                            placeholder="500"
-                            min="0"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="description">{t('admin.description')} *</Label>
-                        <Textarea
-                          id="description"
-                          value={newTruck.description}
-                          onChange={(e) => setNewTruck({...newTruck, description: e.target.value})}
-                          placeholder={t('admin.descriptionPlaceholder')}
-                          rows={4}
-                          required
-                        />
-                      </div>
-
-                      <div className="flex gap-4">
-                        <Button 
-                          type="submit" 
-                          className="flex-1" 
-                          disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          {addTruckMutation.isPending || addSpecificationsMutation.isPending ? t('admin.addingVehicle') : t('admin.addVehicleToInventory')}
-                        </Button>
+                <TabsContent value="specifications">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Step 2: {t('admin.specifications')}</CardTitle>
+                      <CardDescription>Add detailed technical specifications (optional)</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <VehicleSpecificationsForm
+                        specifications={vehicleSpecifications}
+                        onSpecificationsChange={setVehicleSpecifications}
+                      />
+                      <div className="mt-6 flex justify-between">
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => switchToTab("specifications")}
-                          className="flex-1"
+                          onClick={handlePrevStep}
                         >
-                          {t('admin.continueToSpecs')}
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                          Back: Basic Info
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={handleNextStep}
+                        >
+                          Next: Media
+                          <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
                       </div>
-                    </form>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <TabsContent value="specifications">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t('admin.specifications')}</CardTitle>
-                    <CardDescription>Add detailed technical specifications and features for the vehicle</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <VehicleSpecificationsForm
-                      specifications={vehicleSpecifications}
-                      onSpecificationsChange={setVehicleSpecifications}
-                    />
-                    <div className="mt-6 flex gap-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => switchToTab("basic-info")}
-                        className="flex-1"
-                      >
-                        {t('admin.backToBasicInfo')}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => switchToTab("media")}
-                        className="flex-1"
-                      >
-                        {t('admin.continueToMedia')}
-                      </Button>
-                      <Button 
-                        onClick={handleAddTruck}
-                        className="flex-1" 
-                        disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? t('admin.addVehicleWithSpecs') : t('admin.addVehicleWithSpecs')}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="media">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t('admin.photosVideos')}</CardTitle>
-                    <CardDescription>Add photos and videos to showcase the vehicle</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Photos Section */}
-                    <div>
-                      <Label className="text-base font-medium">{t('admin.vehiclePhotos')}</Label>
-                      <div className="mt-2 space-y-4">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder={t('admin.enterPhotoUrl')}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const input = e.target as HTMLInputElement;
-                                if (input.value.trim()) {
-                                  handleAddPhoto(input.value.trim());
+                <TabsContent value="media">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Step 3: {t('admin.photosVideos')}</CardTitle>
+                      <CardDescription>Add cover image, additional photos (max 25), and one video</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Cover Image Section */}
+                      <div>
+                        <Label className="text-base font-medium flex items-center gap-2">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          Cover Image *
+                        </Label>
+                        <div className="mt-2 space-y-4">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter cover image URL"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const input = e.target as HTMLInputElement;
+                                  if (input.value.trim()) {
+                                    handleSetCoverImage(input.value.trim());
+                                    input.value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                const input = document.querySelector(`input[placeholder="Enter cover image URL"]`) as HTMLInputElement;
+                                if (input?.value.trim()) {
+                                  handleSetCoverImage(input.value.trim());
                                   input.value = '';
                                 }
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              const input = document.querySelector(`input[placeholder="${t('admin.enterPhotoUrl')}"]`) as HTMLInputElement;
-                              if (input?.value.trim()) {
-                                handleAddPhoto(input.value.trim());
-                                input.value = '';
-                              }
-                            }}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            {t('admin.addPhoto')}
-                          </Button>
-                        </div>
-                        {vehicleMedia.photos.length > 0 && (
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {vehicleMedia.photos.map((photo, index) => (
-                              <div key={index} className="relative group">
-                                <img
-                                  src={photo}
-                                  alt={`Vehicle photo ${index + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg border"
-                                />
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={() => handleRemovePhoto(index)}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ))}
+                              }}
+                            >
+                              <Star className="h-4 w-4 mr-2" />
+                              Set Cover
+                            </Button>
                           </div>
-                        )}
+                          {vehicleMedia.coverImage && (
+                            <div className="relative inline-block">
+                              <img
+                                src={vehicleMedia.coverImage}
+                                alt="Cover image"
+                                className="w-48 h-32 object-cover rounded-lg border-2 border-yellow-500"
+                              />
+                              <Badge className="absolute top-2 left-2 bg-yellow-500">Cover</Badge>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2"
+                                onClick={() => setVehicleMedia(prev => ({ ...prev, coverImage: "" }))}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Videos Section */}
-                    <div>
-                      <Label className="text-base font-medium">{t('admin.vehicleVideos')}</Label>
-                      <div className="mt-2 space-y-4">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder={t('admin.enterVideoUrl')}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                const input = e.target as HTMLInputElement;
-                                if (input.value.trim()) {
-                                  handleAddVideo(input.value.trim());
+                      {/* Additional Photos Section */}
+                      <div>
+                        <Label className="text-base font-medium">Additional Photos ({vehicleMedia.images.length}/25)</Label>
+                        <div className="mt-2 space-y-4">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter photo URL"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const input = e.target as HTMLInputElement;
+                                  if (input.value.trim()) {
+                                    handleAddImage(input.value.trim());
+                                    input.value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                const input = document.querySelector(`input[placeholder="Enter photo URL"]`) as HTMLInputElement;
+                                if (input?.value.trim()) {
+                                  handleAddImage(input.value.trim());
                                   input.value = '';
                                 }
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              const input = document.querySelector(`input[placeholder="${t('admin.enterVideoUrl')}"]`) as HTMLInputElement;
-                              if (input?.value.trim()) {
-                                handleAddVideo(input.value.trim());
-                                input.value = '';
-                              }
-                            }}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            {t('admin.addVideo')}
-                          </Button>
-                        </div>
-                        {vehicleMedia.videos.length > 0 && (
-                          <div className="space-y-4">
-                            {vehicleMedia.videos.map((video, index) => (
-                              <div key={index} className="relative group p-4 border rounded-lg">
-                                <div className="flex items-center justify-between">
-                                  <p className="text-sm text-gray-600 truncate mr-4">{video}</p>
+                              }}
+                              disabled={vehicleMedia.images.length >= 25}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Add Photo
+                            </Button>
+                          </div>
+                          {vehicleMedia.images.length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              {vehicleMedia.images.map((photo, index) => (
+                                <div key={index} className="relative group">
+                                  <img
+                                    src={photo}
+                                    alt={`Vehicle photo ${index + 1}`}
+                                    className="w-full h-24 object-cover rounded-lg border"
+                                  />
                                   <Button
                                     type="button"
                                     variant="destructive"
                                     size="sm"
-                                    onClick={() => handleRemoveVideo(index)}
+                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => handleRemoveImage(index)}
                                   >
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex gap-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => switchToTab("specifications")}
-                        className="flex-1"
-                      >
-                        {t('admin.backToSpecs')}
-                      </Button>
-                      <Button 
-                        onClick={handleAddTruck}
-                        className="flex-1" 
-                        disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? t('admin.addingVehicle') : t('admin.addVehicleWithMedia')}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                      {/* Video Section */}
+                      <div>
+                        <Label className="text-base font-medium">Vehicle Video (1 max)</Label>
+                        <div className="mt-2 space-y-4">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter video URL (YouTube, Vimeo, etc.)"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const input = e.target as HTMLInputElement;
+                                  if (input.value.trim()) {
+                                    handleSetVideo(input.value.trim());
+                                    input.value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                const input = document.querySelector(`input[placeholder="Enter video URL (YouTube, Vimeo, etc.)"]`) as HTMLInputElement;
+                                if (input?.value.trim()) {
+                                  handleSetVideo(input.value.trim());
+                                  input.value = '';
+                                }
+                              }}
+                              disabled={!!vehicleMedia.video}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Add Video
+                            </Button>
+                          </div>
+                          {vehicleMedia.video && (
+                            <div className="relative group p-4 border rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm text-gray-600 truncate mr-4">{vehicleMedia.video}</p>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => setVehicleMedia(prev => ({ ...prev, video: "" }))}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handlePrevStep}
+                        >
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                          Back: Specifications
+                        </Button>
+                        <Button 
+                          onClick={handleAddTruck}
+                          disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending || !isFormValid.step1 || !isFormValid.step3}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {addTruckMutation.isPending || addSpecificationsMutation.isPending ? 'Adding Vehicle...' : 'Add Vehicle'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
           </TabsContent>
         </Tabs>
 
