@@ -23,8 +23,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBrands } from "@/hooks/useBrands";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const Admin = () => {
+  const { t } = useTranslation();
   const { data: trucks = [], isLoading } = useTrucks();
   const addTruckMutation = useAddTruck();
   const deleteTruckMutation = useDeleteTruck();
@@ -217,8 +219,8 @@ const Admin = () => {
   const handleSignOut = async () => {
     await signOut();
     toast({
-      title: "Signed Out",
-      description: "You have been signed out successfully.",
+      title: t('admin.signedOut'),
+      description: t('admin.signOutSuccess'),
     });
   };
 
@@ -262,16 +264,16 @@ const Admin = () => {
   });
 
   const stats = [
-    { title: "Total Inventory", value: trucks.length.toString(), icon: <Package className="h-8 w-8" />, color: "bg-blue-500" },
-    { title: "Total Value", value: `$${(trucks.reduce((sum, truck) => sum + truck.price, 0) / 1000000).toFixed(1)}M`, icon: <DollarSign className="h-8 w-8" />, color: "bg-green-500" },
-    { title: "Avg. Price", value: `$${trucks.length > 0 ? Math.round(trucks.reduce((sum, truck) => sum + truck.price, 0) / trucks.length / 1000) : 0}K`, icon: <BarChart3 className="h-8 w-8" />, color: "bg-purple-500" },
-    { title: "New Vehicles", value: trucks.filter(truck => truck.condition === "new").length.toString(), icon: <Users className="h-8 w-8" />, color: "bg-orange-500" }
+    { title: t('admin.totalInventory'), value: trucks.length.toString(), icon: <Package className="h-8 w-8" />, color: "bg-blue-500" },
+    { title: t('admin.totalValue'), value: `$${(trucks.reduce((sum, truck) => sum + truck.price, 0) / 1000000).toFixed(1)}M`, icon: <DollarSign className="h-8 w-8" />, color: "bg-green-500" },
+    { title: t('admin.avgPrice'), value: `$${trucks.length > 0 ? Math.round(trucks.reduce((sum, truck) => sum + truck.price, 0) / trucks.length / 1000) : 0}K`, icon: <BarChart3 className="h-8 w-8" />, color: "bg-purple-500" },
+    { title: t('admin.newVehicles'), value: trucks.filter(truck => truck.condition === "new").length.toString(), icon: <Users className="h-8 w-8" />, color: "bg-orange-500" }
   ];
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">{t('common.loading')}</div>
       </div>
     );
   }
@@ -282,17 +284,17 @@ const Admin = () => {
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user?.email}</p>
+            <h1 className="text-4xl font-bold text-slate-800 mb-2">{t('admin.title')}</h1>
+            <p className="text-gray-600">{t('admin.welcome')}, {user?.email}</p>
           </div>
           <div className="space-x-2">
             <Button onClick={handleGoHome} variant="outline">
               <Home className="h-4 w-4 mr-2" />
-              Lega Website
+              {t('common.legarWebsite')}
             </Button>
             <Button onClick={handleSignOut} variant="outline">
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('admin.signOut')}
             </Button>
           </div>
         </div>
@@ -318,11 +320,11 @@ const Admin = () => {
 
         <Tabs defaultValue="inventory" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="featured">Featured</TabsTrigger>
-            <TabsTrigger value="add-truck">Add Vehicle</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="inventory">{t('admin.inventory')}</TabsTrigger>
+            <TabsTrigger value="featured">{t('admin.featured')}</TabsTrigger>
+            <TabsTrigger value="add-truck">{t('admin.addVehicle')}</TabsTrigger>
+            <TabsTrigger value="orders">{t('admin.orders')}</TabsTrigger>
+            <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="inventory">
@@ -330,14 +332,14 @@ const Admin = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>Vehicle Inventory</CardTitle>
-                    <CardDescription>Manage your vehicle inventory and update availability</CardDescription>
+                    <CardTitle>{t('admin.vehicleInventory')}</CardTitle>
+                    <CardDescription>{t('admin.manageInventoryDesc')}</CardDescription>
                   </div>
                   <div className="flex gap-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder="Search vehicles..."
+                        placeholder={t('admin.searchVehicles')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 w-64"
@@ -349,11 +351,11 @@ const Admin = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Conditions</SelectItem>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="used">Used</SelectItem>
-                        <SelectItem value="certified">Certified</SelectItem>
-                        <SelectItem value="refurbished">Refurbished</SelectItem>
+                        <SelectItem value="all">{t('admin.allConditions')}</SelectItem>
+                        <SelectItem value="new">{t('admin.new')}</SelectItem>
+                        <SelectItem value="used">{t('admin.used')}</SelectItem>
+                        <SelectItem value="certified">{t('admin.certified')}</SelectItem>
+                        <SelectItem value="refurbished">{t('admin.refurbished')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -407,7 +409,7 @@ const Admin = () => {
                   ))}
                   {filteredTrucks.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      No vehicles found matching your criteria.
+                      {t('admin.noVehiclesFound')}
                     </div>
                   )}
                 </div>
@@ -430,42 +432,42 @@ const Admin = () => {
           <TabsContent value="add-truck">
             <Tabs value={activeAddTruckTab} onValueChange={setActiveAddTruckTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic-info" data-value="basic-info">Basic Information</TabsTrigger>
-                <TabsTrigger value="specifications" data-value="specifications">Technical Specifications</TabsTrigger>
-                <TabsTrigger value="media" data-value="media">Photos & Videos</TabsTrigger>
+                <TabsTrigger value="basic-info" data-value="basic-info">{t('admin.basicInfo')}</TabsTrigger>
+                <TabsTrigger value="specifications" data-value="specifications">{t('admin.specifications')}</TabsTrigger>
+                <TabsTrigger value="media" data-value="media">{t('admin.photosVideos')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic-info">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Add New Vehicle</CardTitle>
+                    <CardTitle>{t('admin.addVehicle')}</CardTitle>
                     <CardDescription>Add a new vehicle to your inventory with basic information</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleAddTruck} className="space-y-6">
                       <div className="grid md:grid-cols-3 gap-6">
                         <div>
-                          <Label htmlFor="category">Category *</Label>
+                          <Label htmlFor="category">{t('admin.category')} *</Label>
                           <Select onValueChange={handleCategoryChange} value={newTruck.category}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select category first" />
+                              <SelectValue placeholder={t('admin.selectCategory')} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="trucks">Trucks</SelectItem>
-                              <SelectItem value="machinery">Machinery</SelectItem>
-                              <SelectItem value="agriculture">Agriculture</SelectItem>
+                              <SelectItem value="trucks">{t('admin.trucks')}</SelectItem>
+                              <SelectItem value="machinery">{t('admin.machinery')}</SelectItem>
+                              <SelectItem value="agriculture">{t('admin.agriculture')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="subcategory">Subcategory</Label>
+                          <Label htmlFor="subcategory">{t('admin.subcategory')}</Label>
                           <Select 
                             onValueChange={(value) => setNewTruck({...newTruck, subcategory: value})}
                             value={newTruck.subcategory}
                             disabled={!newTruck.category}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder={!newTruck.category ? "Select category first" : "Select subcategory"} />
+                              <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectSubcategory')} />
                             </SelectTrigger>
                             <SelectContent>
                               {subcategoryOptions.map((option) => (
@@ -477,14 +479,14 @@ const Admin = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="brand">Brand *</Label>
+                          <Label htmlFor="brand">{t('admin.brand')} *</Label>
                           <Select 
                             onValueChange={(value) => setNewTruck({...newTruck, brand: value})}
                             value={newTruck.brand}
                             disabled={!newTruck.category}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder={!newTruck.category ? "Select category first" : "Select brand"} />
+                              <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectBrand')} />
                             </SelectTrigger>
                             <SelectContent>
                               {allBrands.map((brand) => (
@@ -499,7 +501,7 @@ const Admin = () => {
 
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                          <Label htmlFor="model">Model *</Label>
+                          <Label htmlFor="model">{t('admin.model')} *</Label>
                           <Input
                             id="model"
                             value={newTruck.model}
@@ -509,16 +511,16 @@ const Admin = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="condition">Condition *</Label>
+                          <Label htmlFor="condition">{t('admin.condition')} *</Label>
                           <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})} value={newTruck.condition}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select condition" />
+                              <SelectValue placeholder={t('admin.selectCondition')} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="new">New</SelectItem>
-                              <SelectItem value="used">Used</SelectItem>
-                              <SelectItem value="certified">Certified Pre-Owned</SelectItem>
-                              <SelectItem value="refurbished">Refurbished</SelectItem>
+                              <SelectItem value="new">{t('admin.new')}</SelectItem>
+                              <SelectItem value="used">{t('admin.used')}</SelectItem>
+                              <SelectItem value="certified">{t('admin.certifiedPreOwned')}</SelectItem>
+                              <SelectItem value="refurbished">{t('admin.refurbished')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -526,7 +528,7 @@ const Admin = () => {
 
                       <div className="grid md:grid-cols-3 gap-6">
                         <div>
-                          <Label htmlFor="year">Year *</Label>
+                          <Label htmlFor="year">{t('admin.year')} *</Label>
                           <Input
                             id="year"
                             type="number"
@@ -539,7 +541,7 @@ const Admin = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="mileage">Mileage</Label>
+                          <Label htmlFor="mileage">{t('admin.mileage')}</Label>
                           <Input
                             id="mileage"
                             type="number"
@@ -550,7 +552,7 @@ const Admin = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="price">Price ($) *</Label>
+                          <Label htmlFor="price">{t('admin.price')} *</Label>
                           <Input
                             id="price"
                             type="number"
@@ -564,10 +566,10 @@ const Admin = () => {
 
                       <div className="grid md:grid-cols-3 gap-6">
                         <div>
-                          <Label htmlFor="engine">Engine</Label>
+                          <Label htmlFor="engine">{t('admin.engine')}</Label>
                           <Select onValueChange={(value) => setNewTruck({...newTruck, engine: value})} value={newTruck.engine}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select engine" />
+                              <SelectValue placeholder={t('admin.selectEngine')} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="cummins-x15">Cummins X15</SelectItem>
@@ -580,21 +582,21 @@ const Admin = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="transmission">Transmission</Label>
+                          <Label htmlFor="transmission">{t('admin.transmission')}</Label>
                           <Select onValueChange={(value) => setNewTruck({...newTruck, transmission: value})} value={newTruck.transmission}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select transmission" />
+                              <SelectValue placeholder={t('admin.selectTransmission')} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="manual">Manual</SelectItem>
-                              <SelectItem value="automatic">Automatic</SelectItem>
-                              <SelectItem value="automated-manual">Automated Manual</SelectItem>
-                              <SelectItem value="cvt">CVT</SelectItem>
+                              <SelectItem value="manual">{t('admin.manual')}</SelectItem>
+                              <SelectItem value="automatic">{t('admin.automatic')}</SelectItem>
+                              <SelectItem value="automated-manual">{t('admin.automatedManual')}</SelectItem>
+                              <SelectItem value="cvt">{t('admin.cvt')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="horsepower">Horsepower</Label>
+                          <Label htmlFor="horsepower">{t('admin.horsepower')}</Label>
                           <Input
                             id="horsepower"
                             type="number"
@@ -607,12 +609,12 @@ const Admin = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="description">Description *</Label>
+                        <Label htmlFor="description">{t('admin.description')} *</Label>
                         <Textarea
                           id="description"
                           value={newTruck.description}
                           onChange={(e) => setNewTruck({...newTruck, description: e.target.value})}
-                          placeholder="Detailed description of the vehicle, features, and selling points..."
+                          placeholder={t('admin.descriptionPlaceholder')}
                           rows={4}
                           required
                         />
@@ -625,7 +627,7 @@ const Admin = () => {
                           disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
                         >
                           <Plus className="h-4 w-4 mr-2" />
-                          {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Adding Vehicle..." : "Add Vehicle to Inventory"}
+                          {addTruckMutation.isPending || addSpecificationsMutation.isPending ? t('admin.addingVehicle') : t('admin.addVehicleToInventory')}
                         </Button>
                         <Button
                           type="button"
@@ -633,7 +635,7 @@ const Admin = () => {
                           onClick={() => switchToTab("specifications")}
                           className="flex-1"
                         >
-                          Continue to Specifications
+                          {t('admin.continueToSpecs')}
                         </Button>
                       </div>
                     </form>
@@ -644,7 +646,7 @@ const Admin = () => {
               <TabsContent value="specifications">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Technical Specifications</CardTitle>
+                    <CardTitle>{t('admin.specifications')}</CardTitle>
                     <CardDescription>Add detailed technical specifications and features for the vehicle</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -659,7 +661,7 @@ const Admin = () => {
                         onClick={() => switchToTab("basic-info")}
                         className="flex-1"
                       >
-                        Back to Basic Information
+                        {t('admin.backToBasicInfo')}
                       </Button>
                       <Button
                         type="button"
@@ -667,7 +669,7 @@ const Admin = () => {
                         onClick={() => switchToTab("media")}
                         className="flex-1"
                       >
-                        Continue to Photos & Videos
+                        {t('admin.continueToMedia')}
                       </Button>
                       <Button 
                         onClick={handleAddTruck}
@@ -675,7 +677,7 @@ const Admin = () => {
                         disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Add Vehicle with Specifications" : "Add Vehicle with Specifications"}
+                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? t('admin.addVehicleWithSpecs') : t('admin.addVehicleWithSpecs')}
                       </Button>
                     </div>
                   </CardContent>
@@ -685,17 +687,17 @@ const Admin = () => {
               <TabsContent value="media">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Photos & Videos</CardTitle>
+                    <CardTitle>{t('admin.photosVideos')}</CardTitle>
                     <CardDescription>Add photos and videos to showcase the vehicle</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Photos Section */}
                     <div>
-                      <Label className="text-base font-medium">Vehicle Photos</Label>
+                      <Label className="text-base font-medium">{t('admin.vehiclePhotos')}</Label>
                       <div className="mt-2 space-y-4">
                         <div className="flex gap-2">
                           <Input
-                            placeholder="Enter photo URL"
+                            placeholder={t('admin.enterPhotoUrl')}
                             onKeyPress={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -711,7 +713,7 @@ const Admin = () => {
                             type="button"
                             variant="outline"
                             onClick={() => {
-                              const input = document.querySelector('input[placeholder="Enter photo URL"]') as HTMLInputElement;
+                              const input = document.querySelector(`input[placeholder="${t('admin.enterPhotoUrl')}"]`) as HTMLInputElement;
                               if (input?.value.trim()) {
                                 handleAddPhoto(input.value.trim());
                                 input.value = '';
@@ -719,7 +721,7 @@ const Admin = () => {
                             }}
                           >
                             <Upload className="h-4 w-4 mr-2" />
-                            Add Photo
+                            {t('admin.addPhoto')}
                           </Button>
                         </div>
                         {vehicleMedia.photos.length > 0 && (
@@ -749,11 +751,11 @@ const Admin = () => {
 
                     {/* Videos Section */}
                     <div>
-                      <Label className="text-base font-medium">Vehicle Videos</Label>
+                      <Label className="text-base font-medium">{t('admin.vehicleVideos')}</Label>
                       <div className="mt-2 space-y-4">
                         <div className="flex gap-2">
                           <Input
-                            placeholder="Enter video URL"
+                            placeholder={t('admin.enterVideoUrl')}
                             onKeyPress={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -769,7 +771,7 @@ const Admin = () => {
                             type="button"
                             variant="outline"
                             onClick={() => {
-                              const input = document.querySelector('input[placeholder="Enter video URL"]') as HTMLInputElement;
+                              const input = document.querySelector(`input[placeholder="${t('admin.enterVideoUrl')}"]`) as HTMLInputElement;
                               if (input?.value.trim()) {
                                 handleAddVideo(input.value.trim());
                                 input.value = '';
@@ -777,7 +779,7 @@ const Admin = () => {
                             }}
                           >
                             <Upload className="h-4 w-4 mr-2" />
-                            Add Video
+                            {t('admin.addVideo')}
                           </Button>
                         </div>
                         {vehicleMedia.videos.length > 0 && (
@@ -809,7 +811,7 @@ const Admin = () => {
                         onClick={() => switchToTab("specifications")}
                         className="flex-1"
                       >
-                        Back to Specifications
+                        {t('admin.backToSpecs')}
                       </Button>
                       <Button 
                         onClick={handleAddTruck}
@@ -817,7 +819,7 @@ const Admin = () => {
                         disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending}
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? "Adding Vehicle..." : "Add Vehicle with Media"}
+                        {addTruckMutation.isPending || addSpecificationsMutation.isPending ? t('admin.addingVehicle') : t('admin.addVehicleWithMedia')}
                       </Button>
                     </div>
                   </CardContent>

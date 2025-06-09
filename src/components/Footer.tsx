@@ -5,8 +5,10 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -33,12 +35,12 @@ const Footer = () => {
             {/* Newsletter Subscription */}
             <div className="mb-6">
               <p className="text-white text-sm mb-3">
-                Subscribe to get latest news updates and informations
+                {t('footer.subscribeNewsletter')}
               </p>
               <form onSubmit={handleNewsletterSubmit} className="relative">
                 <Input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t('footer.enterEmail')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white pr-12"
@@ -78,18 +80,18 @@ const Footer = () => {
 
           {/* Info Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Info</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">{t('footer.info')}</h3>
             <Separator className="bg-white/30 mb-4" />
             <ul className="space-y-2">
-              <li><Link to="/terms" className="text-white hover:text-gray-200 transition-colors">Terms of Service</Link></li>
-              <li><Link to="/privacy" className="text-white hover:text-gray-200 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/admin" className="text-white hover:text-gray-200 transition-colors">Admin</Link></li>
+              <li><Link to="/terms" className="text-white hover:text-gray-200 transition-colors">{t('footer.termsOfService')}</Link></li>
+              <li><Link to="/privacy" className="text-white hover:text-gray-200 transition-colors">{t('footer.privacyPolicy')}</Link></li>
+              <li><Link to="/admin" className="text-white hover:text-gray-200 transition-colors">{t('footer.admin')}</Link></li>
             </ul>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Contact</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">{t('footer.contact')}</h3>
             <Separator className="bg-white/30 mb-4" />
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-white">
@@ -109,7 +111,7 @@ const Footer = () => {
 
           {/* Location Card */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Location</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">{t('footer.location')}</h3>
             <Separator className="bg-white/30 mb-4" />
             <div className="w-full h-32 rounded-lg overflow-hidden bg-white/10 flex items-center justify-center">
               <div className="text-center">
@@ -124,7 +126,7 @@ const Footer = () => {
                   rel="noopener noreferrer"
                   className="text-white/80 hover:text-white text-xs underline mt-1 inline-block"
                 >
-                  View on Google Maps
+                  {t('footer.viewOnGoogleMaps')}
                 </a>
               </div>
             </div>
@@ -132,7 +134,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-4 text-center">
-          <p className="text-white">© 2025 Lega. All rights reserved.</p>
+          <p className="text-white">© 2025 Lega. {t('footer.allRightsReserved')}</p>
         </div>
       </div>
     </footer>
