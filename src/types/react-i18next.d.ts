@@ -36,6 +36,7 @@ declare module 'react-i18next' {
           contactTeam: string;
           readyToWork: string;
           experienceDifference: string;
+          back: string;
         };
         home: {
           heroTitle: string;
@@ -243,6 +244,39 @@ declare module 'react-i18next' {
           location: string;
           viewOnGoogleMaps: string;
           allRightsReserved: string;
+        };
+        vehicleDetails: {
+          specifications: string;
+          features: string;
+          description: string;
+          contactForPrice: string;
+          requestQuote: string;
+          callNow: string;
+          sendEmail: string;
+          shareVehicle: string;
+          printDetails: string;
+          similarVehicles: string;
+          vehicleLocation: string;
+          financing: string;
+          warranty: string;
+          inspection: string;
+          history: string;
+          overview: string;
+          engine: string;
+          transmission: string;
+          year: string;
+          mileage: string;
+          condition: string;
+          horsepower: string;
+          fuelType: string;
+          drivetrain: string;
+          category: string;
+          subcategory: string;
+          brand: string;
+          model: string;
+          price: string;
+          hours: string;
+          operatingHours: string;
         };
       };
     };

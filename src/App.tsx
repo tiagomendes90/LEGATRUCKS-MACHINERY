@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import TruckCategory from "./pages/TruckCategory";
+import VehicleDetails from "./pages/VehicleDetails";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/trucks" element={<TruckCategory />} />
             <Route path="/machinery" element={<TruckCategory />} />
             <Route path="/agriculture" element={<TruckCategory />} />
+            <Route path="/vehicle/:id" element={<VehicleDetails />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />

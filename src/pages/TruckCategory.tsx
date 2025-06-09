@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +16,7 @@ const TRUCKS_PER_PAGE = 12;
 const TruckCategory = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { data: allTrucks, isLoading, error } = useTrucks();
   const [displayTrucks, setDisplayTrucks] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -164,6 +164,10 @@ const TruckCategory = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleVehicleClick = (vehicleId: string) => {
+    navigate(`/vehicle/${vehicleId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -240,7 +244,8 @@ const TruckCategory = () => {
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                 {currentTrucks.map((truck) => (
-                  <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
+                        onClick={() => handleVehicleClick(truck.id)}>
                     <div className="relative overflow-hidden">
                       <img 
                         src={truck.images && truck.images.length > 0 ? truck.images[0] : "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop"} 
@@ -293,10 +298,19 @@ const TruckCategory = () => {
                         )}
                       </div>
                       <div className="flex gap-2">
-                        <Button className="flex-1 bg-slate-800 hover:bg-slate-700">
+                        <Button className="flex-1 bg-slate-800 hover:bg-slate-700"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVehicleClick(truck.id);
+                                }}>
                           {t('common.viewDetails')}
                         </Button>
-                        <Button variant="outline" className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
+                        <Button variant="outline" 
+                                className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Handle quote request
+                                }}>
                           {t('common.getQuote')}
                         </Button>
                       </div>
