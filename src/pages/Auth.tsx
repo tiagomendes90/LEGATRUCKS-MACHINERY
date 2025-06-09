@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Auth = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,14 +33,14 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: "Sign In Failed",
+        title: t('auth.signInFailed'),
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Welcome back!",
-        description: "You have been signed in successfully.",
+        title: t('auth.welcomeBack'),
+        description: t('auth.signedInSuccessfully'),
       });
       navigate('/');
     }
@@ -50,13 +52,13 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Admin Access</CardTitle>
-          <CardDescription>Sign in to access the admin panel</CardDescription>
+          <CardTitle className="text-2xl font-bold">{t('auth.adminAccess')}</CardTitle>
+          <CardDescription>{t('auth.signInDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -66,7 +68,7 @@ const Auth = () => {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -76,7 +78,7 @@ const Auth = () => {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
         </CardContent>

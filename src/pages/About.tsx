@@ -5,38 +5,41 @@ import { Users, Award, Wrench, Globe } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import { useTranslation } from "react-i18next";
 
 const About = () => {
+  const { t } = useTranslation();
+  
   const stats = [{
     number: "20+",
-    label: "Years Experience"
+    label: t('about.stats.yearsExperience')
   }, {
     number: "5000+",
-    label: "Trucks Sold"
+    label: t('about.stats.trucksSold')
   }, {
     number: "50+",
-    label: "Expert Team"
+    label: t('about.stats.expertTeam')
   }, {
     number: "24/7",
-    label: "Support Available"
+    label: t('about.stats.supportAvailable')
   }];
 
   const values = [{
     icon: <Award className="h-8 w-8 text-blue-600" />,
-    title: "Quality Excellence",
-    description: "We source only the highest quality trucks from trusted manufacturers, ensuring every vehicle meets our rigorous standards."
+    title: t('about.values.quality.title'),
+    description: t('about.values.quality.description')
   }, {
     icon: <Users className="h-8 w-8 text-green-600" />,
-    title: "Customer First",
-    description: "Our customers are at the heart of everything we do. We build lasting relationships through exceptional service and support."
+    title: t('about.values.customer.title'),
+    description: t('about.values.customer.description')
   }, {
     icon: <Wrench className="h-8 w-8 text-orange-600" />,
-    title: "Expert Service",
-    description: "Our certified technicians provide comprehensive maintenance and repair services to keep your fleet running smoothly."
+    title: t('about.values.expert.title'),
+    description: t('about.values.expert.description')
   }, {
     icon: <Globe className="h-8 w-8 text-purple-600" />,
-    title: "Industry Leadership",
-    description: "We stay ahead of industry trends and innovations to provide our customers with the most advanced trucking solutions."
+    title: t('about.values.leadership.title'),
+    description: t('about.values.leadership.description')
   }];
 
   return (
@@ -46,10 +49,9 @@ const About = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[150px] bg-blue-500">
         <div className="container mx-auto px-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">About LEGA</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('about.title')}</h1>
           <p className="text-xl text-blue-100 max-w-3xl">
-            For over two decades, we've been the trusted partner for businesses seeking premium commercial trucks. 
-            Our commitment to quality, service, and innovation has made us a leader in the industry.
+            {t('about.subtitle')}
           </p>
         </div>
       </section>
@@ -73,22 +75,11 @@ const About = () => {
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-4xl font-bold text-slate-800 mb-6">Our Story</h2>
+              <h2 className="text-4xl font-bold text-slate-800 mb-6">{t('about.ourStory')}</h2>
               <div className="space-y-4 text-lg text-gray-600 leading-relaxed">
-                <p>
-                  Founded in 2003 by industry veterans Mike Johnson and Sarah Chen, TruckHub began as a small 
-                  dealership with a simple mission: provide businesses with reliable, high-quality commercial trucks 
-                  backed by exceptional service.
-                </p>
-                <p>
-                  What started as a modest operation has grown into a nationwide network, but our core values remain 
-                  unchanged. We believe that every business deserves access to premium trucks that can handle their 
-                  toughest challenges while delivering outstanding performance and value.
-                </p>
-                <p>
-                  Today, we're proud to serve thousands of customers across the country, from small local businesses 
-                  to large fleet operators, helping them find the perfect trucks to power their success.
-                </p>
+                <p>{t('about.storyP1')}</p>
+                <p>{t('about.storyP2')}</p>
+                <p>{t('about.storyP3')}</p>
               </div>
             </div>
             <div className="relative">
@@ -102,7 +93,7 @@ const About = () => {
       {/* Values Section */}
       <section className="py-20 bg-slate-50">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center text-slate-800 mb-16">Our Values</h2>
+          <h2 className="text-4xl font-bold text-center text-slate-800 mb-16">{t('about.ourValues')}</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
               <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
@@ -122,14 +113,14 @@ const About = () => {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-900 to-slate-800 text-white">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Work With Us?</h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">Experience the LEGA difference. Let our expert team help you find the perfect truck for your business needs.</p>
+          <h2 className="text-4xl font-bold mb-6">{t('common.readyToWork')}</h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">{t('common.experienceDifference')}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-orange-500 hover:bg-orange-600 px-8 py-6 text-lg">
-              Browse Our Inventory
+              {t('common.browseInventory')}
             </Button>
             <Button size="lg" variant="outline" className="bg-sky-300 hover:bg-sky-200 text-slate-800 px-8 py-6 text-lg">
-              Contact Our Team
+              {t('common.contactTeam')}
             </Button>
           </div>
         </div>

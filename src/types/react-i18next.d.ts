@@ -29,6 +29,137 @@ declare module 'react-i18next' {
           search: string;
           filter: string;
           legarWebsite: string;
+          viewDetails: string;
+          getQuote: string;
+          contact: string;
+          browseInventory: string;
+          contactTeam: string;
+          readyToWork: string;
+          experienceDifference: string;
+        };
+        home: {
+          heroTitle: string;
+          heroSubtitle: string;
+          featuredVehicles: string;
+          noFeaturedVehicles: string;
+          noFeaturedDescription: string;
+          trucksTitle: string;
+          trucksDescription: string;
+          machineryTitle: string;
+          machineryDescription: string;
+          tractorsTitle: string;
+          tractorsDescription: string;
+          wantToSellTitle: string;
+          wantToSellDescription: string;
+        };
+        category: {
+          trucks: {
+            title: string;
+            description: string;
+          };
+          machinery: {
+            title: string;
+            description: string;
+          };
+          agriculture: {
+            title: string;
+            description: string;
+          };
+          showing: string;
+          page: string;
+          noVehicles: string;
+          adjustFilters: string;
+          categoryNotFound: string;
+        };
+        about: {
+          title: string;
+          subtitle: string;
+          stats: {
+            yearsExperience: string;
+            trucksSold: string;
+            expertTeam: string;
+            supportAvailable: string;
+          };
+          ourStory: string;
+          storyP1: string;
+          storyP2: string;
+          storyP3: string;
+          ourValues: string;
+          values: {
+            quality: {
+              title: string;
+              description: string;
+            };
+            customer: {
+              title: string;
+              description: string;
+            };
+            expert: {
+              title: string;
+              description: string;
+            };
+            leadership: {
+              title: string;
+              description: string;
+            };
+          };
+        };
+        contact: {
+          title: string;
+          subtitle: string;
+          sendMessage: string;
+          fullName: string;
+          emailAddress: string;
+          phoneNumber: string;
+          companyName: string;
+          interestedIn: string;
+          selectInterest: string;
+          interests: {
+            buying: string;
+            selling: string;
+            financing: string;
+            leasing: string;
+            parts: string;
+            warranty: string;
+            tradeIn: string;
+            fleet: string;
+            insurance: string;
+            general: string;
+          };
+          message: string;
+          messagePlaceholder: string;
+          sendMessageBtn: string;
+          messageSent: string;
+          thankYou: string;
+          getInTouch: string;
+          phone: string;
+          salesInquiries: string;
+          email: string;
+          respondWithin: string;
+          location: string;
+          businessHours: string;
+          mondayFriday: string;
+          saturday: string;
+          sunday: string;
+          immediateAssistance: string;
+          urgentInquiries: string;
+          callNow: string;
+        };
+        auth: {
+          adminAccess: string;
+          signInDescription: string;
+          email: string;
+          password: string;
+          signIn: string;
+          signingIn: string;
+          signInFailed: string;
+          welcomeBack: string;
+          signedInSuccessfully: string;
+        };
+        notFound: {
+          title: string;
+          message: string;
+          returnHome: string;
         };
         admin: {
           title: string;

@@ -10,10 +10,12 @@ import Footer from "@/components/Footer";
 import TruckFilter from "@/components/TruckFilter";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { useTrucks } from "@/hooks/useTrucks";
+import { useTranslation } from "react-i18next";
 
 const TRUCKS_PER_PAGE = 12;
 
 const TruckCategory = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { data: allTrucks, isLoading, error } = useTrucks();
   const [displayTrucks, setDisplayTrucks] = useState<any[]>([]);
@@ -28,16 +30,16 @@ const TruckCategory = () => {
 
   const categoryData = {
     "trucks": {
-      title: "Trucks",
-      description: "Robust vehicles for road transport — from tractor units for heavy loads to rigid and light trucks for urban delivery."
+      title: t('category.trucks.title'),
+      description: t('category.trucks.description')
     },
     "machinery": {
-      title: "Machinery", 
-      description: "Essential equipment for construction and infrastructure — excavators, loaders, cranes, compactors, and more for digging, lifting, grading, and paving."
+      title: t('category.machinery.title'), 
+      description: t('category.machinery.description')
     },
     "agriculture": {
-      title: "Agriculture",
-      description: "Agricultural solutions designed to boost productivity — harvesters, plows, seeders, and mowers for every stage of fieldwork."
+      title: t('category.agriculture.title'),
+      description: t('category.agriculture.description')
     }
   };
 
@@ -167,7 +169,7 @@ const TruckCategory = () => {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg">Loading vehicles...</div>
+          <div className="text-lg">{t('common.loading')}</div>
         </div>
         <Footer />
         <WhatsAppFloat />
@@ -180,7 +182,7 @@ const TruckCategory = () => {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg text-red-600">Error loading vehicles: {error.message}</div>
+          <div className="text-lg text-red-600">{t('common.error')}: {error.message}</div>
         </div>
         <Footer />
         <WhatsAppFloat />
@@ -193,7 +195,7 @@ const TruckCategory = () => {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg">Category not found</div>
+          <div className="text-lg">{t('category.categoryNotFound')}</div>
         </div>
         <Footer />
         <WhatsAppFloat />
@@ -220,10 +222,14 @@ const TruckCategory = () => {
           {/* Results count and pagination info */}
           <div className="mb-6 flex justify-between items-center">
             <p className="text-gray-600">
-              Showing {startIndex + 1}-{Math.min(endIndex, displayTrucks.length)} of {displayTrucks.length} vehicles
+              {t('category.showing', { 
+                start: startIndex + 1, 
+                end: Math.min(endIndex, displayTrucks.length), 
+                total: displayTrucks.length 
+              })}
               {totalPages > 1 && (
                 <span className="ml-2 text-gray-500">
-                  (Page {currentPage} of {totalPages})
+                  ({t('category.page', { current: currentPage, total: totalPages })})
                 </span>
               )}
             </p>
@@ -288,10 +294,10 @@ const TruckCategory = () => {
                       </div>
                       <div className="flex gap-2">
                         <Button className="flex-1 bg-slate-800 hover:bg-slate-700">
-                          View Details
+                          {t('common.viewDetails')}
                         </Button>
                         <Button variant="outline" className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white">
-                          Get Quote
+                          {t('common.getQuote')}
                         </Button>
                       </div>
                     </CardContent>
@@ -345,8 +351,8 @@ const TruckCategory = () => {
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg mb-2">No vehicles match your current filters.</p>
-              <p className="text-gray-400 mb-4">Try adjusting your search criteria or clear the filters.</p>
+              <p className="text-gray-500 text-lg mb-2">{t('category.noVehicles')}</p>
+              <p className="text-gray-400 mb-4">{t('category.adjustFilters')}</p>
             </div>
           )}
         </div>
