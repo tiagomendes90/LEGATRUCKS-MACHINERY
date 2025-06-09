@@ -29,7 +29,7 @@ import { useTranslation } from "react-i18next";
 interface VehicleMedia {
   coverImage: string;
   images: string[];
-  video: string;
+  videos: string[];
 }
 
 const Admin = () => {
@@ -68,7 +68,7 @@ const Admin = () => {
   const [vehicleMedia, setVehicleMedia] = useState<VehicleMedia>({
     coverImage: "",
     images: [],
-    video: ""
+    videos: []
   });
 
   const [editingTruck, setEditingTruck] = useState<Truck | null>(null);
@@ -78,6 +78,7 @@ const Admin = () => {
   const [activeAddTruckTab, setActiveAddTruckTab] = useState("basic-info");
   const [currentStep, setCurrentStep] = useState(1);
   const [isFormValid, setIsFormValid] = useState({ step1: false, step2: true, step3: true });
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const { toast } = useToast();
 
@@ -179,6 +180,88 @@ const Admin = () => {
     }
   };
 
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const handleFileUpload = async (files: FileList | null, type: 'image' | 'video') => {
+    if (!files) return;
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      if (type === 'image' && !file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please select image files only.",
+          variant: "destructive",
+        });
+        continue;
+      }
+      
+      if (type === 'video' && !file.type.startsWith('video/')) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please select video files only.",
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      if (type === 'image' && vehicleMedia.images.length >= 25) {
+        toast({
+          title: "Image Limit Reached",
+          description: "Maximum of 25 images allowed.",
+          variant: "destructive",
+        });
+        break;
+      }
+
+      if (type === 'video' && vehicleMedia.videos.length >= 3) {
+        toast({
+          title: "Video Limit Reached",
+          description: "Maximum of 3 videos allowed.",
+          variant: "destructive",
+        });
+        break;
+      }
+
+      try {
+        const base64 = await convertFileToBase64(file);
+        
+        if (type === 'image') {
+          if (!vehicleMedia.coverImage) {
+            setVehicleMedia(prev => ({
+              ...prev,
+              coverImage: base64
+            }));
+          } else {
+            setVehicleMedia(prev => ({
+              ...prev,
+              images: [...prev.images, base64]
+            }));
+          }
+        } else {
+          setVehicleMedia(prev => ({
+            ...prev,
+            videos: [...prev.videos, base64]
+          }));
+        }
+      } catch (error) {
+        toast({
+          title: "Upload Error",
+          description: "Failed to process file. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleAddTruck = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
@@ -191,10 +274,7 @@ const Admin = () => {
       return;
     }
     
-    const allImages = [vehicleMedia.coverImage, ...vehicleMedia.images];
-    if (vehicleMedia.video) {
-      allImages.push(vehicleMedia.video);
-    }
+    const allImages = [vehicleMedia.coverImage, ...vehicleMedia.images, ...vehicleMedia.videos];
 
     const truckData = {
       brand: newTruck.brand,
@@ -214,9 +294,16 @@ const Admin = () => {
     };
 
     try {
-      const addedTruck = await addTruckMutation.mutateAsync(truckData);
+      let addedTruck;
       
-      // If truck was added successfully and there are specifications, add them
+      if (isEditMode && editingTruck) {
+        await updateTruckMutation.mutateAsync({ id: editingTruck.id, updates: truckData });
+        addedTruck = { ...editingTruck, ...truckData };
+      } else {
+        addedTruck = await addTruckMutation.mutateAsync(truckData);
+      }
+      
+      // If truck was added/updated successfully and there are specifications, add them
       if (addedTruck && Object.keys(vehicleSpecifications).length > 0) {
         const specsWithTruckId = {
           ...vehicleSpecifications,
@@ -227,34 +314,40 @@ const Admin = () => {
       }
 
       // Reset forms
-      setNewTruck({
-        brand: "",
-        model: "",
-        year: "",
-        mileage: "",
-        price: "",
-        condition: "",
-        engine: "",
-        transmission: "",
-        description: "",
-        horsepower: "",
-        category: "",
-        subcategory: "",
-        features: [],
-        images: []
-      });
-      setVehicleSpecifications({});
-      setVehicleMedia({ coverImage: "", images: [], video: "" });
-      setCurrentStep(1);
-      setActiveAddTruckTab("basic-info");
+      resetForm();
       
       toast({
         title: "Success",
-        description: "Vehicle added successfully!",
+        description: isEditMode ? "Vehicle updated successfully!" : "Vehicle added successfully!",
       });
     } catch (error) {
-      console.error('Failed to add truck:', error);
+      console.error('Failed to add/update truck:', error);
     }
+  };
+
+  const resetForm = () => {
+    setNewTruck({
+      brand: "",
+      model: "",
+      year: "",
+      mileage: "",
+      price: "",
+      condition: "",
+      engine: "",
+      transmission: "",
+      description: "",
+      horsepower: "",
+      category: "",
+      subcategory: "",
+      features: [],
+      images: []
+    });
+    setVehicleSpecifications({});
+    setVehicleMedia({ coverImage: "", images: [], videos: [] });
+    setCurrentStep(1);
+    setActiveAddTruckTab("basic-info");
+    setIsEditMode(false);
+    setEditingTruck(null);
   };
 
   const handleDeleteTruck = (id: string) => {
@@ -262,13 +355,42 @@ const Admin = () => {
   };
 
   const handleEditTruck = (truck: Truck) => {
-    setEditingTruck(truck);
-    setIsEditModalOpen(true);
-  };
+    // Populate the form with existing truck data
+    setNewTruck({
+      brand: truck.brand,
+      model: truck.model,
+      year: truck.year.toString(),
+      mileage: truck.mileage?.toString() || "",
+      price: truck.price.toString(),
+      condition: truck.condition,
+      engine: truck.engine,
+      transmission: truck.transmission,
+      description: truck.description,
+      horsepower: truck.horsepower?.toString() || "",
+      category: truck.category || "",
+      subcategory: truck.subcategory || "",
+      features: truck.features || [],
+      images: truck.images || []
+    });
 
-  const handleSaveEdit = (updates: Partial<Truck>) => {
-    if (editingTruck) {
-      updateTruckMutation.mutate({ id: editingTruck.id, updates });
+    // Populate media if available
+    if (truck.images && truck.images.length > 0) {
+      setVehicleMedia({
+        coverImage: truck.images[0] || "",
+        images: truck.images.slice(1).filter(img => !img.includes('video')) || [],
+        videos: truck.images.filter(img => img.includes('video')) || []
+      });
+    }
+
+    setEditingTruck(truck);
+    setIsEditMode(true);
+    setCurrentStep(1);
+    setActiveAddTruckTab("basic-info");
+    
+    // Switch to the add-truck tab
+    const tabsElement = document.querySelector('[value="add-truck"]') as HTMLElement;
+    if (tabsElement) {
+      tabsElement.click();
     }
   };
 
@@ -313,10 +435,25 @@ const Admin = () => {
     }));
   };
 
-  const handleSetVideo = (videoUrl: string) => {
+  const handleAddVideo = (videoUrl: string) => {
+    if (vehicleMedia.videos.length >= 3) {
+      toast({
+        title: "Video Limit Reached",
+        description: "Maximum of 3 videos allowed.",
+        variant: "destructive",
+      });
+      return;
+    }
     setVehicleMedia(prev => ({
       ...prev,
-      video: videoUrl
+      videos: [...prev.videos, videoUrl]
+    }));
+  };
+
+  const handleRemoveVideo = (index: number) => {
+    setVehicleMedia(prev => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== index)
     }));
   };
 
@@ -327,11 +464,32 @@ const Admin = () => {
     return matchesSearch && matchesCondition;
   });
 
+  // Corrected analytics to show real data
   const stats = [
-    { title: t('admin.totalInventory'), value: trucks.length.toString(), icon: <Package className="h-8 w-8" />, color: "bg-blue-500" },
-    { title: t('admin.totalValue'), value: `$${(trucks.reduce((sum, truck) => sum + truck.price, 0) / 1000000).toFixed(1)}M`, icon: <DollarSign className="h-8 w-8" />, color: "bg-green-500" },
-    { title: t('admin.avgPrice'), value: `$${trucks.length > 0 ? Math.round(trucks.reduce((sum, truck) => sum + truck.price, 0) / trucks.length / 1000) : 0}K`, icon: <BarChart3 className="h-8 w-8" />, color: "bg-purple-500" },
-    { title: t('admin.newVehicles'), value: trucks.filter(truck => truck.condition === "new").length.toString(), icon: <Users className="h-8 w-8" />, color: "bg-orange-500" }
+    { 
+      title: t('admin.totalInventory'), 
+      value: trucks.length.toString(), 
+      icon: <Package className="h-8 w-8" />, 
+      color: "bg-blue-500" 
+    },
+    { 
+      title: t('admin.totalValue'), 
+      value: trucks.length > 0 ? `$${(trucks.reduce((sum, truck) => sum + truck.price, 0) / 1000000).toFixed(1)}M` : "$0", 
+      icon: <DollarSign className="h-8 w-8" />, 
+      color: "bg-green-500" 
+    },
+    { 
+      title: t('admin.avgPrice'), 
+      value: trucks.length > 0 ? `$${Math.round(trucks.reduce((sum, truck) => sum + truck.price, 0) / trucks.length / 1000)}K` : "$0", 
+      icon: <BarChart3 className="h-8 w-8" />, 
+      color: "bg-purple-500" 
+    },
+    { 
+      title: t('admin.newVehicles'), 
+      value: trucks.filter(truck => truck.condition === "new").length.toString(), 
+      icon: <Users className="h-8 w-8" />, 
+      color: "bg-orange-500" 
+    }
   ];
 
   if (isLoading) {
@@ -386,7 +544,7 @@ const Admin = () => {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="inventory">{t('admin.inventory')}</TabsTrigger>
             <TabsTrigger value="featured">{t('admin.featured')}</TabsTrigger>
-            <TabsTrigger value="add-truck">{t('admin.addVehicle')}</TabsTrigger>
+            <TabsTrigger value="add-truck">{isEditMode ? "Edit Vehicle" : t('admin.addVehicle')}</TabsTrigger>
             <TabsTrigger value="orders">{t('admin.orders')}</TabsTrigger>
             <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
           </TabsList>
@@ -520,6 +678,21 @@ const Admin = () => {
                       <span className="font-medium">{t('admin.photosVideos')}</span>
                     </div>
                   </div>
+                  {isEditMode && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-700 font-medium">
+                        Editing: {editingTruck?.brand} {editingTruck?.model} ({editingTruck?.year})
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={resetForm}
+                        className="mt-2"
+                      >
+                        Cancel Edit
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -762,7 +935,7 @@ const Admin = () => {
                   <Card>
                     <CardHeader>
                       <CardTitle>Step 3: {t('admin.photosVideos')}</CardTitle>
-                      <CardDescription>Add cover image, additional photos (max 25), and one video</CardDescription>
+                      <CardDescription>Add cover image, additional photos (max 25), and videos (max 3)</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Cover Image Section */}
@@ -800,6 +973,23 @@ const Admin = () => {
                               <Star className="h-4 w-4 mr-2" />
                               Set Cover
                             </Button>
+                          </div>
+                          <div>
+                            <Label htmlFor="cover-file-upload" className="cursor-pointer">
+                              <Button type="button" variant="outline" asChild>
+                                <span>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload Cover Image
+                                </span>
+                              </Button>
+                            </Label>
+                            <Input
+                              id="cover-file-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e.target.files, 'image')}
+                            />
                           </div>
                           {vehicleMedia.coverImage && (
                             <div className="relative inline-block">
@@ -857,6 +1047,29 @@ const Admin = () => {
                               Add Photo
                             </Button>
                           </div>
+                          <div>
+                            <Label htmlFor="photos-file-upload" className="cursor-pointer">
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                asChild
+                                disabled={vehicleMedia.images.length >= 25}
+                              >
+                                <span>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload Photos
+                                </span>
+                              </Button>
+                            </Label>
+                            <Input
+                              id="photos-file-upload"
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e.target.files, 'image')}
+                            />
+                          </div>
                           {vehicleMedia.images.length > 0 && (
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                               {vehicleMedia.images.map((photo, index) => (
@@ -884,7 +1097,7 @@ const Admin = () => {
 
                       {/* Video Section */}
                       <div>
-                        <Label className="text-base font-medium">Vehicle Video (1 max)</Label>
+                        <Label className="text-base font-medium">Vehicle Videos ({vehicleMedia.videos.length}/3)</Label>
                         <div className="mt-2 space-y-4">
                           <div className="flex gap-2">
                             <Input
@@ -894,7 +1107,7 @@ const Admin = () => {
                                   e.preventDefault();
                                   const input = e.target as HTMLInputElement;
                                   if (input.value.trim()) {
-                                    handleSetVideo(input.value.trim());
+                                    handleAddVideo(input.value.trim());
                                     input.value = '';
                                   }
                                 }
@@ -906,29 +1119,58 @@ const Admin = () => {
                               onClick={() => {
                                 const input = document.querySelector(`input[placeholder="Enter video URL (YouTube, Vimeo, etc.)"]`) as HTMLInputElement;
                                 if (input?.value.trim()) {
-                                  handleSetVideo(input.value.trim());
+                                  handleAddVideo(input.value.trim());
                                   input.value = '';
                                 }
                               }}
-                              disabled={!!vehicleMedia.video}
+                              disabled={vehicleMedia.videos.length >= 3}
                             >
                               <Upload className="h-4 w-4 mr-2" />
                               Add Video
                             </Button>
                           </div>
-                          {vehicleMedia.video && (
-                            <div className="relative group p-4 border rounded-lg">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm text-gray-600 truncate mr-4">{vehicleMedia.video}</p>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => setVehicleMedia(prev => ({ ...prev, video: "" }))}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
+                          <div>
+                            <Label htmlFor="videos-file-upload" className="cursor-pointer">
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                asChild
+                                disabled={vehicleMedia.videos.length >= 3}
+                              >
+                                <span>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload Videos
+                                </span>
+                              </Button>
+                            </Label>
+                            <Input
+                              id="videos-file-upload"
+                              type="file"
+                              accept="video/*"
+                              multiple
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e.target.files, 'video')}
+                            />
+                          </div>
+                          {vehicleMedia.videos.length > 0 && (
+                            <div className="space-y-2">
+                              {vehicleMedia.videos.map((video, index) => (
+                                <div key={index} className="relative group p-4 border rounded-lg">
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-sm text-gray-600 truncate mr-4">
+                                      Video {index + 1}: {video.length > 50 ? video.substring(0, 50) + '...' : video}
+                                    </p>
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => handleRemoveVideo(index)}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -948,7 +1190,10 @@ const Admin = () => {
                           disabled={addTruckMutation.isPending || addSpecificationsMutation.isPending || !isFormValid.step1 || !isFormValid.step3}
                         >
                           <Plus className="h-4 w-4 mr-2" />
-                          {addTruckMutation.isPending || addSpecificationsMutation.isPending ? 'Adding Vehicle...' : 'Add Vehicle'}
+                          {addTruckMutation.isPending || addSpecificationsMutation.isPending ? 
+                            (isEditMode ? 'Updating Vehicle...' : 'Adding Vehicle...') : 
+                            (isEditMode ? 'Update Vehicle' : 'Add Vehicle')
+                          }
                         </Button>
                       </div>
                     </CardContent>
@@ -966,7 +1211,7 @@ const Admin = () => {
             setIsEditModalOpen(false);
             setEditingTruck(null);
           }}
-          onSave={handleSaveEdit}
+          onSave={() => {}}
         />
       </div>
     </div>
