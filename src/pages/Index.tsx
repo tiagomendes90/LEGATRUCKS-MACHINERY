@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +50,7 @@ const Index = () => {
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="container mx-auto px-6 text-center text-white">
             <h1 className="text-5xl mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-extrabold md:text-6xl lg:text-7xl">
-              {t('home.heroTitle')}
+              Trucks & Machinery
             </h1>
             <p className="text-xl mb-8 text-blue-100 max-w-3xl mx-auto md:text-2xl">
               {t('home.heroSubtitle')}
