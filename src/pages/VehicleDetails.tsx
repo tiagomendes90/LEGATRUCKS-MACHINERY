@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Truck, MapPin, Calendar, Gauge, Fuel } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useTrucks } from "@/hooks/useTrucks";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -34,7 +36,7 @@ const VehicleDetails = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="container mx-auto px-6 py-20">
+        <div className="container mx-auto px-6 py-20 mt-16">
           <h1 className="text-2xl font-bold text-center">{t('notFound.title')}</h1>
           <p className="text-center">{t('notFound.message')}</p>
           <div className="text-center mt-4">
@@ -50,7 +52,7 @@ const VehicleDetails = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 mt-20">
         {/* Back Button */}
         <Button 
           variant="outline" 
@@ -62,14 +64,34 @@ const VehicleDetails = () => {
         </Button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Image Gallery */}
+          {/* Image Gallery with Carousel */}
           <div>
             {vehicle.images && vehicle.images.length > 0 ? (
-              <img
-                src={vehicle.images[0]}
-                alt={`${vehicle.brand} ${vehicle.model}`}
-                className="w-full h-auto rounded-lg shadow-md"
-              />
+              vehicle.images.length === 1 ? (
+                <img
+                  src={vehicle.images[0]}
+                  alt={`${vehicle.brand} ${vehicle.model}`}
+                  className="w-full h-auto rounded-lg shadow-md"
+                />
+              ) : (
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {vehicle.images.map((image, index) => (
+                      <CarouselItem key={index}>
+                        <div className="p-1">
+                          <img
+                            src={image}
+                            alt={`${vehicle.brand} ${vehicle.model} - Image ${index + 1}`}
+                            className="w-full h-auto rounded-lg shadow-md"
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+              )
             ) : (
               <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg flex items-center justify-center">
                 <Truck className="h-16 w-16 text-gray-400" />
