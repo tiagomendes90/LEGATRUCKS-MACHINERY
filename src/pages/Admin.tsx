@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -13,12 +14,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Truck,
+  Truck as TruckIcon,
   DollarSign,
   TrendingUp,
   Star,
   Edit,
   Trash2,
+  Upload,
+  X,
 } from 'lucide-react';
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { useBrands } from "@/hooks/useBrands";
@@ -37,6 +40,9 @@ const Admin = () => {
     condition: "new",
     engine: "cummins-x15",
     transmission: "manual",
+    brand: "",
+    model: "",
+    description: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
@@ -83,23 +89,86 @@ const Admin = () => {
     setFormData({ ...formData, category: value, subcategory: '' });
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        if (photos.length < 25) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              setPhotos(prev => [...prev, event.target!.result as string]);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        if (videos.length < 3) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              setVideos(prev => [...prev, event.target!.result as string]);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  };
+
   const handleAddPhoto = () => {
     const photoUrl = prompt(t('admin.enterPhotoUrl'));
-    if (photoUrl) {
+    if (photoUrl && photos.length < 25) {
       setPhotos([...photos, photoUrl]);
     }
   };
 
   const handleAddVideo = () => {
     const videoUrl = prompt(t('admin.enterVideoUrl'));
-    if (videoUrl) {
+    if (videoUrl && videos.length < 3) {
       setVideos([...videos, videoUrl]);
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    const newPhotos = [...photos];
+    newPhotos.splice(index, 1);
+    setPhotos(newPhotos);
+    if (coverImageIndex >= newPhotos.length) {
+      setCoverImageIndex(0);
+    }
+  };
+
+  const handleRemoveVideo = (index: number) => {
+    const newVideos = [...videos];
+    newVideos.splice(index, 1);
+    setVideos(newVideos);
+  };
+
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return !!(formData.brand && formData.model && formData.year && formData.condition && formData.category);
+      case 2:
+        return !!(formData.price && formData.engine && formData.transmission && formData.description);
+      case 3:
+        return photos.length > 0;
+      default:
+        return false;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate all required fields
     if (!formData.brand || !formData.model || !formData.year || !formData.price || !formData.condition || !formData.engine || !formData.transmission || !formData.description) {
       toast({
         title: t('common.error'),
@@ -109,13 +178,21 @@ const Admin = () => {
       return;
     }
 
-    const truckData = {
-      ...formData,
+    const truckData: Omit<Truck, 'id' | 'created_at' | 'updated_at'> = {
+      brand: formData.brand,
+      model: formData.model,
+      category: formData.category || 'trucks',
+      subcategory: formData.subcategory || '',
+      condition: formData.condition,
       year: Number(formData.year),
-      mileage: Number(formData.mileage),
+      mileage: Number(formData.mileage) || 0,
       price: Number(formData.price),
-      horsepower: Number(formData.horsepower),
+      engine: formData.engine,
+      transmission: formData.transmission,
+      horsepower: Number(formData.horsepower) || 0,
+      description: formData.description,
       images: photos,
+      features: [],
     };
 
     try {
@@ -141,6 +218,9 @@ const Admin = () => {
         condition: "new",
         engine: "cummins-x15",
         transmission: "manual",
+        brand: "",
+        model: "",
+        description: "",
       });
       setPhotos([]);
       setVideos([]);
@@ -162,7 +242,7 @@ const Admin = () => {
     setFormData({
       brand: vehicle.brand,
       model: vehicle.model,
-      category: vehicle.category || '',
+      category: vehicle.category || 'trucks',
       subcategory: vehicle.subcategory || '',
       condition: vehicle.condition,
       year: vehicle.year,
@@ -200,7 +280,7 @@ const Admin = () => {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="category">{t('admin.category')}</Label>
-          <Select onValueChange={handleCategoryChange} defaultValue={formData.category || "trucks"}>
+          <Select onValueChange={handleCategoryChange} value={formData.category || "trucks"}>
             <SelectTrigger>
               <SelectValue placeholder={t('admin.selectCategory')} />
             </SelectTrigger>
@@ -213,7 +293,7 @@ const Admin = () => {
         </div>
         <div>
           <Label htmlFor="subcategory">{t('admin.subcategory')}</Label>
-          <Select onValueChange={(value) => setFormData({ ...formData, subcategory: value })} defaultValue={formData.subcategory || ''}>
+          <Select onValueChange={(value) => setFormData({ ...formData, subcategory: value })} value={formData.subcategory || ''}>
             <SelectTrigger>
               <SelectValue placeholder={t('admin.selectSubcategory')} />
             </SelectTrigger>
@@ -231,7 +311,7 @@ const Admin = () => {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="brand">{t('admin.brand')}</Label>
-          <Select onValueChange={(value) => setFormData({ ...formData, brand: value })} defaultValue={formData.brand || ''}>
+          <Select onValueChange={(value) => setFormData({ ...formData, brand: value })} value={formData.brand || ''}>
             <SelectTrigger>
               <SelectValue placeholder={t('admin.selectBrand')} />
             </SelectTrigger>
@@ -260,7 +340,7 @@ const Admin = () => {
       <div className="grid md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="condition">{t('admin.condition')}</Label>
-          <Select onValueChange={(value) => setFormData({ ...formData, condition: value })} defaultValue={formData.condition || "new"}>
+          <Select onValueChange={(value) => setFormData({ ...formData, condition: value })} value={formData.condition || "new"}>
             <SelectTrigger>
               <SelectValue placeholder={t('admin.selectCondition')} />
             </SelectTrigger>
@@ -278,6 +358,8 @@ const Admin = () => {
             type="number"
             id="year"
             name="year"
+            min="1950"
+            max={new Date().getFullYear() + 1}
             value={formData.year || ""}
             onChange={handleInputChange}
             required
@@ -289,13 +371,19 @@ const Admin = () => {
             type="number"
             id="mileage"
             name="mileage"
+            min="0"
+            max="2000000"
             value={formData.mileage || ""}
             onChange={handleInputChange}
           />
         </div>
       </div>
 
-      <Button onClick={() => setCurrentStep(2)}>
+      <Button 
+        onClick={() => setCurrentStep(2)} 
+        disabled={!validateStep(1)}
+        className="w-full"
+      >
         {t('admin.continueToSpecifications')}
       </Button>
     </div>
@@ -310,6 +398,8 @@ const Admin = () => {
             type="number"
             id="price"
             name="price"
+            min="0"
+            max="10000000"
             value={formData.price || ""}
             onChange={handleInputChange}
             required
@@ -317,7 +407,7 @@ const Admin = () => {
         </div>
         <div>
           <Label htmlFor="engine">{t('admin.engine')}</Label>
-          <Select onValueChange={(value) => setFormData({ ...formData, engine: value })} defaultValue={formData.engine || "cummins-x15"}>
+          <Select onValueChange={(value) => setFormData({ ...formData, engine: value })} value={formData.engine || "cummins-x15"}>
             <SelectTrigger>
               <SelectValue placeholder={t('admin.selectEngine')} />
             </SelectTrigger>
@@ -336,7 +426,7 @@ const Admin = () => {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="transmission">{t('admin.transmission')}</Label>
-          <Select onValueChange={(value) => setFormData({ ...formData, transmission: value })} defaultValue={formData.transmission || "manual"}>
+          <Select onValueChange={(value) => setFormData({ ...formData, transmission: value })} value={formData.transmission || "manual"}>
             <SelectTrigger>
               <SelectValue placeholder={t('admin.selectTransmission')} />
             </SelectTrigger>
@@ -354,6 +444,8 @@ const Admin = () => {
             type="number"
             id="horsepower"
             name="horsepower"
+            min="0"
+            max="3000"
             value={formData.horsepower || ""}
             onChange={handleInputChange}
           />
@@ -369,6 +461,7 @@ const Admin = () => {
           onChange={handleInputChange}
           placeholder={t('admin.descriptionPlaceholder')}
           rows={4}
+          required
         />
       </div>
 
@@ -376,7 +469,10 @@ const Admin = () => {
         <Button variant="outline" onClick={() => setCurrentStep(1)}>
           {t('admin.backToBasicInfo')}
         </Button>
-        <Button onClick={() => setCurrentStep(3)}>
+        <Button 
+          onClick={() => setCurrentStep(3)}
+          disabled={!validateStep(2)}
+        >
           {t('admin.continueToMedia')}
         </Button>
       </div>
@@ -384,76 +480,118 @@ const Admin = () => {
   );
 
   const renderPhotosVideos = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <Label>{t('admin.vehiclePhotos')}</Label>
-        <div className="flex space-x-2">
+        <Label>{t('admin.vehiclePhotos')} (Max 25)</Label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
           {photos.map((photo, index) => (
-            <div key={index} className="relative w-32 h-24 rounded-md overflow-hidden">
+            <div key={index} className="relative group">
               <img
                 src={photo}
                 alt={`Vehicle Photo ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-24 object-cover rounded-md cursor-pointer"
+                onClick={() => setCoverImageIndex(index)}
               />
               {index === coverImageIndex && (
-                <div className="absolute top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center">
-                  <span className="text-white font-semibold">Cover</span>
+                <div className="absolute top-0 left-0 w-full h-full bg-blue-500/50 flex items-center justify-center rounded-md">
+                  <span className="text-white font-bold text-xs">COVER</span>
                 </div>
               )}
               <Button
-                variant="ghost"
+                variant="destructive"
                 size="icon"
-                className="absolute top-1 right-1"
-                onClick={() => {
-                  const newPhotos = [...photos];
-                  newPhotos.splice(index, 1);
-                  setPhotos(newPhotos);
-                }}
+                className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handleRemovePhoto(index)}
               >
-                <Trash2 className="h-4 w-4" />
+                <X className="h-3 w-3" />
               </Button>
             </div>
           ))}
-          <Button variant="outline" onClick={handleAddPhoto}>
-            {t('admin.addPhoto')}
+        </div>
+        
+        <div className="flex gap-2 mt-4">
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              disabled={photos.length >= 25}
+            />
+            <Button variant="outline" disabled={photos.length >= 25}>
+              <Upload className="h-4 w-4 mr-2" />
+              {t('admin.uploadPhotos')}
+            </Button>
+          </div>
+          
+          <Button variant="outline" onClick={handleAddPhoto} disabled={photos.length >= 25}>
+            {t('admin.addPhotoUrl')}
           </Button>
         </div>
+        
+        <p className="text-sm text-muted-foreground mt-1">
+          {photos.length}/25 photos uploaded. Click on a photo to set it as cover image.
+        </p>
       </div>
 
       <div>
-        <Label>{t('admin.vehicleVideos')}</Label>
-        <div className="flex space-x-2">
+        <Label>{t('admin.vehicleVideos')} (Max 3)</Label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
           {videos.map((video, index) => (
-            <div key={index} className="relative w-32 h-24 rounded-md overflow-hidden">
-              <video src={video} controls className="w-full h-full object-cover"></video>
+            <div key={index} className="relative group">
+              <video src={video} className="w-full h-24 object-cover rounded-md" controls />
               <Button
-                variant="ghost"
+                variant="destructive"
                 size="icon"
-                className="absolute top-1 right-1"
-                onClick={() => {
-                  const newVideos = [...videos];
-                  newVideos.splice(index, 1);
-                  setVideos(newVideos);
-                }}
+                className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handleRemoveVideo(index)}
               >
-                <Trash2 className="h-4 w-4" />
+                <X className="h-3 w-3" />
               </Button>
             </div>
           ))}
-          <Button variant="outline" onClick={handleAddVideo}>
-            {t('admin.addVideo')}
+        </div>
+        
+        <div className="flex gap-2 mt-4">
+          <div className="relative">
+            <input
+              type="file"
+              accept="video/*"
+              multiple
+              onChange={handleVideoUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              disabled={videos.length >= 3}
+            />
+            <Button variant="outline" disabled={videos.length >= 3}>
+              <Upload className="h-4 w-4 mr-2" />
+              {t('admin.uploadVideos')}
+            </Button>
+          </div>
+          
+          <Button variant="outline" onClick={handleAddVideo} disabled={videos.length >= 3}>
+            {t('admin.addVideoUrl')}
           </Button>
         </div>
+        
+        <p className="text-sm text-muted-foreground mt-1">
+          {videos.length}/3 videos uploaded.
+        </p>
       </div>
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={() => setCurrentStep(2)}>
           {t('admin.backToSpecs')}
         </Button>
-        <Button type="submit" disabled={addVehicle.isPending || updateVehicle.isPending}>
+        <Button 
+          type="submit" 
+          disabled={addVehicle.isPending || updateVehicle.isPending || !validateStep(3)}
+        >
           {addVehicle.isPending || updateVehicle.isPending
             ? t('admin.addingVehicle')
-            : t('admin.addVehicleWithMedia')}
+            : editingVehicleId 
+              ? t('admin.updateVehicle')
+              : t('admin.addVehicleWithMedia')}
         </Button>
       </div>
     </div>
@@ -469,7 +607,7 @@ const Admin = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('admin.totalInventory')}</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <TruckIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalInventory}</div>
@@ -518,6 +656,7 @@ const Admin = () => {
           placeholder={t('admin.searchVehicles')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-sm"
         />
       </div>
       
@@ -572,10 +711,13 @@ const Admin = () => {
         ))}
       </div>
       
-      {filteredTrucks.length === 0 && (
+      {filteredTrucks.length === 0 && !isLoadingTrucks && (
         <div className="text-center py-12">
-          <Truck className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <TruckIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">{t('admin.noVehiclesFound')}</h3>
+          <p className="text-muted-foreground">
+            {searchQuery ? 'No vehicles match your search criteria.' : 'Start by adding your first vehicle.'}
+          </p>
         </div>
       )}
     </div>
@@ -593,13 +735,36 @@ const Admin = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="inventory">{t('admin.manageVehicles')}</TabsTrigger>
-          <TabsTrigger value="add">{t('admin.addVehicle')}</TabsTrigger>
+          <TabsTrigger value="add">
+            {editingVehicleId ? t('admin.editVehicle') : t('admin.addVehicle')}
+          </TabsTrigger>
           <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
         </TabsList>
         <TabsContent value="inventory">
           {renderInventory()}
         </TabsContent>
         <TabsContent value="add">
+          <div className="mb-6">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                1
+              </div>
+              <div className={`flex-1 h-0.5 ${currentStep > 1 ? 'bg-primary' : 'bg-muted'}`} />
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                2
+              </div>
+              <div className={`flex-1 h-0.5 ${currentStep > 2 ? 'bg-primary' : 'bg-muted'}`} />
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                3
+              </div>
+            </div>
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Basic Information</span>
+              <span>Specifications</span>
+              <span>Photos & Videos</span>
+            </div>
+          </div>
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {currentStep === 1 && renderBasicInfo()}
             {currentStep === 2 && renderSpecifications()}
