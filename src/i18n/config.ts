@@ -1,3 +1,4 @@
+
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -5,6 +6,31 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
   en: {
     translation: {
+      nav: {
+        home: 'Home',
+        trucks: 'Trucks',
+        machinery: 'Machinery',
+        agriculture: 'Agriculture',
+        about: 'About',
+        contact: 'Contact'
+      },
+      notFound: {
+        title: '404 - Page Not Found',
+        message: 'The page you are looking for does not exist.',
+        returnHome: 'Return Home'
+      },
+      vehicleDetails: {
+        year: 'Year',
+        mileage: 'Mileage',
+        engine: 'Engine',
+        horsepower: 'Horsepower',
+        transmission: 'Transmission',
+        category: 'Category',
+        subcategory: 'Subcategory',
+        description: 'Description',
+        requestQuote: 'Request Quote',
+        callNow: 'Call Now'
+      },
       common: {
         loading: 'Loading...',
         error: 'An error occurred',
@@ -125,6 +151,31 @@ const resources = {
   },
   pt: {
     translation: {
+      nav: {
+        home: 'Início',
+        trucks: 'Camiões',
+        machinery: 'Maquinaria',
+        agriculture: 'Agricultura',
+        about: 'Sobre',
+        contact: 'Contacto'
+      },
+      notFound: {
+        title: '404 - Página Não Encontrada',
+        message: 'A página que procura não existe.',
+        returnHome: 'Voltar ao Início'
+      },
+      vehicleDetails: {
+        year: 'Ano',
+        mileage: 'Quilometragem',
+        engine: 'Motor',
+        horsepower: 'Potência',
+        transmission: 'Transmissão',
+        category: 'Categoria',
+        subcategory: 'Subcategoria',
+        description: 'Descrição',
+        requestQuote: 'Solicitar Orçamento',
+        callNow: 'Ligar Agora'
+      },
       common: {
         loading: 'Carregando...',
         error: 'Ocorreu um erro',
@@ -245,6 +296,31 @@ const resources = {
   },
   es: {
     translation: {
+      nav: {
+        home: 'Inicio',
+        trucks: 'Camiones',
+        machinery: 'Maquinaria',
+        agriculture: 'Agricultura',
+        about: 'Acerca de',
+        contact: 'Contacto'
+      },
+      notFound: {
+        title: '404 - Página No Encontrada',
+        message: 'La página que buscas no existe.',
+        returnHome: 'Volver al Inicio'
+      },
+      vehicleDetails: {
+        year: 'Año',
+        mileage: 'Kilometraje',
+        engine: 'Motor',
+        horsepower: 'Potencia',
+        transmission: 'Transmisión',
+        category: 'Categoría',
+        subcategory: 'Subcategoría',
+        description: 'Descripción',
+        requestQuote: 'Solicitar Cotización',
+        callNow: 'Llamar Ahora'
+      },
       common: {
         loading: 'Cargando...',
         error: 'Ha ocurrido un error',
