@@ -34,7 +34,7 @@ const resources = {
         back: "Back"
       },
       home: {
-        heroTitle: "Professional Trucks & Heavy Machinery",
+        heroTitle: "Professional TRUCKS & MACHINERY",
         heroSubtitle: "Find the perfect vehicle for your business needs",
         featuredVehicles: "Featured Vehicles",
         noFeaturedVehicles: "No Featured Vehicles",
@@ -306,7 +306,7 @@ const resources = {
         back: "Voltar"
       },
       home: {
-        heroTitle: "Camiões Profissionais e Maquinaria Pesada",
+        heroTitle: "CAMIÕES E MAQUINARIA Profissionais",
         heroSubtitle: "Encontre o veículo perfeito para as necessidades do seu negócio",
         featuredVehicles: "Veículos em Destaque",
         noFeaturedVehicles: "Nenhum Veículo em Destaque",
@@ -578,7 +578,7 @@ const resources = {
         back: "Retour"
       },
       home: {
-        heroTitle: "Camions Professionnels et Machines Lourdes",
+        heroTitle: "CAMIONS ET MACHINES Professionnels",
         heroSubtitle: "Trouvez le véhicule parfait pour les besoins de votre entreprise",
         featuredVehicles: "Véhicules en Vedette",
         noFeaturedVehicles: "Aucun Véhicule en Vedette",
