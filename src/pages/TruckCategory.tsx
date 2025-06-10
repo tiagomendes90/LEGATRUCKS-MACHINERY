@@ -6,13 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Truck, MapPin, Calendar, Gauge, Fuel } from "lucide-react";
 import { useTrucks } from "@/hooks/useTrucks";
-import { useFilterOptions } from "@/hooks/useFilterOptions";
-import { useBrands } from "@/hooks/useBrands";
 import { useTranslation } from "react-i18next";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import TruckFilter from "@/components/TruckFilter";
 
 const TruckCategory = () => {
   const location = useLocation();
@@ -32,10 +29,6 @@ const TruckCategory = () => {
 
   const category = location.pathname.substring(1);
   
-  // Get filter options based on current category
-  const { data: subcategoryOptions = [] } = useFilterOptions(category, 'subcategory');
-  const { data: brands = [] } = useBrands(category);
-
   const categoryInfo = {
     trucks: {
       title: t('category.trucks.title'),
@@ -146,73 +139,11 @@ const TruckCategory = () => {
       {/* Filters Section */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-6 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
-            <Select value={filters.subcategory} onValueChange={(value) => setFilters({...filters, subcategory: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('admin.selectSubcategory')} />
-              </SelectTrigger>
-              <SelectContent>
-                {subcategoryOptions.map((option) => (
-                  <SelectItem key={option.id} value={option.option_value}>
-                    {option.option_label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filters.brand} onValueChange={(value) => setFilters({...filters, brand: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('admin.selectBrand')} />
-              </SelectTrigger>
-              <SelectContent>
-                {brands.map((brand) => (
-                  <SelectItem key={brand.id} value={brand.slug}>
-                    {brand.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filters.condition} onValueChange={(value) => setFilters({...filters, condition: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('admin.selectCondition')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">{t('admin.new')}</SelectItem>
-                <SelectItem value="used">{t('admin.used')}</SelectItem>
-                <SelectItem value="certified">{t('admin.certified')}</SelectItem>
-                <SelectItem value="refurbished">{t('admin.refurbished')}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Input
-              placeholder={t('admin.minYear')} 
-              type="number"
-              value={filters.minYear}
-              onChange={(e) => setFilters({...filters, minYear: e.target.value})}
-            />
-
-            <Input
-              placeholder={t('admin.maxYear')}
-              type="number"
-              value={filters.maxYear}
-              onChange={(e) => setFilters({...filters, maxYear: e.target.value})}
-            />
-
-            <Input
-              placeholder={t('admin.minPrice')}
-              type="number"
-              value={filters.minPrice}
-              onChange={(e) => setFilters({...filters, minPrice: e.target.value})}
-            />
-
-            <Input
-              placeholder={t('admin.maxPrice')}
-              type="number"
-              value={filters.maxPrice}
-              onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
-            />
-          </div>
+          <TruckFilter 
+            filters={filters} 
+            onFiltersChange={setFilters}
+            category={category}
+          />
           
           <div className="flex justify-center mt-4">
             <Button variant="outline" onClick={resetFilters}>

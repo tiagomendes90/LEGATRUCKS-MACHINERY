@@ -31,6 +31,18 @@ const resources = {
         requestQuote: 'Request Quote',
         callNow: 'Call Now'
       },
+      footer: {
+        subscribeNewsletter: 'Subscribe to our newsletter',
+        enterEmail: 'Enter your email',
+        info: 'Information',
+        termsOfService: 'Terms of Service',
+        privacyPolicy: 'Privacy Policy',
+        admin: 'Admin',
+        contact: 'Contact',
+        location: 'Location',
+        viewOnGoogleMaps: 'View on Google Maps',
+        allRightsReserved: 'All rights reserved.'
+      },
       common: {
         loading: 'Loading...',
         error: 'An error occurred',
@@ -176,6 +188,18 @@ const resources = {
         requestQuote: 'Solicitar Orçamento',
         callNow: 'Ligar Agora'
       },
+      footer: {
+        subscribeNewsletter: 'Subscreva a nossa newsletter',
+        enterEmail: 'Introduza o seu email',
+        info: 'Informação',
+        termsOfService: 'Termos de Serviço',
+        privacyPolicy: 'Política de Privacidade',
+        admin: 'Administração',
+        contact: 'Contacto',
+        location: 'Localização',
+        viewOnGoogleMaps: 'Ver no Google Maps',
+        allRightsReserved: 'Todos os direitos reservados.'
+      },
       common: {
         loading: 'Carregando...',
         error: 'Ocorreu um erro',
@@ -320,6 +344,18 @@ const resources = {
         description: 'Descripción',
         requestQuote: 'Solicitar Cotización',
         callNow: 'Llamar Ahora'
+      },
+      footer: {
+        subscribeNewsletter: 'Suscríbete a nuestro boletín',
+        enterEmail: 'Introduce tu email',
+        info: 'Información',
+        termsOfService: 'Términos de Servicio',
+        privacyPolicy: 'Política de Privacidad',
+        admin: 'Administración',
+        contact: 'Contacto',
+        location: 'Ubicación',
+        viewOnGoogleMaps: 'Ver en Google Maps',
+        allRightsReserved: 'Todos los derechos reservados.'
       },
       common: {
         loading: 'Cargando...',
