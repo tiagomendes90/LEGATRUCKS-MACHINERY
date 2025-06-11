@@ -85,7 +85,8 @@ const VehicleDetails = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="container mx-auto px-6 py-8">
+      {/* Add proper spacing to push content below navbar */}
+      <div className="container mx-auto px-6 py-8 mt-20">
         {/* Back Button */}
         <Button 
           variant="ghost" 
