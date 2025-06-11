@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -63,7 +62,6 @@ const TruckCategory = () => {
   const handleFilterChange = (filters: {
     brand: string;
     model: string;
-    subcategory: string;
     yearFrom: string;
     operatingHoursUntil: string;
     priceType: string;
@@ -71,34 +69,6 @@ const TruckCategory = () => {
     location: string;
     sortBy: string;
     mileageTo?: string;
-    vehicleCondition?: string;
-    yearUntil?: string;
-    mileageFrom?: string;
-    priceFrom?: string;
-    performance?: string;
-    performanceUntil?: string;
-    weightFrom?: string;
-    weightUntil?: string;
-    fuelType?: string[];
-    gearbox?: string;
-    cylinderFrom?: string;
-    cylinderUntil?: string;
-    tankSizeFrom?: string;
-    tankSizeUntil?: string;
-    pollutantClass?: string;
-    environmentalSticker?: string;
-    particleFilter?: boolean;
-    equipment?: string[];
-    airConditioning?: string;
-    axles?: string;
-    wheelFormula?: string[];
-    permissibleWeightFrom?: string;
-    permissibleWeightUntil?: string;
-    hydraulicSystem?: string;
-    cruiseControl?: string;
-    driversCab?: string;
-    interior?: string[];
-    bodyColor?: string[];
   }) => {
     if (!allTrucks || !category) return;
 
@@ -121,19 +91,9 @@ const TruckCategory = () => {
       );
     }
 
-    // Apply subcategory filter
-    if (filters.subcategory) {
-      filtered = filtered.filter(truck => truck.subcategory === filters.subcategory);
-    }
-
     // Apply year from filter
     if (filters.yearFrom) {
       filtered = filtered.filter(truck => truck.year >= parseInt(filters.yearFrom));
-    }
-
-    // Apply year until filter
-    if (filters.yearUntil) {
-      filtered = filtered.filter(truck => truck.year <= parseInt(filters.yearUntil));
     }
 
     // Apply operating hours filter (using mileage as proxy for operating hours)
@@ -146,22 +106,9 @@ const TruckCategory = () => {
       filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.mileageTo));
     }
 
-    if (filters.mileageFrom) {
-      filtered = filtered.filter(truck => (truck.mileage || 0) >= parseInt(filters.mileageFrom));
-    }
-
     // Apply price filter
     if (filters.priceUntil) {
       filtered = filtered.filter(truck => truck.price <= parseInt(filters.priceUntil));
-    }
-
-    if (filters.priceFrom) {
-      filtered = filtered.filter(truck => truck.price >= parseInt(filters.priceFrom));
-    }
-
-    // Apply vehicle condition filter
-    if (filters.vehicleCondition && filters.vehicleCondition !== 'any') {
-      filtered = filtered.filter(truck => truck.condition && truck.condition.toLowerCase() === filters.vehicleCondition.toLowerCase());
     }
 
     // Apply location filter (basic text search in description)
@@ -170,50 +117,6 @@ const TruckCategory = () => {
       filtered = filtered.filter(truck => 
         truck.description && truck.description.toLowerCase().includes(locationLower)
       );
-    }
-
-    // Apply performance filters
-    if (filters.performance) {
-      filtered = filtered.filter(truck => (truck.horsepower || 0) >= parseInt(filters.performance));
-    }
-
-    if (filters.performanceUntil) {
-      filtered = filtered.filter(truck => (truck.horsepower || 0) <= parseInt(filters.performanceUntil));
-    }
-
-    // Apply weight filters
-    if (filters.weightFrom) {
-      filtered = filtered.filter(truck => (truck.weight || 0) >= parseInt(filters.weightFrom));
-    }
-
-    if (filters.weightUntil) {
-      filtered = filtered.filter(truck => (truck.weight || 0) <= parseInt(filters.weightUntil));
-    }
-
-    // Apply fuel type filter
-    if (filters.fuelType && filters.fuelType.length > 0) {
-      filtered = filtered.filter(truck => 
-        truck.fuelType && filters.fuelType!.includes(truck.fuelType)
-      );
-    }
-
-    // Apply gearbox filter
-    if (filters.gearbox) {
-      filtered = filtered.filter(truck => 
-        truck.transmission && truck.transmission.toLowerCase().includes(filters.gearbox.toLowerCase())
-      );
-    }
-
-    // Apply equipment filter
-    if (filters.equipment && filters.equipment.length > 0) {
-      filtered = filtered.filter(truck => {
-        if (!truck.features) return false;
-        return filters.equipment!.some(eq => 
-          truck.features.some((feature: string) => 
-            feature.toLowerCase().includes(eq.toLowerCase())
-          )
-        );
-      });
     }
 
     // Apply sorting
