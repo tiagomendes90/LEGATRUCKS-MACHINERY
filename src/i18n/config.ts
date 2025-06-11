@@ -33,6 +33,41 @@ const resources = {
         experienceDifference: "Experience the difference",
         back: "Back"
       },
+      filters: {
+        brand: "Brand",
+        model: "Model",
+        year: "Year",
+        yearFrom: "Year From",
+        price: "Price",
+        priceUntil: "Price Until",
+        location: "Location",
+        sortBy: "Sort By",
+        operatingHours: "Operating Hours",
+        operatingHoursUntil: "Operating Hours Until",
+        mileage: "Mileage",
+        mileageTo: "Mileage To",
+        condition: "Condition",
+        selectBrand: "Select Brand",
+        selectModel: "Select Model",
+        selectCondition: "Select Condition",
+        enterLocation: "Enter Location",
+        priceSort: {
+          low: "Price: Low to High",
+          high: "Price: High to Low"
+        },
+        yearSort: {
+          new: "Year: Newest First",
+          old: "Year: Oldest First"
+        },
+        hoursSort: {
+          low: "Hours: Low to High",
+          high: "Hours: High to Low"
+        },
+        nameSort: {
+          asc: "Name: A to Z",
+          desc: "Name: Z to A"
+        }
+      },
       home: {
         heroTitle: "Professional Trucks & Heavy Machinery",
         heroSubtitle: "Find the perfect vehicle for your business needs",
@@ -305,6 +340,41 @@ const resources = {
         experienceDifference: "Experimente a diferença",
         back: "Voltar"
       },
+      filters: {
+        brand: "Marca",
+        model: "Modelo",
+        year: "Ano",
+        yearFrom: "Ano Desde",
+        price: "Preço",
+        priceUntil: "Preço Até",
+        location: "Localização",
+        sortBy: "Ordenar Por",
+        operatingHours: "Horas de Funcionamento",
+        operatingHoursUntil: "Horas de Funcionamento Até",
+        mileage: "Quilometragem",
+        mileageTo: "Quilometragem Até",
+        condition: "Condição",
+        selectBrand: "Selecionar Marca",
+        selectModel: "Selecionar Modelo",
+        selectCondition: "Selecionar Condição",
+        enterLocation: "Inserir Localização",
+        priceSort: {
+          low: "Preço: Menor para Maior",
+          high: "Preço: Maior para Menor"
+        },
+        yearSort: {
+          new: "Ano: Mais Recente Primeiro",
+          old: "Ano: Mais Antigo Primeiro"
+        },
+        hoursSort: {
+          low: "Horas: Menor para Maior",
+          high: "Horas: Maior para Menor"
+        },
+        nameSort: {
+          asc: "Nome: A a Z",
+          desc: "Nome: Z a A"
+        }
+      },
       home: {
         heroTitle: "Camiões Profissionais e Maquinaria Pesada",
         heroSubtitle: "Encontre o veículo perfeito para as necessidades do seu negócio",
@@ -576,6 +646,41 @@ const resources = {
         readyToWork: "Prêt à Travailler",
         experienceDifference: "Découvrez la différence",
         back: "Retour"
+      },
+      filters: {
+        brand: "Marque",
+        model: "Modèle",
+        year: "Année",
+        yearFrom: "Année Depuis",
+        price: "Prix",
+        priceUntil: "Prix Jusqu'à",
+        location: "Localisation",
+        sortBy: "Trier Par",
+        operatingHours: "Heures de Fonctionnement",
+        operatingHoursUntil: "Heures de Fonctionnement Jusqu'à",
+        mileage: "Kilométrage",
+        mileageTo: "Kilométrage Jusqu'à",
+        condition: "Condition",
+        selectBrand: "Sélectionner Marque",
+        selectModel: "Sélectionner Modèle",
+        selectCondition: "Sélectionner Condition",
+        enterLocation: "Saisir Localisation",
+        priceSort: {
+          low: "Prix: Croissant",
+          high: "Prix: Décroissant"
+        },
+        yearSort: {
+          new: "Année: Plus Récent d'Abord",
+          old: "Année: Plus Ancien d'Abord"
+        },
+        hoursSort: {
+          low: "Heures: Croissant",
+          high: "Heures: Décroissant"
+        },
+        nameSort: {
+          asc: "Nom: A à Z",
+          desc: "Nom: Z à A"
+        }
       },
       home: {
         heroTitle: "Camions Professionnels et Machines Lourdes",
