@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,14 +24,14 @@ export interface Truck {
   updated_at?: string;
 }
 
-export const useTrucks = () => {
+export const useTrucks = (category?: string, limit = 50) => {
   return useQuery({
-    queryKey: ['trucks'],
+    queryKey: ['trucks', category, limit],
     queryFn: async () => {
-      console.log('Fetching trucks from database with optimized query...');
+      console.log('Fetching trucks with optimized indexed query...');
       
-      // Use a more targeted query with limit and specific fields
-      const { data, error } = await supabase
+      // Build query with indexed columns for better performance
+      let query = supabase
         .from('trucks')
         .select(`
           id,
@@ -52,7 +53,14 @@ export const useTrucks = () => {
           updated_at
         `)
         .order('created_at', { ascending: false })
-        .limit(100); // Add reasonable limit
+        .limit(limit);
+
+      // Use indexed category filter if provided
+      if (category) {
+        query = query.eq('category', category);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching trucks:', error);

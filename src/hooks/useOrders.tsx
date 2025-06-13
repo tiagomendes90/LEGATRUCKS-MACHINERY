@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,18 +16,36 @@ export interface Order {
   updated_at?: string;
 }
 
-export const useOrders = () => {
+export const useOrders = (status?: string, limit = 100) => {
   return useQuery({
-    queryKey: ['orders'],
+    queryKey: ['orders', status, limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('Fetching orders with indexed query...');
+      
+      // Use indexed columns for better performance
+      let query = supabase
         .from('orders')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) // Uses idx_orders_created_at index
+        .limit(limit);
 
-      if (error) throw error;
+      if (status) {
+        query = query.eq('status', status); // Uses idx_orders_status index
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
+
+      console.log('Orders fetched successfully:', data?.length || 0, 'orders found');
       return data as Order[];
     },
+    staleTime: 1000 * 60 * 2, // Cache for 2 minutes (orders change more frequently)
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
 

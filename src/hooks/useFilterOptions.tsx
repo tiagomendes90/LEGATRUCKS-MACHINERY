@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
@@ -20,16 +19,17 @@ export const useFilterOptions = (category: string, filterType?: string) => {
   return useQuery({
     queryKey: ['filter-options', category, filterType],
     queryFn: async () => {
-      console.log('Fetching filter options from database for category:', category, 'filterType:', filterType);
+      console.log('Fetching filter options with indexed query for category:', category, 'filterType:', filterType);
       
+      // Use indexed columns for optimal performance
       let query = supabase
         .from('filter_options')
         .select('*')
-        .eq('category', category)
+        .eq('category', category) // Uses idx_filter_options_category index
         .order('sort_order');
       
       if (filterType) {
-        query = query.eq('filter_type', filterType);
+        query = query.eq('filter_type', filterType); // Uses idx_filter_options_filter_type index
       }
 
       const { data, error } = await query;
@@ -91,5 +91,8 @@ export const useFilterOptions = (category: string, filterType?: string) => {
       console.log('Filter options fetched successfully:', translatedData.length, 'options found');
       return translatedData;
     },
+    staleTime: 1000 * 60 * 15, // Cache for 15 minutes (filter options are quite static)
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false,
   });
 };

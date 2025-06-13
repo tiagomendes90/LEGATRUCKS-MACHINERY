@@ -15,12 +15,16 @@ export const useBrands = (category?: string) => {
   return useQuery({
     queryKey: ['brands', category],
     queryFn: async () => {
-      console.log('Fetching brands from database for category:', category);
+      console.log('Fetching brands with indexed query for category:', category);
       
-      let query = supabase.from('brands').select('*').order('name');
+      // Use indexed columns for better performance
+      let query = supabase
+        .from('brands')
+        .select('*')
+        .order('name'); // Uses idx_brands_name index
       
       if (category) {
-        query = query.eq('category', category);
+        query = query.eq('category', category); // Uses idx_brands_category index
       }
 
       const { data, error } = await query;
@@ -33,5 +37,8 @@ export const useBrands = (category?: string) => {
       console.log('Brands fetched successfully:', data?.length || 0, 'brands found');
       return data || [];
     },
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes (brands change less frequently)
+    gcTime: 1000 * 60 * 20, // Keep in cache for 20 minutes
+    refetchOnWindowFocus: false,
   });
 };
