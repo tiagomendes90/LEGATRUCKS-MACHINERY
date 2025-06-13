@@ -66,6 +66,36 @@ const resources = {
         nameSort: {
           asc: "Name: A to Z",
           desc: "Name: Z to A"
+        },
+        trucks: {
+          brand: "Truck Brand",
+          model: "Truck Model",
+          mileage: "Mileage",
+          mileageTo: "Mileage To",
+          condition: "Truck Condition",
+          fuelType: "Fuel Type",
+          transmission: "Transmission",
+          engineType: "Engine Type"
+        },
+        machinery: {
+          brand: "Machine Brand",
+          model: "Machine Model",
+          operatingHours: "Operating Hours",
+          operatingHoursUntil: "Operating Hours Until",
+          condition: "Machine Condition",
+          engineType: "Engine Type",
+          weight: "Weight",
+          attachment: "Attachment"
+        },
+        agriculture: {
+          brand: "Tractor Brand",
+          model: "Tractor Model",
+          operatingHours: "Operating Hours",
+          operatingHoursUntil: "Operating Hours Until",
+          condition: "Tractor Condition",
+          horsepower: "Horsepower",
+          transmission: "Transmission",
+          driveType: "Drive Type"
         }
       },
       home: {
@@ -373,6 +403,36 @@ const resources = {
         nameSort: {
           asc: "Nome: A a Z",
           desc: "Nome: Z a A"
+        },
+        trucks: {
+          brand: "Marca do Camião",
+          model: "Modelo do Camião",
+          mileage: "Quilometragem",
+          mileageTo: "Quilometragem Até",
+          condition: "Condição do Camião",
+          fuelType: "Tipo de Combustível",
+          transmission: "Transmissão",
+          engineType: "Tipo de Motor"
+        },
+        machinery: {
+          brand: "Marca da Máquina",
+          model: "Modelo da Máquina",
+          operatingHours: "Horas de Funcionamento",
+          operatingHoursUntil: "Horas de Funcionamento Até",
+          condition: "Condição da Máquina",
+          engineType: "Tipo de Motor",
+          weight: "Peso",
+          attachment: "Acessório"
+        },
+        agriculture: {
+          brand: "Marca do Trator",
+          model: "Modelo do Trator",
+          operatingHours: "Horas de Funcionamento",
+          operatingHoursUntil: "Horas de Funcionamento Até",
+          condition: "Condição do Trator",
+          horsepower: "Cavalos de Potência",
+          transmission: "Transmissão",
+          driveType: "Tipo de Tração"
         }
       },
       home: {
@@ -680,6 +740,36 @@ const resources = {
         nameSort: {
           asc: "Nom: A à Z",
           desc: "Nom: Z à A"
+        },
+        trucks: {
+          brand: "Marque du Camion",
+          model: "Modèle du Camion",
+          mileage: "Kilométrage",
+          mileageTo: "Kilométrage Jusqu'à",
+          condition: "Condition du Camion",
+          fuelType: "Type de Carburant",
+          transmission: "Transmission",
+          engineType: "Type de Moteur"
+        },
+        machinery: {
+          brand: "Marque de la Machine",
+          model: "Modèle de la Machine",
+          operatingHours: "Heures de Fonctionnement",
+          operatingHoursUntil: "Heures de Fonctionnement Jusqu'à",
+          condition: "Condition de la Machine",
+          engineType: "Type de Moteur",
+          weight: "Poids",
+          attachment: "Accessoire"
+        },
+        agriculture: {
+          brand: "Marque du Tracteur",
+          model: "Modèle du Tracteur",
+          operatingHours: "Heures de Fonctionnement",
+          operatingHoursUntil: "Heures de Fonctionnement Jusqu'à",
+          condition: "Condition du Tracteur",
+          horsepower: "Puissance",
+          transmission: "Transmission",
+          driveType: "Type de Traction"
         }
       },
       home: {
@@ -863,7 +953,7 @@ const resources = {
         vehiclePhotos: "Photos du Véhicule",
         vehicleVideos: "Vidéos du Véhicule",
         enterPhotoUrl: "Entrer URL de la photo",
-        enterVideoUrl: "Entrer URL de la vidéo",
+        enterVideoUrl: "Entrer URL du vidéo",
         addPhoto: "Ajouter Photo",
         addVideo: "Ajouter Vidéo",
         backToSpecs: "Retour aux Spécifications",
