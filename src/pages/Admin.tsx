@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -354,37 +355,17 @@ const Admin = () => {
   };
 
   const handleEditTruck = (truck: Truck) => {
-    setEditingTruck(truck);
-    setIsEditModalOpen(true);
-  };
-
-  const handleSaveEditedTruck = async (updates: Partial<Truck>) => {
-    if (!editingTruck) return;
-    
-    try {
-      await updateTruckMutation.mutateAsync({ 
-        id: editingTruck.id, 
-        updates 
-      });
-      setIsEditModalOpen(false);
-      setEditingTruck(null);
-    } catch (error) {
-      console.error('Failed to update truck:', error);
-    }
-  };
-
-  const handleDuplicateTruck = (truck: Truck) => {
-    // Populate the form with existing truck data for duplication
+    // Populate the form with existing truck data
     setNewTruck({
       brand: truck.brand,
-      model: `${truck.model} (Copy)`,
+      model: truck.model,
       year: truck.year.toString(),
       mileage: truck.mileage?.toString() || "",
       price: truck.price.toString(),
       condition: truck.condition,
       engine: truck.engine,
       transmission: truck.transmission,
-      description: `${truck.description} (Copy)`,
+      description: truck.description,
       horsepower: truck.horsepower?.toString() || "",
       category: truck.category || "",
       subcategory: truck.subcategory || "",
@@ -401,8 +382,8 @@ const Admin = () => {
       });
     }
 
-    setIsEditMode(false);
-    setEditingTruck(null);
+    setEditingTruck(truck);
+    setIsEditMode(true);
     setCurrentStep(1);
     setActiveAddTruckTab("basic-info");
     
@@ -411,11 +392,6 @@ const Admin = () => {
     if (tabsElement) {
       tabsElement.click();
     }
-
-    toast({
-      title: "Vehicle Duplicated",
-      description: "Vehicle data has been copied to the add form. You can now modify and save it.",
-    });
   };
 
   const handleSignOut = async () => {
@@ -637,17 +613,8 @@ const Admin = () => {
                             size="sm" 
                             variant="outline"
                             onClick={() => handleEditTruck(truck)}
-                            title="Edit vehicle"
                           >
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDuplicateTruck(truck)}
-                            title="Duplicate vehicle"
-                          >
-                            <Plus className="h-4 w-4" />
                           </Button>
                           <Button 
                             size="sm" 
@@ -655,7 +622,6 @@ const Admin = () => {
                             onClick={() => handleDeleteTruck(truck.id)}
                             className="text-red-600 hover:text-red-700"
                             disabled={deleteTruckMutation.isPending}
-                            title="Delete vehicle"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1245,7 +1211,7 @@ const Admin = () => {
             setIsEditModalOpen(false);
             setEditingTruck(null);
           }}
-          onSave={handleSaveEditedTruck}
+          onSave={() => {}}
         />
       </div>
     </div>
