@@ -59,8 +59,8 @@ const Admin = () => {
     images: [] as string[]
   });
 
-  // Now these hooks can access newTruck.category safely
-  const { data: allBrands = [] } = useBrands(newTruck.category);
+  // Now fetch all brands instead of filtering by category
+  const { data: allBrands = [] } = useBrands(); // Remove category filter
   const { data: subcategoryOptions = [] } = useFilterOptions(newTruck.category || 'trucks', 'subcategory');
 
   const [vehicleSpecifications, setVehicleSpecifications] = useState<Partial<VehicleSpecifications>>({});
@@ -146,13 +146,12 @@ const Admin = () => {
     });
   }, [newTruck, vehicleMedia]);
 
-  // Reset subcategory and brand when category changes
+  // Reset subcategory when category changes (but not brand anymore)
   const handleCategoryChange = (category: string) => {
     setNewTruck({
       ...newTruck,
       category,
-      subcategory: "", // Reset subcategory
-      brand: "" // Reset brand
+      subcategory: "" // Reset only subcategory
     });
   };
 
@@ -789,10 +788,9 @@ const Admin = () => {
                             <Select 
                               onValueChange={(value) => setNewTruck({...newTruck, brand: value})}
                               value={newTruck.brand}
-                              disabled={!newTruck.category}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectBrand')} />
+                                <SelectValue placeholder={t('admin.selectBrand')} />
                               </SelectTrigger>
                               <SelectContent>
                                 {allBrands.map((brand) => (
