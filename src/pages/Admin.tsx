@@ -82,6 +82,26 @@ const Admin = () => {
 
   const { toast } = useToast();
 
+  // Helper function to get the correct unit label based on category
+  const getMileageUnit = () => {
+    if (newTruck.category === 'trucks') {
+      return 'Kilometers';
+    } else if (newTruck.category === 'machinery' || newTruck.category === 'agriculture') {
+      return 'Operating Hours';
+    }
+    return 'Mileage';
+  };
+
+  // Helper function to get the correct placeholder based on category
+  const getMileagePlaceholder = () => {
+    if (newTruck.category === 'trucks') {
+      return '50000';
+    } else if (newTruck.category === 'machinery' || newTruck.category === 'agriculture') {
+      return '5000';
+    }
+    return '50000';
+  };
+
   // Enhanced admin profile setup on component mount
   useEffect(() => {
     const setupAdmin = async () => {
@@ -845,13 +865,13 @@ const Admin = () => {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="mileage">{t('admin.mileage')}</Label>
+                            <Label htmlFor="mileage">{getMileageUnit()}</Label>
                             <Input
                               id="mileage"
                               type="number"
                               value={newTruck.mileage}
                               onChange={(e) => setNewTruck({...newTruck, mileage: e.target.value})}
-                              placeholder="50000"
+                              placeholder={getMileagePlaceholder()}
                               min="0"
                               max="2000000"
                             />

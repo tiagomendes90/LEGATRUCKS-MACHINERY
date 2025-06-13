@@ -12,6 +12,16 @@ interface VehicleInfoProps {
 const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
   const { t } = useTranslation();
 
+  // Helper function to get the correct unit label based on category
+  const getMileageUnit = () => {
+    if (vehicle.category === 'trucks') {
+      return 'km';
+    } else if (vehicle.category === 'machinery' || vehicle.category === 'agriculture') {
+      return t('vehicleDetails.hours');
+    }
+    return t('vehicleDetails.hours');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Info */}
@@ -36,7 +46,7 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
         <div className="text-center">
           <p className="text-sm text-gray-600">{t('vehicleDetails.mileage')}</p>
           <p className="font-semibold text-lg">
-            {vehicle.mileage ? vehicle.mileage.toLocaleString() : '0'} {t('vehicleDetails.hours')}
+            {vehicle.mileage ? vehicle.mileage.toLocaleString() : '0'} {getMileageUnit()}
           </p>
         </div>
         <div className="text-center">
@@ -114,7 +124,7 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.mileage')}</h4>
-                <p className="text-lg">{vehicle.mileage ? vehicle.mileage.toLocaleString() : '0'} {t('vehicleDetails.hours')}</p>
+                <p className="text-lg">{vehicle.mileage ? vehicle.mileage.toLocaleString() : '0'} {getMileageUnit()}</p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.condition')}</h4>
