@@ -39,17 +39,18 @@ export const useFilterOptions = (category: string, filterType?: string) => {
         throw error;
       }
 
-      // Map the data to include translated labels
+      // Map the data to include translated labels and values
       const translatedData = data?.map(option => {
         let translatedLabel = option.option_label;
+        let translatedValue = option.option_value;
         
-        // Translate the filter type labels using the correct translation keys
+        // Translate filter type labels using category-specific translations
         if (filterType === 'brand') {
-          translatedLabel = t('filters.brand');
+          translatedLabel = t(`filters.${category}.brand`);
         } else if (filterType === 'model') {
-          translatedLabel = t('filters.model');
+          translatedLabel = t(`filters.${category}.model`);
         } else if (filterType === 'condition') {
-          translatedLabel = t('filters.condition');
+          translatedLabel = t(`filters.${category}.condition`);
         } else if (filterType === 'transmission') {
           translatedLabel = t('filters.transmission');
         } else if (filterType === 'engine_type') {
@@ -75,10 +76,36 @@ export const useFilterOptions = (category: string, filterType?: string) => {
         } else if (filterType === 'location') {
           translatedLabel = t('filters.location');
         }
+
+        // Translate option values for specific filter types
+        if (filterType === 'condition') {
+          // Translate condition values
+          if (option.option_value === 'new') {
+            translatedValue = t('admin.new');
+          } else if (option.option_value === 'used') {
+            translatedValue = t('admin.used');
+          } else if (option.option_value === 'certified') {
+            translatedValue = t('admin.certified');
+          } else if (option.option_value === 'refurbished') {
+            translatedValue = t('admin.refurbished');
+          }
+        } else if (filterType === 'transmission') {
+          // Translate transmission values
+          if (option.option_value === 'manual') {
+            translatedValue = t('admin.manual');
+          } else if (option.option_value === 'automatic') {
+            translatedValue = t('admin.automatic');
+          } else if (option.option_value === 'automated-manual') {
+            translatedValue = t('admin.automatedManual');
+          } else if (option.option_value === 'cvt') {
+            translatedValue = t('admin.cvt');
+          }
+        }
         
         return {
           ...option,
-          option_label: translatedLabel
+          option_label: translatedLabel,
+          option_value: translatedValue
         };
       }) || [];
 
