@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Home, Upload, X, Star, ArrowLeft, ArrowRight } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Package, DollarSign, BarChart3, LogOut, Search, Filter, Home, Upload, X, Star, ArrowLeft, ArrowRight, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrucks, useAddTruck, useDeleteTruck, Truck } from "@/hooks/useTrucks";
@@ -391,6 +391,47 @@ const Admin = () => {
     setActiveTab("add-truck");
   };
 
+  const handleDuplicateTruck = (truck: Truck) => {
+    // Copy all truck data but reset IDs and add "Copy" to the model name
+    setNewTruck({
+      brand: truck.brand,
+      model: `${truck.model} - Copy`,
+      year: truck.year.toString(),
+      mileage: truck.mileage?.toString() || "",
+      price: truck.price.toString(),
+      condition: truck.condition,
+      engine: truck.engine,
+      transmission: truck.transmission,
+      description: truck.description,
+      horsepower: truck.horsepower?.toString() || "",
+      category: truck.category || "",
+      subcategory: truck.subcategory || "",
+      features: truck.features || [],
+      images: truck.images || []
+    });
+
+    // Copy media if available
+    if (truck.images && truck.images.length > 0) {
+      setVehicleMedia({
+        coverImage: truck.images[0] || "",
+        images: truck.images.slice(1).filter(img => !img.includes('video')) || [],
+        videos: truck.images.filter(img => img.includes('video')) || []
+      });
+    }
+
+    // Reset edit mode and go to add-truck tab
+    setEditingTruck(null);
+    setIsEditMode(false);
+    setCurrentStep(1);
+    setActiveAddTruckTab("basic-info");
+    setActiveTab("add-truck");
+
+    toast({
+      title: "Veículo Duplicado",
+      description: "Os dados do veículo foram copiados. Pode agora fazer as alterações necessárias.",
+    });
+  };
+
   const handleSignOut = async () => {
     await signOut();
     toast({
@@ -612,6 +653,14 @@ const Admin = () => {
                             onClick={() => handleEditTruck(truck)}
                           >
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDuplicateTruck(truck)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Copy className="h-4 w-4" />
                           </Button>
                           <Button 
                             size="sm" 
