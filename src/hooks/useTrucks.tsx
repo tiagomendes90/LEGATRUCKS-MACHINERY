@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +16,7 @@ export interface Truck {
   description: string;
   horsepower?: number;
   category?: string;
-  subcategory?: string; // Added subcategory field
+  subcategory?: string;
   features?: string[];
   images?: string[];
   created_at?: string;
@@ -28,11 +27,32 @@ export const useTrucks = () => {
   return useQuery({
     queryKey: ['trucks'],
     queryFn: async () => {
-      console.log('Fetching trucks from database...');
+      console.log('Fetching trucks from database with optimized query...');
+      
+      // Use a more targeted query with limit and specific fields
       const { data, error } = await supabase
         .from('trucks')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select(`
+          id,
+          brand,
+          model,
+          year,
+          mileage,
+          price,
+          condition,
+          engine,
+          transmission,
+          description,
+          horsepower,
+          category,
+          subcategory,
+          features,
+          images,
+          created_at,
+          updated_at
+        `)
+        .order('created_at', { ascending: false })
+        .limit(100); // Add reasonable limit
 
       if (error) {
         console.error('Error fetching trucks:', error);
@@ -40,9 +60,13 @@ export const useTrucks = () => {
       }
 
       console.log('Trucks fetched successfully:', data?.length || 0, 'trucks found');
-      // Only return what's actually in the database, don't add any default data
       return data || [];
     },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Prevent automatic refetch on focus
+    retry: 2, // Reduce retry attempts
+    retryDelay: 1000, // 1 second delay between retries
   });
 };
 
