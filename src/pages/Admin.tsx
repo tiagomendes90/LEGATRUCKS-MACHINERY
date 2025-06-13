@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,6 +78,7 @@ const Admin = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isFormValid, setIsFormValid] = useState({ step1: false, step2: true, step3: true });
   const [isEditMode, setIsEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("inventory");
 
   const { toast } = useToast();
 
@@ -388,10 +388,7 @@ const Admin = () => {
     setActiveAddTruckTab("basic-info");
     
     // Switch to the add-truck tab
-    const tabsElement = document.querySelector('[value="add-truck"]') as HTMLElement;
-    if (tabsElement) {
-      tabsElement.click();
-    }
+    setActiveTab("add-truck");
   };
 
   const handleSignOut = async () => {
@@ -540,7 +537,7 @@ const Admin = () => {
           ))}
         </div>
 
-        <Tabs defaultValue="inventory" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="inventory">{t('admin.inventory')}</TabsTrigger>
             <TabsTrigger value="featured">{t('admin.featured')}</TabsTrigger>
