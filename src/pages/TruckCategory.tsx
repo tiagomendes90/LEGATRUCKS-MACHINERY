@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,8 @@ const TruckCategory = () => {
   console.log('Current pathname:', location.pathname);
   console.log('Extracted category:', category);
   console.log('All trucks:', allTrucks?.length || 0);
+  console.log('Is loading:', isLoading);
+  console.log('Error:', error);
 
   const categoryData = {
     "trucks": {
@@ -56,6 +59,9 @@ const TruckCategory = () => {
       console.log('Filtered trucks:', categoryTrucks.length);
       setDisplayTrucks(categoryTrucks);
       setCurrentPage(1);
+    } else if (allTrucks && allTrucks.length === 0) {
+      // If we have data but no trucks, set empty array
+      setDisplayTrucks([]);
     }
   }, [allTrucks, category]);
 
@@ -207,6 +213,7 @@ const TruckCategory = () => {
     );
   }
 
+  // Show the page even if there are no trucks for this category
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -227,7 +234,7 @@ const TruckCategory = () => {
           <div className="mb-6 flex justify-between items-center">
             <p className="text-gray-600">
               {t('category.showing', { 
-                start: startIndex + 1, 
+                start: Math.min(startIndex + 1, displayTrucks.length), 
                 end: Math.min(endIndex, displayTrucks.length), 
                 total: displayTrucks.length 
               })}
@@ -239,8 +246,8 @@ const TruckCategory = () => {
             </p>
           </div>
 
-          {/* Vehicles Grid */}
-          {currentTrucks.length > 0 ? (
+          {/* Vehicles Grid or No Results */}
+          {displayTrucks.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                 {currentTrucks.map((truck) => (
