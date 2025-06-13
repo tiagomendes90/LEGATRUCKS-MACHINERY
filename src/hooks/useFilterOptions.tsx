@@ -41,66 +41,45 @@ export const useFilterOptions = (category: string, filterType?: string) => {
 
       // Map the data to include translated labels and values
       const translatedData = data?.map(option => {
+        // Start with original values
         let translatedLabel = option.option_label;
         let translatedValue = option.option_value;
         
-        // Translate filter type labels using category-specific translations
-        if (filterType === 'brand') {
-          translatedLabel = t(`filters.${category}.brand`);
-        } else if (filterType === 'model') {
-          translatedLabel = t(`filters.${category}.model`);
-        } else if (filterType === 'condition') {
-          translatedLabel = t(`filters.${category}.condition`);
-        } else if (filterType === 'transmission') {
-          translatedLabel = t('filters.transmission');
-        } else if (filterType === 'engine_type') {
-          translatedLabel = t('filters.engineType');
-        } else if (filterType === 'fuel_type') {
-          translatedLabel = t('filters.fuelType');
-        } else if (filterType === 'horsepower') {
-          translatedLabel = t('filters.horsepower');
-        } else if (filterType === 'weight') {
-          translatedLabel = t('filters.weight');
-        } else if (filterType === 'attachment') {
-          translatedLabel = t('filters.attachment');
-        } else if (filterType === 'drive_type') {
-          translatedLabel = t('filters.driveType');
-        } else if (filterType === 'operating_hours') {
-          translatedLabel = t('filters.operatingHours');
-        } else if (filterType === 'mileage') {
-          translatedLabel = t('filters.mileage');
-        } else if (filterType === 'year') {
-          translatedLabel = t('filters.year');
-        } else if (filterType === 'price') {
-          translatedLabel = t('filters.price');
-        } else if (filterType === 'location') {
-          translatedLabel = t('filters.location');
+        console.log('Translating option:', option.filter_type, option.option_value, 'for category:', category);
+        
+        // Translate filter type labels based on category and filter type
+        const labelKey = `filters.${category}.${option.filter_type}`;
+        const fallbackKey = `filters.${option.filter_type}`;
+        
+        // Try category-specific translation first, then fallback to general
+        if (t(labelKey) !== labelKey) {
+          translatedLabel = t(labelKey);
+        } else if (t(fallbackKey) !== fallbackKey) {
+          translatedLabel = t(fallbackKey);
         }
-
-        // Translate option values for specific filter types
-        if (filterType === 'condition') {
-          // Translate condition values
-          if (option.option_value === 'new') {
-            translatedValue = t('admin.new');
-          } else if (option.option_value === 'used') {
-            translatedValue = t('admin.used');
-          } else if (option.option_value === 'certified') {
-            translatedValue = t('admin.certified');
-          } else if (option.option_value === 'refurbished') {
-            translatedValue = t('admin.refurbished');
+        
+        // Translate specific option values
+        if (option.filter_type === 'condition') {
+          const conditionKey = `admin.${option.option_value}`;
+          if (t(conditionKey) !== conditionKey) {
+            translatedValue = t(conditionKey);
           }
-        } else if (filterType === 'transmission') {
-          // Translate transmission values
-          if (option.option_value === 'manual') {
-            translatedValue = t('admin.manual');
-          } else if (option.option_value === 'automatic') {
-            translatedValue = t('admin.automatic');
-          } else if (option.option_value === 'automated-manual') {
+        } else if (option.filter_type === 'transmission') {
+          // Handle special case for automated-manual
+          if (option.option_value === 'automated-manual') {
             translatedValue = t('admin.automatedManual');
-          } else if (option.option_value === 'cvt') {
-            translatedValue = t('admin.cvt');
+          } else {
+            const transmissionKey = `admin.${option.option_value}`;
+            if (t(transmissionKey) !== transmissionKey) {
+              translatedValue = t(transmissionKey);
+            }
           }
         }
+        
+        console.log('Translation result:', {
+          original: { label: option.option_label, value: option.option_value },
+          translated: { label: translatedLabel, value: translatedValue }
+        });
         
         return {
           ...option,
