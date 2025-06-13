@@ -536,13 +536,6 @@ const Admin = () => {
     navigate("/");
   };
 
-  const handleSetCoverImage = (imageUrl: string) => {
-    setVehicleMedia(prev => ({
-      ...prev,
-      coverImage: imageUrl
-    }));
-  };
-
   const handleRemoveImage = (index: number) => {
     setVehicleMedia(prev => ({
       ...prev,
