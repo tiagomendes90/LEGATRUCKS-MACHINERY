@@ -39,31 +39,41 @@ export const useFilterOptions = (category: string, filterType?: string) => {
         throw error;
       }
 
-      // Map the data to include translated labels based on category
+      // Map the data to include translated labels
       const translatedData = data?.map(option => {
         let translatedLabel = option.option_label;
         
-        // Use category-specific translations for filter labels
+        // Translate the filter type labels using the correct translation keys
         if (filterType === 'brand') {
-          translatedLabel = t(`filters.${category}.brand`);
+          translatedLabel = t('filters.brand');
         } else if (filterType === 'model') {
-          translatedLabel = t(`filters.${category}.model`);
+          translatedLabel = t('filters.model');
         } else if (filterType === 'condition') {
-          translatedLabel = t(`filters.${category}.condition`);
+          translatedLabel = t('filters.condition');
         } else if (filterType === 'transmission') {
-          translatedLabel = t(`filters.${category}.transmission`);
+          translatedLabel = t('filters.transmission');
         } else if (filterType === 'engine_type') {
-          translatedLabel = t(`filters.${category}.engineType`);
+          translatedLabel = t('filters.engineType');
         } else if (filterType === 'fuel_type') {
-          translatedLabel = t(`filters.${category}.fuelType`);
+          translatedLabel = t('filters.fuelType');
         } else if (filterType === 'horsepower') {
-          translatedLabel = t(`filters.${category}.horsepower`);
+          translatedLabel = t('filters.horsepower');
         } else if (filterType === 'weight') {
-          translatedLabel = t(`filters.${category}.weight`);
+          translatedLabel = t('filters.weight');
         } else if (filterType === 'attachment') {
-          translatedLabel = t(`filters.${category}.attachment`);
+          translatedLabel = t('filters.attachment');
         } else if (filterType === 'drive_type') {
-          translatedLabel = t(`filters.${category}.driveType`);
+          translatedLabel = t('filters.driveType');
+        } else if (filterType === 'operating_hours') {
+          translatedLabel = t('filters.operatingHours');
+        } else if (filterType === 'mileage') {
+          translatedLabel = t('filters.mileage');
+        } else if (filterType === 'year') {
+          translatedLabel = t('filters.year');
+        } else if (filterType === 'price') {
+          translatedLabel = t('filters.price');
+        } else if (filterType === 'location') {
+          translatedLabel = t('filters.location');
         }
         
         return {
