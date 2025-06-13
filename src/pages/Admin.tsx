@@ -24,6 +24,7 @@ import { useBrands } from "@/hooks/useBrands";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { compressImage } from "@/utils/imageCompression";
 
 interface VehicleMedia {
   coverImage: string;
@@ -41,7 +42,6 @@ const Admin = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
-  // Move newTruck state declaration BEFORE the hooks that depend on it
   const [newTruck, setNewTruck] = useState({
     brand: "",
     model: "",
@@ -59,8 +59,7 @@ const Admin = () => {
     images: [] as string[]
   });
 
-  // Now fetch all brands instead of filtering by category
-  const { data: allBrands = [] } = useBrands(); // Remove category filter
+  const { data: allBrands = [] } = useBrands();
   const { data: subcategoryOptions = [] } = useFilterOptions(newTruck.category || 'trucks', 'subcategory');
 
   const [vehicleSpecifications, setVehicleSpecifications] = useState<Partial<VehicleSpecifications>>({});
@@ -82,7 +81,6 @@ const Admin = () => {
 
   const { toast } = useToast();
 
-  // Helper function to get the correct unit label based on category
   const getMileageUnit = () => {
     if (newTruck.category === 'trucks') {
       return 'Kilometers';
@@ -92,7 +90,6 @@ const Admin = () => {
     return 'Mileage';
   };
 
-  // Helper function to get the correct placeholder based on category
   const getMileagePlaceholder = () => {
     if (newTruck.category === 'trucks') {
       return '50000';
@@ -102,7 +99,6 @@ const Admin = () => {
     return '50000';
   };
 
-  // Enhanced admin profile setup on component mount
   useEffect(() => {
     const setupAdmin = async () => {
       if (user) {
@@ -111,7 +107,6 @@ const Admin = () => {
           await ensureAdminProfile();
           console.log('Admin profile setup completed');
           
-          // Verify the profile was created correctly
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -153,7 +148,6 @@ const Admin = () => {
     setupAdmin();
   }, [user, toast]);
 
-  // Validate form steps
   useEffect(() => {
     const step1Valid = newTruck.brand && newTruck.model && newTruck.year && newTruck.price && 
                      newTruck.condition && newTruck.description && newTruck.category;
@@ -161,17 +155,16 @@ const Admin = () => {
     
     setIsFormValid({
       step1: !!step1Valid,
-      step2: true, // Specifications are optional
+      step2: true,
       step3: !!step3Valid
     });
   }, [newTruck, vehicleMedia]);
 
-  // Reset subcategory when category changes (but not brand anymore)
   const handleCategoryChange = (category: string) => {
     setNewTruck({
       ...newTruck,
       category,
-      subcategory: "" // Reset only subcategory
+      subcategory: ""
     });
   };
 
@@ -251,21 +244,37 @@ const Admin = () => {
       }
 
       try {
-        const base64 = await convertFileToBase64(file);
-        
         if (type === 'image') {
+          toast({
+            title: "Compressing Image",
+            description: "Please wait while we optimize your image...",
+          });
+
+          const compressedBase64 = await compressImage(file, {
+            maxWidth: 1200,
+            maxHeight: 800,
+            quality: 0.8,
+            maxSizeKB: 300
+          });
+          
           if (!vehicleMedia.coverImage) {
             setVehicleMedia(prev => ({
               ...prev,
-              coverImage: base64
+              coverImage: compressedBase64
             }));
           } else {
             setVehicleMedia(prev => ({
               ...prev,
-              images: [...prev.images, base64]
+              images: [...prev.images, compressedBase64]
             }));
           }
+
+          toast({
+            title: "Image Optimized",
+            description: "Image has been compressed and uploaded successfully.",
+          });
         } else {
+          const base64 = await convertFileToBase64(file);
           setVehicleMedia(prev => ({
             ...prev,
             videos: [...prev.videos, base64]
@@ -278,6 +287,79 @@ const Admin = () => {
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleAddImage = async (imageUrl: string) => {
+    if (vehicleMedia.images.length >= 25) {
+      toast({
+        title: "Image Limit Reached",
+        description: "Maximum of 25 additional images allowed.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Compressing Image",
+        description: "Please wait while we optimize your image...",
+      });
+
+      const compressedBase64 = await compressImage(imageUrl, {
+        maxWidth: 1200,
+        maxHeight: 800,
+        quality: 0.8,
+        maxSizeKB: 300
+      });
+
+      setVehicleMedia(prev => ({
+        ...prev,
+        images: [...prev.images, compressedBase64]
+      }));
+
+      toast({
+        title: "Image Optimized",
+        description: "Image has been compressed and added successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Compression Error",
+        description: "Failed to compress image. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSetCoverImage = async (imageUrl: string) => {
+    try {
+      toast({
+        title: "Compressing Cover Image",
+        description: "Please wait while we optimize your cover image...",
+      });
+
+      const compressedBase64 = await compressImage(imageUrl, {
+        maxWidth: 1200,
+        maxHeight: 800,
+        quality: 0.85,
+        maxSizeKB: 400
+      });
+
+      setVehicleMedia(prev => ({
+        ...prev,
+        coverImage: compressedBase64
+      }));
+
+      toast({
+        title: "Cover Image Optimized",
+        description: "Cover image has been compressed and set successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Compression Error",
+        description: "Failed to compress cover image. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -322,7 +404,6 @@ const Admin = () => {
         addedTruck = await addTruckMutation.mutateAsync(truckData);
       }
       
-      // If truck was added/updated successfully and there are specifications, add them
       if (addedTruck && Object.keys(vehicleSpecifications).length > 0) {
         const specsWithTruckId = {
           ...vehicleSpecifications,
@@ -332,7 +413,6 @@ const Admin = () => {
         await addSpecificationsMutation.mutateAsync(specsWithTruckId);
       }
 
-      // Reset forms
       resetForm();
       
       toast({
@@ -374,7 +454,6 @@ const Admin = () => {
   };
 
   const handleEditTruck = (truck: Truck) => {
-    // Populate the form with existing truck data
     setNewTruck({
       brand: truck.brand,
       model: truck.model,
@@ -392,7 +471,6 @@ const Admin = () => {
       images: truck.images || []
     });
 
-    // Populate media if available
     if (truck.images && truck.images.length > 0) {
       setVehicleMedia({
         coverImage: truck.images[0] || "",
@@ -405,13 +483,10 @@ const Admin = () => {
     setIsEditMode(true);
     setCurrentStep(1);
     setActiveAddTruckTab("basic-info");
-    
-    // Switch to the add-truck tab
     setActiveTab("add-truck");
   };
 
   const handleDuplicateTruck = (truck: Truck) => {
-    // Copy all truck data but reset IDs and add "Copy" to the model name
     setNewTruck({
       brand: truck.brand,
       model: `${truck.model} - Copy`,
@@ -429,7 +504,6 @@ const Admin = () => {
       images: truck.images || []
     });
 
-    // Copy media if available
     if (truck.images && truck.images.length > 0) {
       setVehicleMedia({
         coverImage: truck.images[0] || "",
@@ -438,7 +512,6 @@ const Admin = () => {
       });
     }
 
-    // Reset edit mode and go to add-truck tab
     setEditingTruck(null);
     setIsEditMode(false);
     setCurrentStep(1);
@@ -467,21 +540,6 @@ const Admin = () => {
     setVehicleMedia(prev => ({
       ...prev,
       coverImage: imageUrl
-    }));
-  };
-
-  const handleAddImage = (imageUrl: string) => {
-    if (vehicleMedia.images.length >= 25) {
-      toast({
-        title: "Image Limit Reached",
-        description: "Maximum of 25 additional images allowed.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setVehicleMedia(prev => ({
-      ...prev,
-      images: [...prev.images, imageUrl]
     }));
   };
 
@@ -521,7 +579,6 @@ const Admin = () => {
     return matchesSearch && matchesCondition;
   });
 
-  // Corrected analytics to show real data
   const stats = [
     { 
       title: t('admin.totalInventory'), 
@@ -578,7 +635,6 @@ const Admin = () => {
           </div>
         </div>
 
-        {/* Stats Overview */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
@@ -718,7 +774,6 @@ const Admin = () => {
 
           <TabsContent value="add-truck">
             <div className="space-y-6">
-              {/* Progress Steps */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -1002,7 +1057,6 @@ const Admin = () => {
                       <CardDescription>Add cover image, additional photos (max 25), and videos (max 3)</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {/* Cover Image Section */}
                       <div>
                         <Label className="text-base font-medium flex items-center gap-2">
                           <Star className="h-4 w-4 text-yellow-500" />
@@ -1077,7 +1131,6 @@ const Admin = () => {
                         </div>
                       </div>
 
-                      {/* Additional Photos Section */}
                       <div>
                         <Label className="text-base font-medium">Additional Photos ({vehicleMedia.images.length}/25)</Label>
                         <div className="mt-2 space-y-4">
@@ -1159,7 +1212,6 @@ const Admin = () => {
                         </div>
                       </div>
 
-                      {/* Video Section */}
                       <div>
                         <Label className="text-base font-medium">Vehicle Videos ({vehicleMedia.videos.length}/3)</Label>
                         <div className="mt-2 space-y-4">
