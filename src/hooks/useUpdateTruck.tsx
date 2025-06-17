@@ -1,18 +1,34 @@
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Truck } from './useTrucks';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+export interface UpdateTruckData {
+  id: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  price?: number;
+  mileage?: number;
+  condition?: string;
+  category?: string;
+  description?: string;
+  location?: string;
+  engine?: string;
+  transmission?: string;
+  features?: string[];
+  images?: string[];
+}
 
 export const useUpdateTruck = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Truck> }) => {
-      const { data, error } = await (supabase as any)
+    mutationFn: async (truckData: UpdateTruckData) => {
+      const { id, ...updateData } = truckData;
+      
+      const { data, error } = await supabase
         .from('trucks')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -22,17 +38,7 @@ export const useUpdateTruck = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trucks'] });
-      toast({
-        title: "Truck Updated",
-        description: "Truck details have been updated successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: `Failed to update truck: ${error.message}`,
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: ['featured-trucks'] });
     },
   });
 };
