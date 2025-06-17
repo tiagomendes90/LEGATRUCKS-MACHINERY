@@ -235,7 +235,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
           <div className="w-20 h-20 flex items-center justify-center bg-blue-100 rounded-lg">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 24" focusable="false" aria-hidden="true" fill="none" className="h-10 w-16 text-blue-600">
               <path fillRule="evenodd" clipRule="evenodd" d="M17.5 12.75C15.9812 12.75 14.75 13.9812 14.75 15.5C14.75 17.0188 15.9812 18.25 17.5 18.25C19.0188 18.25 20.25 17.0188 20.25 15.5C20.25 13.9812 19.0188 12.75 17.5 12.75ZM16.25 15.5C16.25 14.8096 16.8096 14.25 17.5 14.25C18.1904 14.25 18.75 14.8096 18.75 15.5C18.75 16.1904 18.1904 16.75 17.5 16.75C16.8096 16.75 16.25 16.1904 16.25 15.5Z" fill="currentColor" />
-              <path fillRule="evenodd" clipRule="evenodd" d="M13.847 4H12V2H25V4H23.7208L24.7402 7.05821L27 7.24653V5H29V7.4132L32.9124 7.73923C35.2059 7.93036 36.8655 10.0127 36.54 12.2911L36.2016 14.6599C37.2851 15.3755 38 16.6043 38 18C38 20.2091 36.2091 22 34 22C31.7909 22 30 20.2091 30 18H23.5018C22.5223 20.349 20.204 22 17.5 22C13.9101 22 11 19.0899 11 15.5C11 13.7535 11.6888 12.1679 12.8096 11H11.9142L10.7071 12.2071L9.29285 10.7929L11.0857 9H13.1327L13.847 4ZM34 14C34.0922 14 34.1836 14.0031 34.2742 14.0093L34.5601 12.0083C34.7228 10.8691 33.8931 9.82789 32.7463 9.73232L24.2645 9.02551L23.0662 9.82435C22.6343 10.1123 22.174 10.3498 21.6943 10.5342C22.1919 10.9549 22.6255 11.4491 22.9782 12H26C27.1046 12 28 12.8954 28 14V16H30.5351C31.2267 14.8044 32.5194 14 34 14ZM15.153 9H19.1833C20.1705 9 21.1355 8.70781 21.9568 8.16025L22.8098 7.59163L21.6126 4H15.8673L15.153 9ZM26 14H23.8261C23.9398 14.4815 24 14.9837 24 15.5C24 15.6682 23.9936 15.835 23.9811 16H26V14ZM22 15.5C22 13.0147 19.9853 11 17.5 11C15.0147 11 13 13.0147 13 15.5C13 17.9853 15.0147 20 17.5 20C19.9853 20 22 17.9853 22 15.5ZM34 16C32.8954 16 32 16.8954 32 18C32 19.1046 32.8954 20 34 20C35.1046 20 36 19.1046 36 18C36 16.8954 35.1046 16 34 16Z" fill="currentColor" />
+              <path fillRule="evenodd" clipRule="evenodd" d="M13.847 4H12V2H25V4H23.7208L24.7402 7.05821L27 7.24653V5H29V7.4132L32.9124 7.73923C35.2059 7.93036 36.8655 10.0127 36.54 12.2911L36.2016 14.6599C37.2851 15.3755 38 16.6043 38 18C38 20.2091 36.2091 22 34 22C31.7909 22 30 20.2091 30 18H23.5018C22.5223 20.349 20.204 22 17.5 22C13.9101 22 11 19.0899 11 15.5C11 13.7535 11.6888 12.1679 12.8096 11H11.9142L10.7071 12.2071L9.29285 10.7929L11.0857 9H13.1327L13.847 4ZM34 14C34.0922 14 34.1836 14.0031 34.2742 14.0093L34.5601 12.0083C34.7228 10.8691 33.8931 9.82789 32.7463 9.73232L24.2645 9.02551L23.0662 9.82435C22.6343 10.1123 22.174 10.3498 21.6943 10.5342C22.1919 10.9549 22.6255 11.4491 22.9782 12H26C27.1046 12 28 12.8954 28 14V16H30.5351C31.2267 14.8044 32.5194 14 34 14ZM15.153 9H19.1833C20.1705 9 21.1355 8.70781 21.9568 8.16025L22.8098 7.59163L21.6126 4H15.8673L15.153 9ZM26 14H23.8261C23.9398 14 24 14.4837 24 15.5C24 15.6682 23.9936 15.835 23.9811 16H26V14ZM22 15.5C22 13.0147 19.9853 11 17.5 11C15.0147 11 13 13.0147 13 15.5C13 17.9853 15.0147 20 17.5 20C19.9853 20 22 17.9853 22 15.5ZM34 16C32.8954 16 32 16.8954 32 18C32 19.1046 32.8954 20 34 20C35.1046 20 36 19.1046 36 18C36 16.8954 35.1046 16 34 16Z" fill="currentColor" />
             </svg>
           </div>
         );
@@ -310,41 +310,9 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
           </div>
         </div>
 
-        {/* Main filter grid */}
+        {/* Main filter grid - Reordered as requested */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          {/* Brand */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Brand
-            </label>
-            <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="All brands" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border shadow-lg z-50">
-                {brands.map((brandItem) => (
-                  <SelectItem key={brandItem.id} value={brandItem.slug}>
-                    {brandItem.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Model */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Model
-            </label>
-            <Input
-              placeholder="All models"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="h-12"
-            />
-          </div>
-
-          {/* Category/Subcategory */}
+          {/* 1. Category/Subcategory - First */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category
@@ -363,29 +331,39 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             </Select>
           </div>
 
-          {/* Year/Registration Date */}
+          {/* 2. Model - Second */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
+              Model
             </label>
-            <Select value={yearFrom} onValueChange={setYearFrom}>
+            <Input
+              placeholder="All models"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="h-12"
+            />
+          </div>
+
+          {/* 3. Brand - Third */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Brand
+            </label>
+            <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
               <SelectTrigger className="h-12">
-                <SelectValue placeholder="Any year" />
+                <SelectValue placeholder="All brands" />
               </SelectTrigger>
               <SelectContent className="bg-white border shadow-lg z-50">
-                {yearOptions.map((option) => (
-                  <SelectItem key={option.id} value={option.option_value}>
-                    {option.option_label}
+                {brands.map((brandItem) => (
+                  <SelectItem key={brandItem.id} value={brandItem.slug}>
+                    {brandItem.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* Second row of filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {/* Price until */}
+          {/* 4. Price until - Fourth */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Price until
@@ -403,8 +381,11 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          {/* Operating hours until / Kilometers to */}
+        {/* Second row of filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* 5. Operating hours until / Kilometers to - Fifth */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {category === 'trucks' ? 'Kilometers to' : 'Operating hours until'}
@@ -423,17 +404,23 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             </Select>
           </div>
 
-          {/* City or postal code */}
+          {/* 6. Year/Registration Date - Sixth */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              City or postal code
+              {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
             </label>
-            <Input
-              placeholder="Enter location..."
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="h-12"
-            />
+            <Select value={yearFrom} onValueChange={setYearFrom}>
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="Any year" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border shadow-lg z-50">
+                {yearOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.option_value}>
+                    {option.option_label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Search Button */}
@@ -983,35 +970,8 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             </SheetHeader>
             
             <div className="py-6 space-y-6">
-              {/* Basic filters */}
+              {/* Basic filters in mobile - same order as desktop */}
               <div className="space-y-4">
-                {/* Brand */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
-                  <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All brands" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border shadow-lg z-50">
-                      {brands.map((brandItem) => (
-                        <SelectItem key={brandItem.id} value={brandItem.slug}>
-                          {brandItem.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Model */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
-                  <Input
-                    placeholder="All models"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                  />
-                </div>
-
                 {/* Category */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
@@ -1029,19 +989,27 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   </Select>
                 </div>
 
-                {/* Year */}
+                {/* Model */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
-                  </label>
-                  <Select value={yearFrom} onValueChange={setYearFrom}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                  <Input
+                    placeholder="All models"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                  />
+                </div>
+
+                {/* Brand */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+                  <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Any year" />
+                      <SelectValue placeholder="All brands" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border shadow-lg z-50">
-                      {yearOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.option_value}>
-                          {option.option_label}
+                      {brands.map((brandItem) => (
+                        <SelectItem key={brandItem.id} value={brandItem.slug}>
+                          {brandItem.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1084,14 +1052,23 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   </Select>
                 </div>
 
-                {/* Location */}
+                {/* Year */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">City or postal code</label>
-                  <Input
-                    placeholder="Enter location..."
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
+                  </label>
+                  <Select value={yearFrom} onValueChange={setYearFrom}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any year" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      {yearOptions.map((option) => (
+                        <SelectItem key={option.id} value={option.option_value}>
+                          {option.option_label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
