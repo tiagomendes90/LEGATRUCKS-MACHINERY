@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,16 +14,17 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ChevronDown, Filter, Search } from "lucide-react";
-import { useFilterOptions } from "@/hooks/useFilterOptions";
+import { useBrands } from "@/hooks/useBrands";
 import { useTranslation } from "react-i18next";
 
 interface TruckFilterProps {
-  onFilter: (filters: any) => void;
+  category?: string;
+  onFilterChange: (filters: any) => void;
 }
 
-const TruckFilter = ({ onFilter }: TruckFilterProps) => {
+const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const { t } = useTranslation();
-  const { brands, models, getModelsForBrand } = useFilterOptions();
+  const { data: brands = [], isLoading: brandsLoading } = useBrands(category);
   
   const [filters, setFilters] = useState({
     brand: "",
@@ -52,7 +54,7 @@ const TruckFilter = ({ onFilter }: TruckFilterProps) => {
     }
     
     setFilters(newFilters);
-    onFilter(newFilters);
+    onFilterChange(newFilters);
   };
 
   const clearFilters = () => {
@@ -74,18 +76,22 @@ const TruckFilter = ({ onFilter }: TruckFilterProps) => {
       search: ""
     };
     setFilters(clearedFilters);
-    onFilter(clearedFilters);
+    onFilterChange(clearedFilters);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onFilter(filters);
+    onFilterChange(filters);
   };
 
   const getAvailableModels = () => {
-    if (!filters.brand) return [];
-    return getModelsForBrand(filters.brand);
+    // For now, return empty array since we need to implement model filtering based on selected brand
+    return [];
   };
+
+  if (brandsLoading) {
+    return <div className="w-full bg-white shadow-sm border-b p-4">Loading filters...</div>;
+  }
 
   return (
     <div className="w-full bg-white shadow-sm border-b">
@@ -150,8 +156,8 @@ const TruckFilter = ({ onFilter }: TruckFilterProps) => {
                 </SelectTrigger>
                 <SelectContent className="bg-white border shadow-lg z-50">
                   {brands.map((brand) => (
-                    <SelectItem key={brand} value={brand}>
-                      {brand}
+                    <SelectItem key={brand.id} value={brand.slug}>
+                      {brand.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -438,8 +444,8 @@ const TruckFilter = ({ onFilter }: TruckFilterProps) => {
                       </SelectTrigger>
                       <SelectContent className="bg-white border shadow-lg z-50">
                         {brands.map((brand) => (
-                          <SelectItem key={brand} value={brand}>
-                            {brand}
+                          <SelectItem key={brand.id} value={brand.slug}>
+                            {brand.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
