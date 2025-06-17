@@ -37,23 +37,30 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   const { data: hoursOptions } = useFilterOptions(category, hoursFilterType);
 
   const [filters, setFilters] = useState({
-    brand: "",
+    brand: "all",
     model: "",
-    yearFrom: "",
-    operatingHoursUntil: "",
+    yearFrom: "any",
+    operatingHoursUntil: "any",
     priceType: "until",
-    priceUntil: "",
+    priceUntil: "any",
     location: "",
-    sortBy: "",
-    mileageTo: ""
+    sortBy: "default",
+    mileageTo: "any"
   });
 
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const filterData = {
-      ...filters,
-      ...(category === 'trucks' && { mileageTo: filters.operatingHoursUntil })
+      brand: filters.brand === "all" ? "" : filters.brand,
+      model: filters.model,
+      yearFrom: filters.yearFrom === "any" ? "" : filters.yearFrom,
+      operatingHoursUntil: filters.operatingHoursUntil === "any" ? "" : filters.operatingHoursUntil,
+      priceType: filters.priceType,
+      priceUntil: filters.priceUntil === "any" ? "" : filters.priceUntil,
+      location: filters.location,
+      sortBy: filters.sortBy === "default" ? "" : filters.sortBy,
+      ...(category === 'trucks' && { mileageTo: filters.operatingHoursUntil === "any" ? "" : filters.operatingHoursUntil })
     };
     onFilterChange(filterData);
   }, [filters, onFilterChange, category]);
@@ -64,15 +71,15 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
 
   const clearFilters = () => {
     setFilters({
-      brand: "",
+      brand: "all",
       model: "",
-      yearFrom: "",
-      operatingHoursUntil: "",
+      yearFrom: "any",
+      operatingHoursUntil: "any",
       priceType: "until",
-      priceUntil: "",
+      priceUntil: "any",
       location: "",
-      sortBy: "",
-      mileageTo: ""
+      sortBy: "default",
+      mileageTo: "any"
     });
   };
 
@@ -115,7 +122,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder={t('filters.selectBrand')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.allBrands')}</SelectItem>
+                <SelectItem value="all">{t('filters.allBrands')}</SelectItem>
                 {brands?.map((brand) => (
                   <SelectItem key={brand.slug} value={brand.slug}>
                     {brand.name}
@@ -144,7 +151,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder={t('filters.selectYear')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.anyYear')}</SelectItem>
+                <SelectItem value="any">{t('filters.anyYear')}</SelectItem>
                 {yearOptions?.map((option) => (
                   <SelectItem key={option.id} value={option.option_value}>
                     {option.option_label}
@@ -162,7 +169,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder={t('filters.selectHours')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.anyHours')}</SelectItem>
+                <SelectItem value="any">{t('filters.anyHours')}</SelectItem>
                 {hoursOptions?.map((option) => (
                   <SelectItem key={option.id} value={option.option_value}>
                     {option.option_label}
@@ -182,7 +189,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder={t('filters.selectPrice')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.anyPrice')}</SelectItem>
+                <SelectItem value="any">{t('filters.anyPrice')}</SelectItem>
                 {priceOptions?.map((option) => (
                   <SelectItem key={option.id} value={option.option_value}>
                     {option.option_label}
@@ -211,7 +218,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder={t('filters.selectSort')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.defaultSort')}</SelectItem>
+                <SelectItem value="default">{t('filters.defaultSort')}</SelectItem>
                 <SelectItem value="price-low">{t('filters.priceLowToHigh')}</SelectItem>
                 <SelectItem value="price-high">{t('filters.priceHighToLow')}</SelectItem>
                 <SelectItem value="year-new">{t('filters.yearNewest')}</SelectItem>
