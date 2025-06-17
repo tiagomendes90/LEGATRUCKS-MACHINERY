@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -383,8 +384,8 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
           </div>
         </div>
 
-        {/* Second row of filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Second row of filters with Search Button */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {/* 5. Kilometers/Operating hours */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -423,7 +424,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             </Select>
           </div>
 
-          {/* 7. Vehicle Condition (replacing City or postal code) */}
+          {/* 7. Vehicle Condition */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Vehicle condition
@@ -439,13 +440,13 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* Search Button Row */}
-        <div className="flex justify-end mb-6">
-          <Button onClick={handleFilterChange} className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium px-8">
-            🔍 Search {getOffersCount()}
-          </Button>
+          {/* 8. Search Button */}
+          <div className="flex items-end">
+            <Button onClick={handleFilterChange} className="h-12 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium">
+              🔍 Search {getOffersCount()}
+            </Button>
+          </div>
         </div>
 
         {/* Action buttons */}
