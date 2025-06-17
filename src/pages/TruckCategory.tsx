@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,20 +18,21 @@ const TruckCategory = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const { data: allTrucks, isLoading, error } = useTrucks();
+  
+  // Extract category from pathname
+  const category = location.pathname.substring(1);
+  
+  // Fetch trucks directly with category filter for better performance
+  const { data: trucks, isLoading, error } = useTrucks(category);
+  
   const [displayTrucks, setDisplayTrucks] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Get category from the pathname
-  const category = location.pathname.substring(1); // Remove the leading slash
+  console.log('Current category:', category);
+  console.log('Trucks loaded:', trucks?.length || 0);
 
-  console.log('Current pathname:', location.pathname);
-  console.log('Extracted category:', category);
-  console.log('All trucks:', allTrucks?.length || 0);
-  console.log('Is loading:', isLoading);
-  console.log('Error:', error);
-
-  const categoryData = {
+  // Memoize category data to prevent unnecessary re-renders
+  const categoryData = useMemo(() => ({
     "trucks": {
       title: t('category.trucks.title'),
       description: t('category.trucks.description')
@@ -43,126 +45,118 @@ const TruckCategory = () => {
       title: t('category.agriculture.title'),
       description: t('category.agriculture.description')
     }
-  };
+  }), [t]);
 
   const data = categoryData[category as keyof typeof categoryData];
 
-  // Set initial trucks filtered by category when data loads
+  // Set trucks when data loads - no additional filtering needed since it's done at query level
   useEffect(() => {
-    if (allTrucks && category) {
-      console.log('Filtering trucks for category:', category);
-      const categoryTrucks = allTrucks.filter(truck => {
-        console.log('Truck category:', truck.category, 'Target category:', category);
-        return truck.category === category;
-      });
-      console.log('Filtered trucks:', categoryTrucks.length);
-      setDisplayTrucks(categoryTrucks);
+    if (trucks) {
+      console.log('Setting display trucks:', trucks.length);
+      setDisplayTrucks(trucks);
       setCurrentPage(1);
-    } else if (allTrucks && allTrucks.length === 0) {
-      // If we have data but no trucks, set empty array
-      setDisplayTrucks([]);
     }
-  }, [allTrucks, category]);
+  }, [trucks]);
 
-  const handleFilterChange = (filters: {
-    brand: string;
-    model: string;
-    yearFrom: string;
-    operatingHoursUntil: string;
-    priceType: string;
-    priceUntil: string;
-    location: string;
-    sortBy: string;
-    mileageTo?: string;
-  }) => {
-    if (!allTrucks || !category) return;
+  // Optimized filter handler with debouncing concept
+  const handleFilterChange = useMemo(() => {
+    return (filters: {
+      brand: string;
+      model: string;
+      yearFrom: string;
+      operatingHoursUntil: string;
+      priceType: string;
+      priceUntil: string;
+      location: string;
+      sortBy: string;
+      mileageTo?: string;
+    }) => {
+      if (!trucks) return;
 
-    // Start with trucks from the current category
-    let filtered = allTrucks.filter(truck => truck.category === category);
+      let filtered = [...trucks]; // Work with already filtered data
 
-    // Apply brand filter
-    if (filters.brand) {
-      filtered = filtered.filter(truck => {
-        const truckBrand = truck.brand.toLowerCase().replace(/\s+/g, '-');
-        return truckBrand === filters.brand;
-      });
-    }
-
-    // Apply model filter
-    if (filters.model && filters.model.trim()) {
-      const modelLower = filters.model.toLowerCase().trim();
-      filtered = filtered.filter(truck => 
-        truck.model && truck.model.toLowerCase().includes(modelLower)
-      );
-    }
-
-    // Apply year from filter
-    if (filters.yearFrom) {
-      filtered = filtered.filter(truck => truck.year >= parseInt(filters.yearFrom));
-    }
-
-    // Apply operating hours filter (using mileage as proxy for operating hours)
-    if (filters.operatingHoursUntil) {
-      filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.operatingHoursUntil));
-    }
-
-    // Apply mileage filter (for trucks category)
-    if (filters.mileageTo) {
-      filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.mileageTo));
-    }
-
-    // Apply price filter
-    if (filters.priceUntil) {
-      filtered = filtered.filter(truck => truck.price <= parseInt(filters.priceUntil));
-    }
-
-    // Apply location filter (basic text search in description)
-    if (filters.location && filters.location.trim()) {
-      const locationLower = filters.location.toLowerCase().trim();
-      filtered = filtered.filter(truck => 
-        truck.description && truck.description.toLowerCase().includes(locationLower)
-      );
-    }
-
-    // Apply sorting
-    if (filters.sortBy) {
-      switch (filters.sortBy) {
-        case "price-low":
-          filtered.sort((a, b) => a.price - b.price);
-          break;
-        case "price-high":
-          filtered.sort((a, b) => b.price - a.price);
-          break;
-        case "year-new":
-          filtered.sort((a, b) => b.year - a.year);
-          break;
-        case "year-old":
-          filtered.sort((a, b) => a.year - b.year);
-          break;
-        case "hours-low":
-          filtered.sort((a, b) => (a.mileage || 0) - (b.mileage || 0));
-          break;
-        case "hours-high":
-          filtered.sort((a, b) => (b.mileage || 0) - (a.mileage || 0));
-          break;
-        case "name-asc":
-          filtered.sort((a, b) => a.model.localeCompare(b.model));
-          break;
-        case "name-desc":
-          filtered.sort((a, b) => b.model.localeCompare(a.model));
-          break;
+      // Apply additional filters
+      if (filters.brand) {
+        filtered = filtered.filter(truck => {
+          const truckBrand = truck.brand.toLowerCase().replace(/\s+/g, '-');
+          return truckBrand === filters.brand;
+        });
       }
-    }
 
-    setDisplayTrucks(filtered);
-    setCurrentPage(1);
-  };
+      if (filters.model && filters.model.trim()) {
+        const modelLower = filters.model.toLowerCase().trim();
+        filtered = filtered.filter(truck => 
+          truck.model && truck.model.toLowerCase().includes(modelLower)
+        );
+      }
 
-  // Calculate pagination
-  const totalPages = Math.ceil(displayTrucks.length / TRUCKS_PER_PAGE);
-  const startIndex = (currentPage - 1) * TRUCKS_PER_PAGE;
-  const endIndex = startIndex + TRUCKS_PER_PAGE;
-  const currentTrucks = displayTrucks.slice(startIndex, endIndex);
+      if (filters.yearFrom) {
+        filtered = filtered.filter(truck => truck.year >= parseInt(filters.yearFrom));
+      }
+
+      if (filters.operatingHoursUntil) {
+        filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.operatingHoursUntil));
+      }
+
+      if (filters.mileageTo) {
+        filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.mileageTo));
+      }
+
+      if (filters.priceUntil) {
+        filtered = filtered.filter(truck => truck.price <= parseInt(filters.priceUntil));
+      }
+
+      if (filters.location && filters.location.trim()) {
+        const locationLower = filters.location.toLowerCase().trim();
+        filtered = filtered.filter(truck => 
+          truck.description && truck.description.toLowerCase().includes(locationLower)
+        );
+      }
+
+      // Apply sorting
+      if (filters.sortBy) {
+        switch (filters.sortBy) {
+          case "price-low":
+            filtered.sort((a, b) => a.price - b.price);
+            break;
+          case "price-high":
+            filtered.sort((a, b) => b.price - a.price);
+            break;
+          case "year-new":
+            filtered.sort((a, b) => b.year - a.year);
+            break;
+          case "year-old":
+            filtered.sort((a, b) => a.year - b.year);
+            break;
+          case "hours-low":
+            filtered.sort((a, b) => (a.mileage || 0) - (b.mileage || 0));
+            break;
+          case "hours-high":
+            filtered.sort((a, b) => (b.mileage || 0) - (a.mileage || 0));
+            break;
+          case "name-asc":
+            filtered.sort((a, b) => a.model.localeCompare(b.model));
+            break;
+          case "name-desc":
+            filtered.sort((a, b) => b.model.localeCompare(a.model));
+            break;
+        }
+      }
+
+      setDisplayTrucks(filtered);
+      setCurrentPage(1);
+    };
+  }, [trucks]);
+
+  // Memoize pagination calculations
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(displayTrucks.length / TRUCKS_PER_PAGE);
+    const startIndex = (currentPage - 1) * TRUCKS_PER_PAGE;
+    const endIndex = startIndex + TRUCKS_PER_PAGE;
+    const currentTrucks = displayTrucks.slice(startIndex, endIndex);
+    
+    return { totalPages, startIndex, endIndex, currentTrucks };
+  }, [displayTrucks, currentPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -216,7 +210,6 @@ const TruckCategory = () => {
     );
   }
 
-  // Show the page even if there are no trucks for this category
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -237,13 +230,13 @@ const TruckCategory = () => {
           <div className="mb-6 flex justify-between items-center">
             <p className="text-gray-600">
               {t('category.showing', { 
-                start: Math.min(startIndex + 1, displayTrucks.length), 
-                end: Math.min(endIndex, displayTrucks.length), 
+                start: Math.min(paginationData.startIndex + 1, displayTrucks.length), 
+                end: Math.min(paginationData.endIndex, displayTrucks.length), 
                 total: displayTrucks.length 
               })}
-              {totalPages > 1 && (
+              {paginationData.totalPages > 1 && (
                 <span className="ml-2 text-gray-500">
-                  ({t('category.page', { current: currentPage, total: totalPages })})
+                  ({t('category.page', { current: currentPage, total: paginationData.totalPages })})
                 </span>
               )}
             </p>
@@ -253,7 +246,7 @@ const TruckCategory = () => {
           {displayTrucks.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-                {currentTrucks.map((truck) => (
+                {paginationData.currentTrucks.map((truck) => (
                   <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
                         onClick={() => handleVehicleClick(truck.id)}>
                     <div className="relative overflow-hidden">
@@ -330,7 +323,7 @@ const TruckCategory = () => {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {paginationData.totalPages > 1 && (
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
@@ -344,7 +337,7 @@ const TruckCategory = () => {
                       />
                     </PaginationItem>
                     
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    {Array.from({ length: paginationData.totalPages }, (_, i) => i + 1).map((page) => (
                       <PaginationItem key={page}>
                         <PaginationLink 
                           href="#" 
@@ -364,9 +357,9 @@ const TruckCategory = () => {
                         href="#" 
                         onClick={(e) => {
                           e.preventDefault();
-                          if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                          if (currentPage < paginationData.totalPages) handlePageChange(currentPage + 1);
                         }}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                        className={currentPage === paginationData.totalPages ? "pointer-events-none opacity-50" : ""}
                       />
                     </PaginationItem>
                   </PaginationContent>

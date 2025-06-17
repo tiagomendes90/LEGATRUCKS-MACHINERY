@@ -27,46 +27,34 @@ export const useTrucks = (category?: string, limit = 20) => {
   return useQuery({
     queryKey: ['trucks', category, limit],
     queryFn: async () => {
-      console.log('Fetching trucks with optimized query for category:', category);
+      console.log('Fetching trucks with category filter:', category);
       
-      try {
-        // Build a simpler query with timeout protection
-        let query = supabase
-          .from('trucks')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(limit);
+      let query = supabase
+        .from('trucks')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-        // Add category filter only if provided
-        if (category) {
-          query = query.eq('category', category);
-        }
+      // Apply category filter at database level for better performance
+      if (category) {
+        query = query.eq('category', category);
+      }
 
-        const { data, error } = await query;
+      const { data, error } = await query;
 
-        if (error) {
-          console.error('Error fetching trucks:', error);
-          // Return empty array instead of throwing to prevent app crashes
-          return [];
-        }
-
-        console.log('Trucks fetched successfully:', data?.length || 0, 'trucks found for category:', category);
-        return data || [];
-      } catch (error) {
-        console.error('Unexpected error fetching trucks:', error);
-        // Return empty array as fallback
+      if (error) {
+        console.error('Error fetching trucks:', error);
         return [];
       }
+
+      console.log('Trucks fetched successfully:', data?.length || 0, 'trucks found');
+      return data || [];
     },
-    staleTime: 1000 * 60 * 2, // Cache for 2 minutes
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
     refetchOnWindowFocus: false,
-    retry: 1, // Reduce retry attempts
-    retryDelay: 2000, // 2 second delay between retries
-    // Add timeout protection
-    meta: {
-      timeout: 10000 // 10 second timeout
-    }
+    retry: 1,
+    retryDelay: 1000,
   });
 };
 

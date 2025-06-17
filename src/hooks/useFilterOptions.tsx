@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
@@ -19,17 +20,16 @@ export const useFilterOptions = (category: string, filterType?: string) => {
   return useQuery({
     queryKey: ['filter-options', category, filterType],
     queryFn: async () => {
-      console.log('Fetching filter options with indexed query for category:', category, 'filterType:', filterType);
+      console.log('Fetching filter options for category:', category, 'filterType:', filterType);
       
-      // Use indexed columns for optimal performance
       let query = supabase
         .from('filter_options')
         .select('*')
-        .eq('category', category) // Uses idx_filter_options_category index
+        .eq('category', category)
         .order('sort_order');
       
       if (filterType) {
-        query = query.eq('filter_type', filterType); // Uses idx_filter_options_filter_type index
+        query = query.eq('filter_type', filterType);
       }
 
       const { data, error } = await query;
@@ -39,33 +39,28 @@ export const useFilterOptions = (category: string, filterType?: string) => {
         throw error;
       }
 
-      // Map the data to include translated labels and values
+      // Optimize translation mapping
       const translatedData = data?.map(option => {
-        // Start with original values
         let translatedLabel = option.option_label;
         let translatedValue = option.option_value;
         
-        console.log('Translating option:', option.filter_type, option.option_value, 'for category:', category);
-        
-        // Translate filter type labels based on category and filter type
+        // Apply translations based on filter type
         const labelKey = `filters.${category}.${option.filter_type}`;
         const fallbackKey = `filters.${option.filter_type}`;
         
-        // Try category-specific translation first, then fallback to general
         if (t(labelKey) !== labelKey) {
           translatedLabel = t(labelKey);
         } else if (t(fallbackKey) !== fallbackKey) {
           translatedLabel = t(fallbackKey);
         }
         
-        // Translate specific option values
+        // Handle specific value translations
         if (option.filter_type === 'condition') {
           const conditionKey = `admin.${option.option_value}`;
           if (t(conditionKey) !== conditionKey) {
             translatedValue = t(conditionKey);
           }
         } else if (option.filter_type === 'transmission') {
-          // Handle special case for automated-manual
           if (option.option_value === 'automated-manual') {
             translatedValue = t('admin.automatedManual');
           } else {
@@ -75,11 +70,6 @@ export const useFilterOptions = (category: string, filterType?: string) => {
             }
           }
         }
-        
-        console.log('Translation result:', {
-          original: { label: option.option_label, value: option.option_value },
-          translated: { label: translatedLabel, value: translatedValue }
-        });
         
         return {
           ...option,
@@ -91,8 +81,10 @@ export const useFilterOptions = (category: string, filterType?: string) => {
       console.log('Filter options fetched successfully:', translatedData.length, 'options found');
       return translatedData;
     },
-    staleTime: 1000 * 60 * 15, // Cache for 15 minutes (filter options are quite static)
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    staleTime: 1000 * 60 * 30, // Cache for 30 minutes (filter options are quite static)
+    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
     refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: 1000,
   });
 };
