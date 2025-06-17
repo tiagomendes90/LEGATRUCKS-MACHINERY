@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -95,9 +96,16 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
   const finalYearOptions = yearOptions && yearOptions.length > 0 ? yearOptions : defaultYearOptions;
   const finalHoursOptions = hoursOptions && hoursOptions.length > 0 ? hoursOptions : defaultHoursOptions;
 
-  console.log('Filter debug - finalPriceOptions:', finalPriceOptions);
-  console.log('Filter debug - finalYearOptions:', finalYearOptions);
-  console.log('Filter debug - finalHoursOptions:', finalHoursOptions);
+  // Filter out options with empty values to prevent the SelectItem error
+  const validSubcategoryOptions = subcategoryOptions?.filter(option => option.option_value && option.option_value.trim() !== '') || [];
+  const validPriceOptions = finalPriceOptions.filter(option => option.option_value && option.option_value.trim() !== '');
+  const validYearOptions = finalYearOptions.filter(option => option.option_value && option.option_value.trim() !== '');
+  const validHoursOptions = finalHoursOptions.filter(option => option.option_value && option.option_value.trim() !== '');
+
+  console.log('Filter debug - validPriceOptions:', validPriceOptions);
+  console.log('Filter debug - validYearOptions:', validYearOptions);
+  console.log('Filter debug - validHoursOptions:', validHoursOptions);
+  console.log('Filter debug - validSubcategoryOptions:', validSubcategoryOptions);
 
   useEffect(() => {
     onFilterChange({
@@ -141,7 +149,7 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
                 <SelectValue placeholder={t('filters.selectBrand')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.allBrands')}</SelectItem>
+                <SelectItem value="all">{t('filters.allBrands')}</SelectItem>
                 {brands?.map((brand) => (
                   <SelectItem key={brand.slug} value={brand.slug}>
                     {brand.name}
@@ -164,7 +172,7 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
           </div>
 
           {/* Subcategory Filter */}
-          {subcategoryOptions && subcategoryOptions.length > 0 && (
+          {validSubcategoryOptions.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="subcategory">{t('filters.subcategory')}</Label>
               <Select value={priceType} onValueChange={setPriceType}>
@@ -172,8 +180,8 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
                   <SelectValue placeholder={t('filters.selectSubcategory')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('filters.allSubcategories')}</SelectItem>
-                  {subcategoryOptions.map((option) => (
+                  <SelectItem value="all">{t('filters.allSubcategories')}</SelectItem>
+                  {validSubcategoryOptions.map((option) => (
                     <SelectItem key={option.option_value} value={option.option_value}>
                       {option.option_label}
                     </SelectItem>
@@ -191,8 +199,8 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
                 <SelectValue placeholder={t('filters.selectYear')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.allYears')}</SelectItem>
-                {finalYearOptions.map((option) => (
+                <SelectItem value="all">{t('filters.allYears')}</SelectItem>
+                {validYearOptions.map((option) => (
                   <SelectItem key={option.option_value} value={option.option_value}>
                     {option.option_label}
                   </SelectItem>
@@ -209,8 +217,8 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
                 <SelectValue placeholder={t('filters.selectPrice')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.allPrices')}</SelectItem>
-                {finalPriceOptions.map((option) => (
+                <SelectItem value="all">{t('filters.allPrices')}</SelectItem>
+                {validPriceOptions.map((option) => (
                   <SelectItem key={option.option_value} value={option.option_value}>
                     {option.option_label}
                   </SelectItem>
@@ -231,8 +239,8 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
                 } />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.allHours')}</SelectItem>
-                {finalHoursOptions.map((option) => (
+                <SelectItem value="all">{t('filters.allHours')}</SelectItem>
+                {validHoursOptions.map((option) => (
                   <SelectItem key={option.option_value} value={option.option_value}>
                     {option.option_label} {category === 'trucks' ? 'km' : 'h'}
                   </SelectItem>
@@ -250,8 +258,8 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
                   <SelectValue placeholder={t('filters.selectMileage')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('filters.allMileage')}</SelectItem>
-                  {finalHoursOptions.map((option) => (
+                  <SelectItem value="all">{t('filters.allMileage')}</SelectItem>
+                  {validHoursOptions.map((option) => (
                     <SelectItem key={option.option_value} value={option.option_value}>
                       {option.option_label} km
                     </SelectItem>
@@ -286,7 +294,7 @@ const TruckFilter = ({ category, onFilterChange }: FilterProps) => {
                 <SelectValue placeholder={t('filters.selectSort')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.relevance')}</SelectItem>
+                <SelectItem value="relevance">{t('filters.relevance')}</SelectItem>
                 <SelectItem value="price-low">{t('filters.priceLowToHigh')}</SelectItem>
                 <SelectItem value="price-high">{t('filters.priceHighToLow')}</SelectItem>
                 <SelectItem value="year-new">{t('filters.yearNewestFirst')}</SelectItem>
