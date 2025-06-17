@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -58,7 +57,7 @@ const TruckCategory = () => {
     }
   }, [trucks]);
 
-  // Optimized filter handler with debouncing concept
+  // Fixed filter handler with proper value checking
   const handleFilterChange = useMemo(() => {
     return (filters: {
       brand: string;
@@ -73,16 +72,18 @@ const TruckCategory = () => {
     }) => {
       if (!trucks) return;
 
-      let filtered = [...trucks]; // Work with already filtered data
+      console.log('Applying filters:', filters);
+      let filtered = [...trucks];
 
-      // Apply additional filters
-      if (filters.brand) {
+      // Apply brand filter
+      if (filters.brand && filters.brand.trim()) {
         filtered = filtered.filter(truck => {
           const truckBrand = truck.brand.toLowerCase().replace(/\s+/g, '-');
           return truckBrand === filters.brand;
         });
       }
 
+      // Apply model filter
       if (filters.model && filters.model.trim()) {
         const modelLower = filters.model.toLowerCase().trim();
         filtered = filtered.filter(truck => 
@@ -90,22 +91,39 @@ const TruckCategory = () => {
         );
       }
 
-      if (filters.yearFrom) {
-        filtered = filtered.filter(truck => truck.year >= parseInt(filters.yearFrom));
+      // Apply year filter
+      if (filters.yearFrom && filters.yearFrom.trim()) {
+        const yearFrom = parseInt(filters.yearFrom);
+        if (!isNaN(yearFrom)) {
+          filtered = filtered.filter(truck => truck.year >= yearFrom);
+        }
       }
 
-      if (filters.operatingHoursUntil) {
-        filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.operatingHoursUntil));
+      // Apply hours/mileage filter
+      if (filters.operatingHoursUntil && filters.operatingHoursUntil.trim()) {
+        const maxHours = parseInt(filters.operatingHoursUntil);
+        if (!isNaN(maxHours)) {
+          filtered = filtered.filter(truck => (truck.mileage || 0) <= maxHours);
+        }
       }
 
-      if (filters.mileageTo) {
-        filtered = filtered.filter(truck => (truck.mileage || 0) <= parseInt(filters.mileageTo));
+      // Apply mileage filter for trucks specifically
+      if (category === 'trucks' && filters.mileageTo && filters.mileageTo.trim()) {
+        const maxMileage = parseInt(filters.mileageTo);
+        if (!isNaN(maxMileage)) {
+          filtered = filtered.filter(truck => (truck.mileage || 0) <= maxMileage);
+        }
       }
 
-      if (filters.priceUntil) {
-        filtered = filtered.filter(truck => truck.price <= parseInt(filters.priceUntil));
+      // Apply price filter
+      if (filters.priceUntil && filters.priceUntil.trim()) {
+        const maxPrice = parseInt(filters.priceUntil);
+        if (!isNaN(maxPrice)) {
+          filtered = filtered.filter(truck => truck.price <= maxPrice);
+        }
       }
 
+      // Apply location filter
       if (filters.location && filters.location.trim()) {
         const locationLower = filters.location.toLowerCase().trim();
         filtered = filtered.filter(truck => 
@@ -114,7 +132,7 @@ const TruckCategory = () => {
       }
 
       // Apply sorting
-      if (filters.sortBy) {
+      if (filters.sortBy && filters.sortBy.trim()) {
         switch (filters.sortBy) {
           case "price-low":
             filtered.sort((a, b) => a.price - b.price);
@@ -143,10 +161,11 @@ const TruckCategory = () => {
         }
       }
 
+      console.log('Filtered trucks:', filtered.length);
       setDisplayTrucks(filtered);
       setCurrentPage(1);
     };
-  }, [trucks]);
+  }, [trucks, category]);
 
   // Memoize pagination calculations
   const paginationData = useMemo(() => {
