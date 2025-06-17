@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -436,7 +435,8 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <SelectContent className="bg-white border shadow-lg z-50">
                 <SelectItem value="new">New</SelectItem>
                 <SelectItem value="used">Used</SelectItem>
-                <SelectItem value="damaged">Damaged</SelectItem>
+                <SelectItem value="restored">Restored</SelectItem>
+                <SelectItem value="modified">Modified</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -514,8 +514,16 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                       <Label htmlFor="condition-new">New</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="needed" id="condition-needed" />
-                      <Label htmlFor="condition-needed">Needed</Label>
+                      <RadioGroupItem value="used" id="condition-used" />
+                      <Label htmlFor="condition-used">Used</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="restored" id="condition-restored" />
+                      <Label htmlFor="condition-restored">Restored</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="modified" id="condition-modified" />
+                      <Label htmlFor="condition-modified">Modified</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -1096,7 +1104,8 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                     <SelectContent className="bg-white border shadow-lg z-50">
                       <SelectItem value="new">New</SelectItem>
                       <SelectItem value="used">Used</SelectItem>
-                      <SelectItem value="damaged">Damaged</SelectItem>
+                      <SelectItem value="restored">Restored</SelectItem>
+                      <SelectItem value="modified">Modified</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1127,8 +1136,16 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                           <Label htmlFor="mobile-condition-new">New</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="needed" id="mobile-condition-needed" />
-                          <Label htmlFor="mobile-condition-needed">Needed</Label>
+                          <RadioGroupItem value="used" id="mobile-condition-used" />
+                          <Label htmlFor="mobile-condition-used">Used</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="restored" id="mobile-condition-restored" />
+                          <Label htmlFor="mobile-condition-restored">Restored</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="modified" id="mobile-condition-modified" />
+                          <Label htmlFor="mobile-condition-modified">Modified</Label>
                         </div>
                       </RadioGroup>
                     </div>
