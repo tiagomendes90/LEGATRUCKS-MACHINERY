@@ -316,11 +316,11 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
           {/* 1. Subcategory */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
+              Subcategory
             </label>
             <Select value={subcategory} onValueChange={setSubcategory}>
               <SelectTrigger className="h-12">
-                <SelectValue placeholder="All categories" />
+                <SelectValue placeholder="All subcategories" />
               </SelectTrigger>
               <SelectContent className="bg-white border shadow-lg z-50">
                 {subcategoryOptions.map((option) => (
@@ -989,10 +989,10 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <div className="space-y-4">
                 {/* Subcategory */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory</label>
                   <Select value={subcategory} onValueChange={setSubcategory}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All categories" />
+                      <SelectValue placeholder="All subcategories" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border shadow-lg z-50">
                       {subcategoryOptions.map((option) => (
