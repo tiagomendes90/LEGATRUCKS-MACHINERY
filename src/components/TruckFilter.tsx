@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -433,10 +434,9 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder="Any condition" />
               </SelectTrigger>
               <SelectContent className="bg-white border shadow-lg z-50">
-                <SelectItem value="novo">Novo</SelectItem>
-                <SelectItem value="usado">Usado</SelectItem>
-                <SelectItem value="restaurado">Restaurado</SelectItem>
-                <SelectItem value="modificado">Modificado</SelectItem>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="used">Used</SelectItem>
+                <SelectItem value="damaged">Damaged</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -510,20 +510,12 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                       <Label htmlFor="condition-any">Any</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="novo" id="condition-novo" />
-                      <Label htmlFor="condition-novo">Novo</Label>
+                      <RadioGroupItem value="new" id="condition-new" />
+                      <Label htmlFor="condition-new">New</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="usado" id="condition-usado" />
-                      <Label htmlFor="condition-usado">Usado</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="restaurado" id="condition-restaurado" />
-                      <Label htmlFor="condition-restaurado">Restaurado</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="modificado" id="condition-modificado" />
-                      <Label htmlFor="condition-modificado">Modificado</Label>
+                      <RadioGroupItem value="needed" id="condition-needed" />
+                      <Label htmlFor="condition-needed">Needed</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -1102,10 +1094,9 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                       <SelectValue placeholder="Any condition" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border shadow-lg z-50">
-                      <SelectItem value="novo">Novo</SelectItem>
-                      <SelectItem value="usado">Usado</SelectItem>
-                      <SelectItem value="restaurado">Restaurado</SelectItem>
-                      <SelectItem value="modificado">Modificado</SelectItem>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="used">Used</SelectItem>
+                      <SelectItem value="damaged">Damaged</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1132,20 +1123,12 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                           <Label htmlFor="mobile-condition-any">Any</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="novo" id="mobile-condition-novo" />
-                          <Label htmlFor="mobile-condition-novo">Novo</Label>
+                          <RadioGroupItem value="new" id="mobile-condition-new" />
+                          <Label htmlFor="mobile-condition-new">New</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="usado" id="mobile-condition-usado" />
-                          <Label htmlFor="mobile-condition-usado">Usado</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="restaurado" id="mobile-condition-restaurado" />
-                          <Label htmlFor="mobile-condition-restaurado">Restaurado</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="modificado" id="mobile-condition-modificado" />
-                          <Label htmlFor="mobile-condition-modificado">Modificado</Label>
+                          <RadioGroupItem value="needed" id="mobile-condition-needed" />
+                          <Label htmlFor="mobile-condition-needed">Needed</Label>
                         </div>
                       </RadioGroup>
                     </div>
