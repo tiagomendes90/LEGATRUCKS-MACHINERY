@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -188,11 +187,15 @@ const TruckCategory = () => {
   }
 
   if (error) {
+    console.error('TruckCategory error:', error);
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg text-red-600">{t('common.error')}: {error.message}</div>
+          <div className="text-center">
+            <div className="text-lg text-red-600 mb-4">{t('common.error')}</div>
+            <p className="text-gray-600">Problema ao carregar os dados. Tente novamente mais tarde.</p>
+          </div>
         </div>
         <Footer />
         <WhatsAppFloat />
