@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,10 +103,60 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   // Fetch data
   const { data: brands = [], isLoading: brandsLoading } = useBrands(category);
   const { data: subcategoryOptions = [] } = useFilterOptions(category, 'subcategory');
-  const { data: yearOptions = [] } = useFilterOptions(category, 'year');
-  const { data: priceOptions = [] } = useFilterOptions(category, 'price');
+  const { data: yearOptionsFromDB = [] } = useFilterOptions(category, 'year');
+  const { data: priceOptionsFromDB = [] } = useFilterOptions(category, 'price');
   const { data: hoursOptions = [] } = useFilterOptions(category, 'hours');
   const { data: allTrucks = [] } = useTrucks();
+
+  // Default price options if none from database
+  const defaultPriceOptions = [
+    { id: 'price-5000', option_value: '5000', option_label: '€5,000' },
+    { id: 'price-10000', option_value: '10000', option_label: '€10,000' },
+    { id: 'price-25000', option_value: '25000', option_label: '€25,000' },
+    { id: 'price-50000', option_value: '50000', option_label: '€50,000' },
+    { id: 'price-75000', option_value: '75000', option_label: '€75,000' },
+    { id: 'price-100000', option_value: '100000', option_label: '€100,000' },
+    { id: 'price-150000', option_value: '150000', option_label: '€150,000' },
+    { id: 'price-200000', option_value: '200000', option_label: '€200,000' },
+    { id: 'price-300000', option_value: '300000', option_label: '€300,000' },
+    { id: 'price-500000', option_value: '500000', option_label: '€500,000' }
+  ];
+
+  // Default year options if none from database
+  const defaultYearOptions = [
+    { id: 'year-2024', option_value: '2024', option_label: '2024' },
+    { id: 'year-2023', option_value: '2023', option_label: '2023' },
+    { id: 'year-2022', option_value: '2022', option_label: '2022' },
+    { id: 'year-2021', option_value: '2021', option_label: '2021' },
+    { id: 'year-2020', option_value: '2020', option_label: '2020' },
+    { id: 'year-2019', option_value: '2019', option_label: '2019' },
+    { id: 'year-2018', option_value: '2018', option_label: '2018' },
+    { id: 'year-2017', option_value: '2017', option_label: '2017' },
+    { id: 'year-2016', option_value: '2016', option_label: '2016' },
+    { id: 'year-2015', option_value: '2015', option_label: '2015' },
+    { id: 'year-2014', option_value: '2014', option_label: '2014' },
+    { id: 'year-2013', option_value: '2013', option_label: '2013' },
+    { id: 'year-2012', option_value: '2012', option_label: '2012' },
+    { id: 'year-2011', option_value: '2011', option_label: '2011' },
+    { id: 'year-2010', option_value: '2010', option_label: '2010' }
+  ];
+
+  // Default hours/mileage options if none from database
+  const defaultHoursOptions = [
+    { id: 'hours-1000', option_value: '1000', option_label: category === 'trucks' ? '1,000 km' : '1,000 hours' },
+    { id: 'hours-5000', option_value: '5000', option_label: category === 'trucks' ? '5,000 km' : '5,000 hours' },
+    { id: 'hours-10000', option_value: '10000', option_label: category === 'trucks' ? '10,000 km' : '10,000 hours' },
+    { id: 'hours-25000', option_value: '25000', option_label: category === 'trucks' ? '25,000 km' : '25,000 hours' },
+    { id: 'hours-50000', option_value: '50000', option_label: category === 'trucks' ? '50,000 km' : '50,000 hours' },
+    { id: 'hours-100000', option_value: '100000', option_label: category === 'trucks' ? '100,000 km' : '100,000 hours' },
+    { id: 'hours-150000', option_value: '150000', option_label: category === 'trucks' ? '150,000 km' : '150,000 hours' },
+    { id: 'hours-200000', option_value: '200000', option_label: category === 'trucks' ? '200,000 km' : '200,000 hours' }
+  ];
+
+  // Use database options if available, otherwise use defaults
+  const priceOptions = priceOptionsFromDB.length > 0 ? priceOptionsFromDB : defaultPriceOptions;
+  const yearOptions = yearOptionsFromDB.length > 0 ? yearOptionsFromDB : defaultYearOptions;
+  const effectiveHoursOptions = hoursOptions.length > 0 ? hoursOptions : defaultHoursOptions;
 
   // Calculate offers count based on current filters
   const getOffersCount = () => {
@@ -395,7 +446,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder={category === 'trucks' ? 'Any km' : 'Any hours'} />
               </SelectTrigger>
               <SelectContent className="bg-white border shadow-lg z-50">
-                {hoursOptions.map((option) => (
+                {effectiveHoursOptions.map((option) => (
                   <SelectItem key={option.id} value={option.option_value}>
                     {option.option_label}
                   </SelectItem>
@@ -1066,7 +1117,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                       <SelectValue placeholder={category === 'trucks' ? 'Any km' : 'Any hours'} />
                     </SelectTrigger>
                     <SelectContent className="bg-white border shadow-lg z-50">
-                      {hoursOptions.map((option) => (
+                      {effectiveHoursOptions.map((option) => (
                         <SelectItem key={option.id} value={option.option_value}>
                           {option.option_label}
                         </SelectItem>
