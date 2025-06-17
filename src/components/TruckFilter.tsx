@@ -57,20 +57,20 @@ interface TruckFilterProps {
 }
 
 const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
-  const [brand, setBrand] = useState("");
+  const [brand, setBrand] = useState("all");
   const [model, setModel] = useState("");
-  const [subcategory, setSubcategory] = useState("");
-  const [yearFrom, setYearFrom] = useState("");
-  const [operatingHoursUntil, setOperatingHoursUntil] = useState("");
+  const [subcategory, setSubcategory] = useState("all");
+  const [yearFrom, setYearFrom] = useState("any");
+  const [operatingHoursUntil, setOperatingHoursUntil] = useState("unlimited");
   const [priceType, setPriceType] = useState("gross");
-  const [priceUntil, setPriceUntil] = useState("");
+  const [priceUntil, setPriceUntil] = useState("unlimited");
   const [location, setLocation] = useState("");
-  const [sortBy, setSortBy] = useState("");
-  const [mileageTo, setMileageTo] = useState("");
+  const [sortBy, setSortBy] = useState("default");
+  const [mileageTo, setMileageTo] = useState("unlimited");
   const [showAdditionalFilters, setShowAdditionalFilters] = useState(false);
 
   // Additional filter states
-  const [vehicleCondition, setVehicleCondition] = useState("");
+  const [vehicleCondition, setVehicleCondition] = useState("any");
   const [yearUntil, setYearUntil] = useState("");
   const [mileageFrom, setMileageFrom] = useState("");
   const [priceFrom, setPriceFrom] = useState("");
@@ -115,17 +115,17 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
 
   const handleFilterChange = () => {
     onFilterChange({
-      brand,
+      brand: brand === "all" ? "" : brand,
       model,
-      subcategory,
-      yearFrom,
-      operatingHoursUntil,
+      subcategory: subcategory === "all" ? "" : subcategory,
+      yearFrom: yearFrom === "any" ? "" : yearFrom,
+      operatingHoursUntil: operatingHoursUntil === "unlimited" ? "" : operatingHoursUntil,
       priceType,
-      priceUntil,
+      priceUntil: priceUntil === "unlimited" ? "" : priceUntil,
       location,
-      sortBy,
-      mileageTo,
-      vehicleCondition,
+      sortBy: sortBy === "default" ? "" : sortBy,
+      mileageTo: mileageTo === "unlimited" ? "" : mileageTo,
+      vehicleCondition: vehicleCondition === "any" ? "" : vehicleCondition,
       yearUntil,
       mileageFrom,
       priceFrom,
@@ -157,16 +157,17 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
   };
 
   const clearFilters = () => {
-    setBrand("");
+    setBrand("all");
     setModel("");
-    setSubcategory("");
-    setYearFrom("");
-    setOperatingHoursUntil("");
+    setSubcategory("all");
+    setYearFrom("any");
+    setOperatingHoursUntil("unlimited");
     setPriceType("gross");
-    setPriceUntil("");
+    setPriceUntil("unlimited");
     setLocation("");
-    setSortBy("");
-    setMileageTo("");
+    setSortBy("default");
+    setMileageTo("unlimited");
+    setVehicleCondition("any");
     
     // Clear additional filters
     setVehicleCondition("");
@@ -209,6 +210,34 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
       location: "",
       sortBy: "",
       mileageTo: "",
+      vehicleCondition: "",
+      yearUntil: "",
+      mileageFrom: "",
+      priceFrom: "",
+      performance: "",
+      performanceUntil: "",
+      weightFrom: "",
+      weightUntil: "",
+      fuelType: [],
+      gearbox: "",
+      cylinderFrom: "",
+      cylinderUntil: "",
+      tankSizeFrom: "",
+      tankSizeUntil: "",
+      pollutantClass: "",
+      environmentalSticker: "",
+      particleFilter: false,
+      equipment: [],
+      airConditioning: "",
+      axles: "",
+      wheelFormula: [],
+      permissibleWeightFrom: "",
+      permissibleWeightUntil: "",
+      hydraulicSystem: "",
+      cruiseControl: "",
+      driversCab: "",
+      interior: [],
+      bodyColor: [],
     });
   };
 
@@ -270,7 +299,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories</SelectItem>
+              <SelectItem value="all">All categories</SelectItem>
               {subcategoryOptions.map((option) => (
                 <SelectItem key={option.id} value={option.option_value}>
                   {option.option_label}
@@ -305,7 +334,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <SelectValue placeholder="All brands" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All brands</SelectItem>
+              <SelectItem value="all">All brands</SelectItem>
               {brands.map((brand) => (
                 <SelectItem key={brand.id} value={brand.slug}>
                   {brand.name}
@@ -339,7 +368,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                 <SelectValue placeholder="Max price" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No limit</SelectItem>
+                <SelectItem value="unlimited">No limit</SelectItem>
                 {priceOptions.map((option) => (
                   <SelectItem key={option.id} value={option.option_value}>
                     {option.option_label}
@@ -365,7 +394,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <SelectValue placeholder={`Max ${category === 'trucks' ? 'km' : 'hours'}`} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No limit</SelectItem>
+              <SelectItem value="unlimited">No limit</SelectItem>
               {hoursOptions.map((option) => (
                 <SelectItem key={option.id} value={option.option_value}>
                   {option.option_label}
@@ -386,7 +415,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <SelectValue placeholder="From year" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any year</SelectItem>
+              <SelectItem value="any">Any year</SelectItem>
               {yearOptions.map((option) => (
                 <SelectItem key={option.id} value={option.option_value}>
                   {option.option_label}
@@ -407,7 +436,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <SelectValue placeholder="Any condition" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any condition</SelectItem>
+              <SelectItem value="any">Any condition</SelectItem>
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="used">Used</SelectItem>
               <SelectItem value="damaged">Damaged</SelectItem>
@@ -428,7 +457,7 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               <SelectValue placeholder="Choose sorting" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Default</SelectItem>
+              <SelectItem value="default">Default</SelectItem>
               <SelectItem value="price-low">Price: Low to High</SelectItem>
               <SelectItem value="price-high">Price: High to Low</SelectItem>
               <SelectItem value="year-new">Year: Newest first</SelectItem>
