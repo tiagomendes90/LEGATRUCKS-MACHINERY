@@ -310,41 +310,9 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
           </div>
         </div>
 
-        {/* Main filter grid */}
+        {/* Main filter grid - NEW ORDER */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          {/* Brand */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Brand
-            </label>
-            <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="All brands" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border shadow-lg z-50">
-                {brands.map((brandItem) => (
-                  <SelectItem key={brandItem.id} value={brandItem.slug}>
-                    {brandItem.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Model */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Model
-            </label>
-            <Input
-              placeholder="All models"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="h-12"
-            />
-          </div>
-
-          {/* Category/Subcategory */}
+          {/* 1. Subcategory */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category
@@ -363,29 +331,39 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             </Select>
           </div>
 
-          {/* Year/Registration Date */}
+          {/* 2. Model */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
+              Model
             </label>
-            <Select value={yearFrom} onValueChange={setYearFrom}>
+            <Input
+              placeholder="All models"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="h-12"
+            />
+          </div>
+
+          {/* 3. Brand */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Brand
+            </label>
+            <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
               <SelectTrigger className="h-12">
-                <SelectValue placeholder="Any year" />
+                <SelectValue placeholder="All brands" />
               </SelectTrigger>
               <SelectContent className="bg-white border shadow-lg z-50">
-                {yearOptions.map((option) => (
-                  <SelectItem key={option.id} value={option.option_value}>
-                    {option.option_label}
+                {brands.map((brandItem) => (
+                  <SelectItem key={brandItem.id} value={brandItem.slug}>
+                    {brandItem.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* Second row of filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {/* Price until */}
+          {/* 4. Price */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Price until
@@ -403,8 +381,11 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          {/* Operating hours until / Kilometers to */}
+        {/* Second row of filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* 5. Kilometers/Operating hours */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {category === 'trucks' ? 'Kilometers to' : 'Operating hours until'}
@@ -423,28 +404,48 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             </Select>
           </div>
 
-          {/* City or postal code */}
+          {/* 6. Registration/Year */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              City or postal code
+              {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
             </label>
-            <Input
-              placeholder="Enter location..."
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="h-12"
-            />
+            <Select value={yearFrom} onValueChange={setYearFrom}>
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="Any year" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border shadow-lg z-50">
+                {yearOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.option_value}>
+                    {option.option_label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Search Button */}
+          {/* 7. Vehicle Condition (replacing City or postal code) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              &nbsp;
+              Vehicle condition
             </label>
-            <Button onClick={handleFilterChange} className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium">
-              🔍 Search {getOffersCount()}
-            </Button>
+            <Select value={vehicleCondition} onValueChange={setVehicleCondition}>
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="Any condition" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border shadow-lg z-50">
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="used">Used</SelectItem>
+                <SelectItem value="damaged">Damaged</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+        </div>
+
+        {/* Search Button Row */}
+        <div className="flex justify-end mb-6">
+          <Button onClick={handleFilterChange} className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium px-8">
+            🔍 Search {getOffersCount()}
+          </Button>
         </div>
 
         {/* Action buttons */}
@@ -983,36 +984,9 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
             </SheetHeader>
             
             <div className="py-6 space-y-6">
-              {/* Basic filters */}
+              {/* Basic filters - NEW ORDER */}
               <div className="space-y-4">
-                {/* Brand */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
-                  <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All brands" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border shadow-lg z-50">
-                      {brands.map((brandItem) => (
-                        <SelectItem key={brandItem.id} value={brandItem.slug}>
-                          {brandItem.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Model */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
-                  <Input
-                    placeholder="All models"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                  />
-                </div>
-
-                {/* Category */}
+                {/* Subcategory */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                   <Select value={subcategory} onValueChange={setSubcategory}>
@@ -1029,19 +1003,27 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   </Select>
                 </div>
 
-                {/* Year */}
+                {/* Model */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
-                  </label>
-                  <Select value={yearFrom} onValueChange={setYearFrom}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                  <Input
+                    placeholder="All models"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                  />
+                </div>
+
+                {/* Brand */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+                  <Select value={brand} onValueChange={setBrand} disabled={brandsLoading}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Any year" />
+                      <SelectValue placeholder="All brands" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border shadow-lg z-50">
-                      {yearOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.option_value}>
-                          {option.option_label}
+                      {brands.map((brandItem) => (
+                        <SelectItem key={brandItem.id} value={brandItem.slug}>
+                          {brandItem.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1084,14 +1066,38 @@ const TruckFilter = ({ category, onFilterChange }: TruckFilterProps) => {
                   </Select>
                 </div>
 
-                {/* Location */}
+                {/* Year */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">City or postal code</label>
-                  <Input
-                    placeholder="Enter location..."
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {category === 'trucks' ? 'Registration date from' : 'Year of construction from'}
+                  </label>
+                  <Select value={yearFrom} onValueChange={setYearFrom}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any year" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      {yearOptions.map((option) => (
+                        <SelectItem key={option.id} value={option.option_value}>
+                          {option.option_label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Vehicle Condition (replacing Location) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle condition</label>
+                  <Select value={vehicleCondition} onValueChange={setVehicleCondition}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any condition" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="used">Used</SelectItem>
+                      <SelectItem value="damaged">Damaged</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
