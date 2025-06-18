@@ -61,7 +61,21 @@ const VehicleDetails = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="container mx-auto px-4 lg:px-6 py-8 mt-24">
+      {/* Product Banner */}
+      <div className="bg-gradient-to-r from-slate-800 to-slate-600 text-white py-16 mt-20">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="text-center">
+            <h1 className="text-4xl lg:text-6xl font-bold mb-4">
+              {vehicle.brand} {vehicle.model}
+            </h1>
+            <p className="text-xl lg:text-2xl text-slate-200">
+              {vehicle.subcategory || vehicle.category} • {vehicle.year}
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 lg:px-6 py-8">
         {/* Back Button */}
         <Button 
           variant="ghost" 
