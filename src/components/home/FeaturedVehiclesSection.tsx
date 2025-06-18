@@ -8,9 +8,11 @@ import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
 import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 const FeaturedVehiclesSection = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: trucks } = useTrucks();
   const { data: featuredTrucksData } = useFeaturedTrucks();
 
@@ -31,6 +33,10 @@ const FeaturedVehiclesSection = () => {
     features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
   })) : [];
 
+  const handleVehicleClick = (vehicleId: string) => {
+    navigate(`/vehicle/${vehicleId}`);
+  };
+
   return (
     <section className="bg-slate-50 py-[90px]">
       <div className="container mx-auto px-6">
@@ -49,7 +55,7 @@ const FeaturedVehiclesSection = () => {
               <CarouselContent className="-ml-4">
                 {featuredTrucks.map((vehicle, index) => (
                   <CarouselItem key={vehicle.id || index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                    <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
+                    <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden h-full cursor-pointer" onClick={() => handleVehicleClick(vehicle.id)}>
                       <div className="relative overflow-hidden">
                         <img 
                           src={vehicle.image} 
@@ -71,7 +77,13 @@ const FeaturedVehiclesSection = () => {
                             </li>
                           ))}
                         </ul>
-                        <Button className="w-full bg-slate-800 hover:bg-slate-700">
+                        <Button 
+                          className="w-full bg-slate-800 hover:bg-slate-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleVehicleClick(vehicle.id);
+                          }}
+                        >
                           {t('common.viewDetails')}
                         </Button>
                       </CardContent>
