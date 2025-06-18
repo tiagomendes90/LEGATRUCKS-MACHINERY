@@ -18,14 +18,14 @@ const FeaturedVehiclesSection = () => {
   const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0 ? featuredTrucksData.map(featured => ({
     id: featured.trucks.id,
     name: `${featured.trucks.brand} ${featured.trucks.model}`,
-    type: featured.trucks.category?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || 'Vehicle',
+    type: featured.trucks.subcategory || featured.trucks.category?.charAt(0).toUpperCase() + featured.trucks.category?.slice(1) || 'Vehicle',
     price: `$${featured.trucks.price.toLocaleString()}`,
     image: featured.trucks.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
     features: featured.trucks.features?.slice(0, 3) || [`${featured.trucks.year} model`, "Premium engine", "Advanced transmission"]
   })) : trucks && trucks.length > 0 ? trucks.slice(0, 6).map(truck => ({
     id: truck.id,
     name: `${truck.brand} ${truck.model}`,
-    type: truck.category?.charAt(0).toUpperCase() + truck.category?.slice(1) || 'Vehicle',
+    type: truck.subcategory || truck.category?.charAt(0).toUpperCase() + truck.category?.slice(1) || 'Vehicle',
     price: `$${truck.price.toLocaleString()}`,
     image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
     features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]

@@ -256,7 +256,7 @@ const TruckCategory = () => {
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
                       />
                       <Badge className="absolute top-4 left-4 bg-blue-600">
-                        {data.title}
+                        {truck.subcategory || truck.category}
                       </Badge>
                     </div>
                     <CardHeader>
