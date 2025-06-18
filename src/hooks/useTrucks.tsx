@@ -35,8 +35,8 @@ export const useTrucks = (category?: string, limit = 20) => {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      // Apply category filter at database level for better performance
-      if (category) {
+      // Only apply category filter if category is provided and not undefined
+      if (category && category !== 'undefined') {
         query = query.eq('category', category);
       }
 
@@ -44,7 +44,7 @@ export const useTrucks = (category?: string, limit = 20) => {
 
       if (error) {
         console.error('Error fetching trucks:', error);
-        return [];
+        throw error; // Throw error so React Query can handle it properly
       }
 
       console.log('Trucks fetched successfully:', data?.length || 0, 'trucks found');
@@ -53,8 +53,8 @@ export const useTrucks = (category?: string, limit = 20) => {
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
     refetchOnWindowFocus: false,
-    retry: 1,
-    retryDelay: 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
