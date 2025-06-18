@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,9 @@ const TruckCategory = () => {
   
   // Extract category from pathname
   const category = location.pathname.substring(1);
+  
+  console.log('TruckCategory - Current pathname:', location.pathname);
+  console.log('TruckCategory - Extracted category:', category);
   
   // Fetch trucks directly with category filter for better performance
   const { data: trucks, isLoading, error } = useTrucks(category);
@@ -162,8 +166,21 @@ const TruckCategory = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleVehicleClick = (vehicleId: string) => {
-    navigate(`/vehicle/${vehicleId}`);
+  const handleVehicleClick = (truck: any) => {
+    console.log('TruckCategory - Clicking on vehicle:', truck);
+    console.log('TruckCategory - Vehicle ID:', truck.id);
+    console.log('TruckCategory - Vehicle data:', JSON.stringify(truck, null, 2));
+    
+    if (!truck || !truck.id) {
+      console.error('TruckCategory - Invalid truck data for navigation:', truck);
+      return;
+    }
+    
+    try {
+      navigate(`/vehicle/${truck.id}`);
+    } catch (error) {
+      console.error('TruckCategory - Navigation error:', error);
+    }
   };
 
   if (isLoading) {
@@ -247,7 +264,7 @@ const TruckCategory = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                 {paginationData.currentTrucks.map((truck) => (
                   <Card key={truck.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
-                        onClick={() => handleVehicleClick(truck.id)}>
+                        onClick={() => handleVehicleClick(truck)}>
                     <div className="relative overflow-hidden">
                       <img 
                         src={truck.images && truck.images.length > 0 ? truck.images[0] : "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop"} 
@@ -303,7 +320,7 @@ const TruckCategory = () => {
                         <Button className="flex-1 bg-slate-800 hover:bg-slate-700"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleVehicleClick(truck.id);
+                                  handleVehicleClick(truck);
                                 }}>
                           {t('common.viewDetails')}
                         </Button>
@@ -311,7 +328,7 @@ const TruckCategory = () => {
                                 className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // Handle quote request
+                                  console.log('Contact button clicked for truck:', truck.id);
                                 }}>
                           {t('common.contact')}
                         </Button>

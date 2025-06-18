@@ -17,11 +17,26 @@ const VehicleDetails = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  console.log('VehicleDetails - Vehicle ID from params:', id);
+  
   const { data: allTrucks, isLoading, error } = useTrucks();
 
-  const vehicle = allTrucks?.find(truck => truck.id === id);
+  console.log('VehicleDetails - All trucks loaded:', allTrucks?.length || 0);
+  console.log('VehicleDetails - Looking for vehicle with ID:', id);
+
+  const vehicle = allTrucks?.find(truck => {
+    console.log('VehicleDetails - Comparing truck ID:', truck.id, 'with target:', id);
+    return truck.id === id;
+  });
+
+  console.log('VehicleDetails - Found vehicle:', vehicle ? 'Yes' : 'No');
+  if (vehicle) {
+    console.log('VehicleDetails - Vehicle data:', JSON.stringify(vehicle, null, 2));
+  }
 
   if (isLoading) {
+    console.log('VehicleDetails - Still loading...');
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -34,13 +49,39 @@ const VehicleDetails = () => {
     );
   }
 
-  if (error || !vehicle) {
+  if (error) {
+    console.error('VehicleDetails - Error loading trucks:', error);
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-lg text-red-600">
-            {t('common.error')}: {error?.message || 'Veículo não encontrado'}
+            {t('common.error')}: {error?.message || 'Erro ao carregar dados'}
+          </div>
+        </div>
+        <Footer />
+        <WhatsAppFloat />
+      </div>
+    );
+  }
+
+  if (!vehicle) {
+    console.error('VehicleDetails - Vehicle not found with ID:', id);
+    console.log('VehicleDetails - Available truck IDs:', allTrucks?.map(t => t.id));
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="text-lg text-red-600 mb-4">
+              Veículo não encontrado
+            </div>
+            <p className="text-gray-600 mb-4">
+              O veículo que você está procurando não foi encontrado.
+            </p>
+            <Button onClick={() => navigate(-1)}>
+              Voltar
+            </Button>
           </div>
         </div>
         <Footer />
@@ -62,13 +103,13 @@ const VehicleDetails = () => {
       <Navbar />
       
       {/* Product Banner with full height gradient */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-600 text-white py-20 pt-32">
+      <div className="bg-gradient-to-r from-slate-800 to-slate-600 text-white py-16 pt-28">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="text-center">
-            <h1 className="text-4xl lg:text-6xl font-bold mb-4">
+            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
               {vehicle.brand} {vehicle.model}
             </h1>
-            <p className="text-xl lg:text-2xl text-slate-200">
+            <p className="text-lg lg:text-xl text-slate-200">
               {vehicle.subcategory || vehicle.category} • {vehicle.year}
             </p>
           </div>
