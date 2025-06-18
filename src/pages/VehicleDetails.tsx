@@ -62,7 +62,7 @@ const VehicleDetails = () => {
       <Navbar />
       
       {/* Product Banner with full height gradient */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-600 text-white py-32 pt-24">
+      <div className="bg-gradient-to-r from-slate-800 to-slate-600 text-white py-20 pt-32">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="text-center">
             <h1 className="text-4xl lg:text-6xl font-bold mb-4">
