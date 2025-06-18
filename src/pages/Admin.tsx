@@ -398,7 +398,7 @@ const Admin = () => {
       let addedTruck;
       
       if (isEditMode && editingTruck) {
-        await updateTruckMutation.mutateAsync({ id: editingTruck.id, updates: truckData });
+        await updateTruckMutation.mutateAsync({ id: editingTruck.id, ...truckData });
         addedTruck = { ...editingTruck, ...truckData };
       } else {
         addedTruck = await addTruckMutation.mutateAsync(truckData);
