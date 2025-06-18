@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -314,7 +313,7 @@ const TruckCategory = () => {
                                   e.stopPropagation();
                                   // Handle quote request
                                 }}>
-                          {t('common.contactNow')}
+                          {t('common.contact')}
                         </Button>
                       </div>
                     </CardContent>
