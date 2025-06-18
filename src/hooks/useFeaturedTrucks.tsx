@@ -16,6 +16,7 @@ export interface FeaturedTruck {
     year: number;
     price: number;
     category: string;
+    subcategory: string;
     images: string[];
     features: string[];
   };
