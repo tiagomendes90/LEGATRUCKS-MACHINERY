@@ -314,7 +314,7 @@ const TruckCategory = () => {
                                   e.stopPropagation();
                                   // Handle quote request
                                 }}>
-                          {t('common.getQuote')}
+                          {t('common.contactNow')}
                         </Button>
                       </div>
                     </CardContent>
