@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBrands } from "@/hooks/useBrands";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { compressImage } from "@/utils/imageCompression";
 
 interface VehicleMedia {
@@ -33,7 +33,6 @@ interface VehicleMedia {
 }
 
 const Admin = () => {
-  const { t } = useTranslation();
   const { data: trucks = [], isLoading } = useTrucks();
   const addTruckMutation = useAddTruck();
   const deleteTruckMutation = useDeleteTruck();
@@ -83,11 +82,11 @@ const Admin = () => {
 
   const getMileageUnit = () => {
     if (newTruck.category === 'trucks') {
-      return 'Kilometers';
+      return 'Quilômetros';
     } else if (newTruck.category === 'machinery' || newTruck.category === 'agriculture') {
-      return 'Operating Hours';
+      return 'Horas de Operação';
     }
-    return 'Mileage';
+    return 'Quilometragem';
   };
 
   const getMileagePlaceholder = () => {
@@ -122,22 +121,22 @@ const Admin = () => {
         } catch (error) {
           console.error('Failed to set up admin profile:', error);
           toast({
-            title: "Profile Setup Error",
-            description: "Failed to set up admin profile. Attempting force creation...",
+            title: "Erro de Configuração do Perfil",
+            description: "Falha ao configurar perfil de administrador. Tentando criação forçada...",
             variant: "destructive",
           });
           
           try {
             await forceCreateAdminProfile();
             toast({
-              title: "Profile Created",
-              description: "Admin profile created successfully.",
+              title: "Perfil Criado",
+              description: "Perfil de administrador criado com sucesso.",
             });
           } catch (forceError) {
             console.error('Force creation failed:', forceError);
             toast({
-              title: "Critical Error",
-              description: "Unable to create admin profile. Please contact support.",
+              title: "Erro Crítico",
+              description: "Não foi possível criar perfil de administrador. Entre em contato com o suporte.",
               variant: "destructive",
             });
           }
@@ -173,8 +172,8 @@ const Admin = () => {
   const handleNextStep = () => {
     if (currentStep === 1 && !isFormValid.step1) {
       toast({
-        title: "Incomplete Information",
-        description: "Please fill in all required fields before proceeding.",
+        title: "Informações Incompletas",
+        description: "Por favor, preencha todos os campos obrigatórios antes de prosseguir.",
         variant: "destructive",
       });
       return;
@@ -209,8 +208,8 @@ const Admin = () => {
       
       if (type === 'image' && !file.type.startsWith('image/')) {
         toast({
-          title: "Invalid File Type",
-          description: "Please select image files only.",
+          title: "Tipo de Arquivo Inválido",
+          description: "Por favor, selecione apenas arquivos de imagem.",
           variant: "destructive",
         });
         continue;
@@ -218,8 +217,8 @@ const Admin = () => {
       
       if (type === 'video' && !file.type.startsWith('video/')) {
         toast({
-          title: "Invalid File Type",
-          description: "Please select video files only.",
+          title: "Tipo de Arquivo Inválido",
+          description: "Por favor, selecione apenas arquivos de vídeo.",
           variant: "destructive",
         });
         continue;
@@ -227,8 +226,8 @@ const Admin = () => {
 
       if (type === 'image' && vehicleMedia.images.length >= 25) {
         toast({
-          title: "Image Limit Reached",
-          description: "Maximum of 25 images allowed.",
+          title: "Limite de Imagens Atingido",
+          description: "Máximo de 25 imagens permitidas.",
           variant: "destructive",
         });
         break;
@@ -236,8 +235,8 @@ const Admin = () => {
 
       if (type === 'video' && vehicleMedia.videos.length >= 3) {
         toast({
-          title: "Video Limit Reached",
-          description: "Maximum of 3 videos allowed.",
+          title: "Limite de Vídeos Atingido",
+          description: "Máximo de 3 vídeos permitidos.",
           variant: "destructive",
         });
         break;
@@ -246,8 +245,8 @@ const Admin = () => {
       try {
         if (type === 'image') {
           toast({
-            title: "Compressing Image",
-            description: "Please wait while we optimize your image...",
+            title: "Comprimindo Imagem",
+            description: "Por favor, aguarde enquanto otimizamos sua imagem...",
           });
 
           const compressedBase64 = await compressImage(file, {
@@ -270,8 +269,8 @@ const Admin = () => {
           }
 
           toast({
-            title: "Image Optimized",
-            description: "Image has been compressed and uploaded successfully.",
+            title: "Imagem Otimizada",
+            description: "Imagem foi comprimida e carregada com sucesso.",
           });
         } else {
           const base64 = await convertFileToBase64(file);
@@ -282,8 +281,8 @@ const Admin = () => {
         }
       } catch (error) {
         toast({
-          title: "Upload Error",
-          description: "Failed to process file. Please try again.",
+          title: "Erro no Upload",
+          description: "Falha ao processar arquivo. Tente novamente.",
           variant: "destructive",
         });
       }
@@ -293,8 +292,8 @@ const Admin = () => {
   const handleAddImage = async (imageUrl: string) => {
     if (vehicleMedia.images.length >= 25) {
       toast({
-        title: "Image Limit Reached",
-        description: "Maximum of 25 additional images allowed.",
+        title: "Limite de Imagens Atingido",
+        description: "Máximo de 25 imagens adicionais permitidas.",
         variant: "destructive",
       });
       return;
@@ -302,8 +301,8 @@ const Admin = () => {
 
     try {
       toast({
-        title: "Compressing Image",
-        description: "Please wait while we optimize your image...",
+        title: "Comprimindo Imagem",
+        description: "Por favor, aguarde enquanto otimizamos sua imagem...",
       });
 
       const compressedBase64 = await compressImage(imageUrl, {
@@ -319,13 +318,13 @@ const Admin = () => {
       }));
 
       toast({
-        title: "Image Optimized",
-        description: "Image has been compressed and added successfully.",
+        title: "Imagem Otimizada",
+        description: "Imagem foi comprimida e adicionada com sucesso.",
       });
     } catch (error) {
       toast({
-        title: "Compression Error",
-        description: "Failed to compress image. Please try again.",
+        title: "Erro de Compressão",
+        description: "Falha ao comprimir imagem. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -334,8 +333,8 @@ const Admin = () => {
   const handleSetCoverImage = async (imageUrl: string) => {
     try {
       toast({
-        title: "Compressing Cover Image",
-        description: "Please wait while we optimize your cover image...",
+        title: "Comprimindo Imagem de Capa",
+        description: "Por favor, aguarde enquanto otimizamos sua imagem de capa...",
       });
 
       const compressedBase64 = await compressImage(imageUrl, {
@@ -351,13 +350,13 @@ const Admin = () => {
       }));
 
       toast({
-        title: "Cover Image Optimized",
-        description: "Cover image has been compressed and set successfully.",
+        title: "Imagem de Capa Otimizada",
+        description: "Imagem de capa foi comprimida e definida com sucesso.",
       });
     } catch (error) {
       toast({
-        title: "Compression Error",
-        description: "Failed to compress cover image. Please try again.",
+        title: "Erro de Compressão",
+        description: "Falha ao comprimir imagem de capa. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -368,8 +367,8 @@ const Admin = () => {
     
     if (!isFormValid.step1 || !isFormValid.step3) {
       toast({
-        title: "Incomplete Form",
-        description: "Please complete all required steps before adding the vehicle.",
+        title: "Formulário Incompleto",
+        description: "Por favor, complete todos os passos obrigatórios antes de adicionar o veículo.",
         variant: "destructive",
       });
       return;
@@ -416,8 +415,8 @@ const Admin = () => {
       resetForm();
       
       toast({
-        title: "Success",
-        description: isEditMode ? "Vehicle updated successfully!" : "Vehicle added successfully!",
+        title: "Sucesso",
+        description: isEditMode ? "Veículo atualizado com sucesso!" : "Veículo adicionado com sucesso!",
       });
     } catch (error) {
       console.error('Failed to add/update truck:', error);
@@ -489,7 +488,7 @@ const Admin = () => {
   const handleDuplicateTruck = (truck: Truck) => {
     setNewTruck({
       brand: truck.brand,
-      model: `${truck.model} - Copy`,
+      model: `${truck.model} - Cópia`,
       year: truck.year.toString(),
       mileage: truck.mileage?.toString() || "",
       price: truck.price.toString(),
@@ -520,15 +519,15 @@ const Admin = () => {
 
     toast({
       title: "Veículo Duplicado",
-      description: "Os dados do veículo foram copiados. Pode agora fazer as alterações necessárias.",
+      description: "Os dados do veículo foram copiados. Você pode agora fazer as alterações necessárias.",
     });
   };
 
   const handleSignOut = async () => {
     await signOut();
     toast({
-      title: t('admin.signedOut'),
-      description: t('admin.signOutSuccess'),
+      title: "Desconectado",
+      description: "Você foi desconectado com sucesso.",
     });
   };
 
@@ -546,8 +545,8 @@ const Admin = () => {
   const handleAddVideo = (videoUrl: string) => {
     if (vehicleMedia.videos.length >= 3) {
       toast({
-        title: "Video Limit Reached",
-        description: "Maximum of 3 videos allowed.",
+        title: "Limite de Vídeos Atingido",
+        description: "Máximo de 3 vídeos permitidos.",
         variant: "destructive",
       });
       return;
@@ -574,25 +573,25 @@ const Admin = () => {
 
   const stats = [
     { 
-      title: t('admin.totalInventory'), 
+      title: "Inventário Total", 
       value: trucks.length.toString(), 
       icon: <Package className="h-8 w-8" />, 
       color: "bg-blue-500" 
     },
     { 
-      title: t('admin.totalValue'), 
+      title: "Valor Total", 
       value: trucks.length > 0 ? `$${(trucks.reduce((sum, truck) => sum + truck.price, 0) / 1000000).toFixed(1)}M` : "$0", 
       icon: <DollarSign className="h-8 w-8" />, 
       color: "bg-green-500" 
     },
     { 
-      title: t('admin.avgPrice'), 
+      title: "Preço Médio", 
       value: trucks.length > 0 ? `$${Math.round(trucks.reduce((sum, truck) => sum + truck.price, 0) / trucks.length / 1000)}K` : "$0", 
       icon: <BarChart3 className="h-8 w-8" />, 
       color: "bg-purple-500" 
     },
     { 
-      title: t('admin.newVehicles'), 
+      title: "Veículos Novos", 
       value: trucks.filter(truck => truck.condition === "new").length.toString(), 
       icon: <Users className="h-8 w-8" />, 
       color: "bg-orange-500" 
@@ -602,7 +601,7 @@ const Admin = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">{t('common.loading')}</div>
+        <div className="text-lg">Carregando...</div>
       </div>
     );
   }
@@ -613,17 +612,17 @@ const Admin = () => {
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-2">{t('admin.title')}</h1>
-            <p className="text-gray-600">{t('admin.welcome')}, {user?.email}</p>
+            <h1 className="text-4xl font-bold text-slate-800 mb-2">Painel Administrativo</h1>
+            <p className="text-gray-600">Bem-vindo, {user?.email}</p>
           </div>
           <div className="space-x-2">
             <Button onClick={handleGoHome} variant="outline">
               <Home className="h-4 w-4 mr-2" />
-              {t('common.legarWebsite')}
+              Ir para o Site
             </Button>
             <Button onClick={handleSignOut} variant="outline">
               <LogOut className="h-4 w-4 mr-2" />
-              {t('admin.signOut')}
+              Sair
             </Button>
           </div>
         </div>
@@ -648,11 +647,11 @@ const Admin = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="inventory">{t('admin.inventory')}</TabsTrigger>
-            <TabsTrigger value="featured">{t('admin.featured')}</TabsTrigger>
-            <TabsTrigger value="add-truck">{isEditMode ? "Edit Vehicle" : t('admin.addVehicle')}</TabsTrigger>
-            <TabsTrigger value="orders">{t('admin.orders')}</TabsTrigger>
-            <TabsTrigger value="analytics">{t('admin.analytics')}</TabsTrigger>
+            <TabsTrigger value="inventory">Inventário</TabsTrigger>
+            <TabsTrigger value="featured">Destaques</TabsTrigger>
+            <TabsTrigger value="add-truck">{isEditMode ? "Editar Veículo" : "Adicionar Veículo"}</TabsTrigger>
+            <TabsTrigger value="orders">Pedidos</TabsTrigger>
+            <TabsTrigger value="analytics">Análises</TabsTrigger>
           </TabsList>
 
           <TabsContent value="inventory">
@@ -660,14 +659,14 @@ const Admin = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>{t('admin.vehicleInventory')}</CardTitle>
-                    <CardDescription>{t('admin.manageInventoryDesc')}</CardDescription>
+                    <CardTitle>Inventário de Veículos</CardTitle>
+                    <CardDescription>Gerencie todo o seu inventário de veículos</CardDescription>
                   </div>
                   <div className="flex gap-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
-                        placeholder={t('admin.searchVehicles')}
+                        placeholder="Pesquisar veículos..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 w-64"
@@ -679,11 +678,11 @@ const Admin = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t('admin.allConditions')}</SelectItem>
-                        <SelectItem value="new">{t('admin.new')}</SelectItem>
-                        <SelectItem value="used">{t('admin.used')}</SelectItem>
-                        <SelectItem value="certified">{t('admin.certified')}</SelectItem>
-                        <SelectItem value="refurbished">{t('admin.refurbished')}</SelectItem>
+                        <SelectItem value="all">Todas as Condições</SelectItem>
+                        <SelectItem value="new">Novo</SelectItem>
+                        <SelectItem value="used">Usado</SelectItem>
+                        <SelectItem value="certified">Certificado</SelectItem>
+                        <SelectItem value="refurbished">Recondicionado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -697,17 +696,17 @@ const Admin = () => {
                         <div className="flex items-center gap-4">
                           <div>
                             <h3 className="font-semibold text-lg">{truck.brand} {truck.model}</h3>
-                            <p className="text-gray-600">{truck.year} • {truck.condition} • {truck.mileage?.toLocaleString()} miles</p>
+                            <p className="text-gray-600">{truck.year} • {truck.condition} • {truck.mileage?.toLocaleString()} km</p>
                             <p className="font-medium text-green-600">${truck.price.toLocaleString()}</p>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <Badge variant={truck.condition === "new" ? "default" : "secondary"}>
-                          {truck.condition}
+                          {truck.condition === "new" ? "Novo" : truck.condition === "used" ? "Usado" : truck.condition === "certified" ? "Certificado" : "Recondicionado"}
                         </Badge>
                         <Badge variant="outline">
-                          {truck.category}
+                          {truck.category === "trucks" ? "Caminhões" : truck.category === "machinery" ? "Máquinas" : "Agricultura"}
                         </Badge>
                         {truck.subcategory && (
                           <Badge variant="outline">
@@ -745,7 +744,7 @@ const Admin = () => {
                   ))}
                   {filteredTrucks.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      {t('admin.noVehiclesFound')}
+                      Nenhum veículo encontrado
                     </div>
                   )}
                 </div>
@@ -774,27 +773,27 @@ const Admin = () => {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
                         1
                       </div>
-                      <span className="font-medium">{t('admin.basicInfo')}</span>
+                      <span className="font-medium">Informações Básicas</span>
                     </div>
                     <div className={`w-16 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
                     <div className={`flex items-center space-x-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
                         2
                       </div>
-                      <span className="font-medium">{t('admin.specifications')}</span>
+                      <span className="font-medium">Especificações</span>
                     </div>
                     <div className={`w-16 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
                     <div className={`flex items-center space-x-2 ${currentStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
                         3
                       </div>
-                      <span className="font-medium">{t('admin.photosVideos')}</span>
+                      <span className="font-medium">Fotos e Vídeos</span>
                     </div>
                   </div>
                   {isEditMode && (
                     <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <p className="text-blue-700 font-medium">
-                        Editing: {editingTruck?.brand} {editingTruck?.model} ({editingTruck?.year})
+                        Editando: {editingTruck?.brand} {editingTruck?.model} ({editingTruck?.year})
                       </p>
                       <Button 
                         variant="outline" 
@@ -802,7 +801,7 @@ const Admin = () => {
                         onClick={resetForm}
                         className="mt-2"
                       >
-                        Cancel Edit
+                        Cancelar Edição
                       </Button>
                     </div>
                   )}
@@ -813,34 +812,34 @@ const Admin = () => {
                 <TabsContent value="basic-info">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Step 1: {t('admin.basicInfo')}</CardTitle>
-                      <CardDescription>Add basic vehicle information</CardDescription>
+                      <CardTitle>Passo 1: Informações Básicas</CardTitle>
+                      <CardDescription>Adicione as informações básicas do veículo</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <form className="space-y-6">
                         <div className="grid md:grid-cols-3 gap-6">
                           <div>
-                            <Label htmlFor="category">{t('admin.category')} *</Label>
+                            <Label htmlFor="category">Categoria *</Label>
                             <Select onValueChange={handleCategoryChange} value={newTruck.category}>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('admin.selectCategory')} />
+                                <SelectValue placeholder="Selecionar categoria" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="trucks">{t('admin.trucks')}</SelectItem>
-                                <SelectItem value="machinery">{t('admin.machinery')}</SelectItem>
-                                <SelectItem value="agriculture">{t('admin.agriculture')}</SelectItem>
+                                <SelectItem value="trucks">Caminhões</SelectItem>
+                                <SelectItem value="machinery">Máquinas</SelectItem>
+                                <SelectItem value="agriculture">Agricultura</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="subcategory">{t('admin.subcategory')}</Label>
+                            <Label htmlFor="subcategory">Subcategoria</Label>
                             <Select 
                               onValueChange={(value) => setNewTruck({...newTruck, subcategory: value})}
                               value={newTruck.subcategory}
                               disabled={!newTruck.category}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder={!newTruck.category ? t('admin.selectCategory') : t('admin.selectSubcategory')} />
+                                <SelectValue placeholder={!newTruck.category ? "Selecionar categoria primeiro" : "Selecionar subcategoria"} />
                               </SelectTrigger>
                               <SelectContent>
                                 {subcategoryOptions.map((option) => (
@@ -852,13 +851,13 @@ const Admin = () => {
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="brand">{t('admin.brand')} *</Label>
+                            <Label htmlFor="brand">Marca *</Label>
                             <Select 
                               onValueChange={(value) => setNewTruck({...newTruck, brand: value})}
                               value={newTruck.brand}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder={t('admin.selectBrand')} />
+                                <SelectValue placeholder="Selecionar marca" />
                               </SelectTrigger>
                               <SelectContent>
                                 {allBrands.map((brand) => (
@@ -873,7 +872,7 @@ const Admin = () => {
 
                         <div className="grid md:grid-cols-2 gap-6">
                           <div>
-                            <Label htmlFor="model">{t('admin.model')} *</Label>
+                            <Label htmlFor="model">Modelo *</Label>
                             <Input
                               id="model"
                               value={newTruck.model}
@@ -883,16 +882,16 @@ const Admin = () => {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="condition">{t('admin.condition')} *</Label>
+                            <Label htmlFor="condition">Condição *</Label>
                             <Select onValueChange={(value) => setNewTruck({...newTruck, condition: value})} value={newTruck.condition}>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('admin.selectCondition')} />
+                                <SelectValue placeholder="Selecionar condição" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="new">{t('admin.new')}</SelectItem>
-                                <SelectItem value="used">{t('admin.used')}</SelectItem>
-                                <SelectItem value="certified">{t('admin.certifiedPreOwned')}</SelectItem>
-                                <SelectItem value="refurbished">{t('admin.refurbished')}</SelectItem>
+                                <SelectItem value="new">Novo</SelectItem>
+                                <SelectItem value="used">Usado</SelectItem>
+                                <SelectItem value="certified">Certificado Pré-Possuído</SelectItem>
+                                <SelectItem value="refurbished">Recondicionado</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -900,7 +899,7 @@ const Admin = () => {
 
                         <div className="grid md:grid-cols-3 gap-6">
                           <div>
-                            <Label htmlFor="year">{t('admin.year')} *</Label>
+                            <Label htmlFor="year">Ano *</Label>
                             <Input
                               id="year"
                               type="number"
@@ -925,7 +924,7 @@ const Admin = () => {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="price">{t('admin.price')} *</Label>
+                            <Label htmlFor="price">Preço *</Label>
                             <Input
                               id="price"
                               type="number"
@@ -941,10 +940,10 @@ const Admin = () => {
 
                         <div className="grid md:grid-cols-3 gap-6">
                           <div>
-                            <Label htmlFor="engine">{t('admin.engine')}</Label>
+                            <Label htmlFor="engine">Motor</Label>
                             <Select onValueChange={(value) => setNewTruck({...newTruck, engine: value})} value={newTruck.engine}>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('admin.selectEngine')} />
+                                <SelectValue placeholder="Selecionar motor" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="cummins-x15">Cummins X15</SelectItem>
@@ -957,21 +956,21 @@ const Admin = () => {
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="transmission">{t('admin.transmission')}</Label>
+                            <Label htmlFor="transmission">Transmissão</Label>
                             <Select onValueChange={(value) => setNewTruck({...newTruck, transmission: value})} value={newTruck.transmission}>
                               <SelectTrigger>
-                                <SelectValue placeholder={t('admin.selectTransmission')} />
+                                <SelectValue placeholder="Selecionar transmissão" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="manual">{t('admin.manual')}</SelectItem>
-                                <SelectItem value="automatic">{t('admin.automatic')}</SelectItem>
-                                <SelectItem value="automated-manual">{t('admin.automatedManual')}</SelectItem>
-                                <SelectItem value="cvt">{t('admin.cvt')}</SelectItem>
+                                <SelectItem value="manual">Manual</SelectItem>
+                                <SelectItem value="automatic">Automática</SelectItem>
+                                <SelectItem value="automated-manual">Manual Automatizada</SelectItem>
+                                <SelectItem value="cvt">CVT</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="horsepower">{t('admin.horsepower')}</Label>
+                            <Label htmlFor="horsepower">Potência (HP)</Label>
                             <Input
                               id="horsepower"
                               type="number"
@@ -985,12 +984,12 @@ const Admin = () => {
                         </div>
 
                         <div>
-                          <Label htmlFor="description">{t('admin.description')} *</Label>
+                          <Label htmlFor="description">Descrição *</Label>
                           <Textarea
                             id="description"
                             value={newTruck.description}
                             onChange={(e) => setNewTruck({...newTruck, description: e.target.value})}
-                            placeholder={t('admin.descriptionPlaceholder')}
+                            placeholder="Descreva as principais características e condições do veículo..."
                             rows={4}
                             required
                           />
@@ -1002,7 +1001,7 @@ const Admin = () => {
                             onClick={handleNextStep}
                             disabled={!isFormValid.step1}
                           >
-                            Next: Specifications
+                            Próximo: Especificações
                             <ArrowRight className="h-4 w-4 ml-2" />
                           </Button>
                         </div>
@@ -1014,8 +1013,8 @@ const Admin = () => {
                 <TabsContent value="specifications">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Step 2: {t('admin.specifications')}</CardTitle>
-                      <CardDescription>Add detailed technical specifications (optional)</CardDescription>
+                      <CardTitle>Passo 2: Especificações</CardTitle>
+                      <CardDescription>Adicione especificações técnicas detalhadas (opcional)</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <VehicleSpecificationsForm
@@ -1029,13 +1028,13 @@ const Admin = () => {
                           onClick={handlePrevStep}
                         >
                           <ArrowLeft className="h-4 w-4 mr-2" />
-                          Back: Basic Info
+                          Voltar: Informações Básicas
                         </Button>
                         <Button
                           type="button"
                           onClick={handleNextStep}
                         >
-                          Next: Media
+                          Próximo: Mídia
                           <ArrowRight className="h-4 w-4 ml-2" />
                         </Button>
                       </div>
@@ -1046,19 +1045,19 @@ const Admin = () => {
                 <TabsContent value="media">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Step 3: {t('admin.photosVideos')}</CardTitle>
-                      <CardDescription>Add cover image, additional photos (max 25), and videos (max 3)</CardDescription>
+                      <CardTitle>Passo 3: Fotos e Vídeos</CardTitle>
+                      <CardDescription>Adicione imagem de capa, fotos adicionais (máx 25) e vídeos (máx 3)</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
                         <Label className="text-base font-medium flex items-center gap-2">
                           <Star className="h-4 w-4 text-yellow-500" />
-                          Cover Image *
+                          Imagem de Capa *
                         </Label>
                         <div className="mt-2 space-y-4">
                           <div className="flex gap-2">
                             <Input
-                              placeholder="Enter cover image URL"
+                              placeholder="Digite a URL da imagem de capa"
                               onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault();
@@ -1074,7 +1073,7 @@ const Admin = () => {
                               type="button"
                               variant="outline"
                               onClick={() => {
-                                const input = document.querySelector(`input[placeholder="Enter cover image URL"]`) as HTMLInputElement;
+                                const input = document.querySelector(`input[placeholder="Digite a URL da imagem de capa"]`) as HTMLInputElement;
                                 if (input?.value.trim()) {
                                   handleSetCoverImage(input.value.trim());
                                   input.value = '';
@@ -1082,7 +1081,7 @@ const Admin = () => {
                               }}
                             >
                               <Star className="h-4 w-4 mr-2" />
-                              Set Cover
+                              Definir Capa
                             </Button>
                           </div>
                           <div>
@@ -1090,7 +1089,7 @@ const Admin = () => {
                               <Button type="button" variant="outline" asChild>
                                 <span>
                                   <Upload className="h-4 w-4 mr-2" />
-                                  Upload Cover Image
+                                  Carregar Imagem de Capa
                                 </span>
                               </Button>
                             </Label>
@@ -1106,10 +1105,10 @@ const Admin = () => {
                             <div className="relative inline-block">
                               <img
                                 src={vehicleMedia.coverImage}
-                                alt="Cover image"
+                                alt="Imagem de capa"
                                 className="w-48 h-32 object-cover rounded-lg border-2 border-yellow-500"
                               />
-                              <Badge className="absolute top-2 left-2 bg-yellow-500">Cover</Badge>
+                              <Badge className="absolute top-2 left-2 bg-yellow-500">Capa</Badge>
                               <Button
                                 type="button"
                                 variant="destructive"
@@ -1125,11 +1124,11 @@ const Admin = () => {
                       </div>
 
                       <div>
-                        <Label className="text-base font-medium">Additional Photos ({vehicleMedia.images.length}/25)</Label>
+                        <Label className="text-base font-medium">Fotos Adicionais ({vehicleMedia.images.length}/25)</Label>
                         <div className="mt-2 space-y-4">
                           <div className="flex gap-2">
                             <Input
-                              placeholder="Enter photo URL"
+                              placeholder="Digite a URL da foto"
                               onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault();
@@ -1145,7 +1144,7 @@ const Admin = () => {
                               type="button"
                               variant="outline"
                               onClick={() => {
-                                const input = document.querySelector(`input[placeholder="Enter photo URL"]`) as HTMLInputElement;
+                                const input = document.querySelector(`input[placeholder="Digite a URL da foto"]`) as HTMLInputElement;
                                 if (input?.value.trim()) {
                                   handleAddImage(input.value.trim());
                                   input.value = '';
@@ -1154,7 +1153,7 @@ const Admin = () => {
                               disabled={vehicleMedia.images.length >= 25}
                             >
                               <Upload className="h-4 w-4 mr-2" />
-                              Add Photo
+                              Adicionar Foto
                             </Button>
                           </div>
                           <div>
@@ -1167,7 +1166,7 @@ const Admin = () => {
                               >
                                 <span>
                                   <Upload className="h-4 w-4 mr-2" />
-                                  Upload Photos
+                                  Carregar Fotos
                                 </span>
                               </Button>
                             </Label>
@@ -1186,7 +1185,7 @@ const Admin = () => {
                                 <div key={index} className="relative group">
                                   <img
                                     src={photo}
-                                    alt={`Vehicle photo ${index + 1}`}
+                                    alt={`Foto do veículo ${index + 1}`}
                                     className="w-full h-24 object-cover rounded-lg border"
                                   />
                                   <Button
@@ -1206,11 +1205,11 @@ const Admin = () => {
                       </div>
 
                       <div>
-                        <Label className="text-base font-medium">Vehicle Videos ({vehicleMedia.videos.length}/3)</Label>
+                        <Label className="text-base font-medium">Vídeos do Veículo ({vehicleMedia.videos.length}/3)</Label>
                         <div className="mt-2 space-y-4">
                           <div className="flex gap-2">
                             <Input
-                              placeholder="Enter video URL (YouTube, Vimeo, etc.)"
+                              placeholder="Digite a URL do vídeo (YouTube, Vimeo, etc.)"
                               onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault();
@@ -1226,7 +1225,7 @@ const Admin = () => {
                               type="button"
                               variant="outline"
                               onClick={() => {
-                                const input = document.querySelector(`input[placeholder="Enter video URL (YouTube, Vimeo, etc.)"]`) as HTMLInputElement;
+                                const input = document.querySelector(`input[placeholder="Digite a URL do vídeo (YouTube, Vimeo, etc.)"]`) as HTMLInputElement;
                                 if (input?.value.trim()) {
                                   handleAddVideo(input.value.trim());
                                   input.value = '';
@@ -1235,7 +1234,7 @@ const Admin = () => {
                               disabled={vehicleMedia.videos.length >= 3}
                             >
                               <Upload className="h-4 w-4 mr-2" />
-                              Add Video
+                              Adicionar Vídeo
                             </Button>
                           </div>
                           <div>
@@ -1248,7 +1247,7 @@ const Admin = () => {
                               >
                                 <span>
                                   <Upload className="h-4 w-4 mr-2" />
-                                  Upload Videos
+                                  Carregar Vídeos
                                 </span>
                               </Button>
                             </Label>
@@ -1267,7 +1266,7 @@ const Admin = () => {
                                 <div key={index} className="relative group p-4 border rounded-lg">
                                   <div className="flex items-center justify-between">
                                     <p className="text-sm text-gray-600 truncate mr-4">
-                                      Video {index + 1}: {video.length > 50 ? video.substring(0, 50) + '...' : video}
+                                      Vídeo {index + 1}: {video.length > 50 ? video.substring(0, 50) + '...' : video}
                                     </p>
                                     <Button
                                       type="button"
@@ -1292,7 +1291,7 @@ const Admin = () => {
                           onClick={handlePrevStep}
                         >
                           <ArrowLeft className="h-4 w-4 mr-2" />
-                          Back: Specifications
+                          Voltar: Especificações
                         </Button>
                         <Button 
                           onClick={handleAddTruck}
@@ -1300,8 +1299,8 @@ const Admin = () => {
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           {addTruckMutation.isPending || addSpecificationsMutation.isPending ? 
-                            (isEditMode ? 'Updating Vehicle...' : 'Adding Vehicle...') : 
-                            (isEditMode ? 'Update Vehicle' : 'Add Vehicle')
+                            (isEditMode ? 'Atualizando Veículo...' : 'Adicionando Veículo...') : 
+                            (isEditMode ? 'Atualizar Veículo' : 'Adicionar Veículo')
                           }
                         </Button>
                       </div>
