@@ -23,15 +23,15 @@ export interface Truck {
   updated_at?: string;
 }
 
-export const useTrucks = (category?: string, limit = 20) => {
+export const useTrucks = (category?: string, limit = 12) => {
   return useQuery({
     queryKey: ['trucks', category, limit],
     queryFn: async () => {
-      console.log('Fetching trucks with category filter:', category);
+      console.log('Fetching trucks with category filter:', category, 'limit:', limit);
       
       let query = supabase
         .from('trucks')
-        .select('*')
+        .select('id, brand, model, year, price, condition, category, subcategory, features, images, created_at')
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -44,17 +44,17 @@ export const useTrucks = (category?: string, limit = 20) => {
 
       if (error) {
         console.error('Error fetching trucks:', error);
-        throw error; // Throw error so React Query can handle it properly
+        throw error;
       }
 
       console.log('Trucks fetched successfully:', data?.length || 0, 'trucks found');
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes (increased)
+    gcTime: 1000 * 60 * 20, // Keep in cache for 20 minutes (increased)
     refetchOnWindowFocus: false,
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 1, // Reduced retry attempts
+    retryDelay: 2000, // Fixed retry delay
   });
 };
 

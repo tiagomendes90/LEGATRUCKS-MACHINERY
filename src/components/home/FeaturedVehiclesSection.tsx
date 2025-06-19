@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +13,13 @@ import { useNavigate } from "react-router-dom";
 const FeaturedVehiclesSection = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: trucks, isLoading: trucksLoading } = useTrucks();
+  // Reduce limit to 6 for better performance
+  const { data: trucks, isLoading: trucksLoading } = useTrucks(undefined, 6);
   const { data: featuredTrucksData, isLoading: featuredLoading } = useFeaturedTrucks();
 
   const isLoading = trucksLoading || featuredLoading;
 
-  // Use featured trucks from database, fallback to first 6 trucks from inventory for carousel
+  // Use featured trucks from database, fallback to trucks from inventory for carousel
   const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0 ? featuredTrucksData.map(featured => ({
     id: featured.trucks.id,
     name: `${featured.trucks.brand} ${featured.trucks.model}`,
@@ -74,12 +74,12 @@ const FeaturedVehiclesSection = () => {
             <Carousel opts={{
               align: "start",
               loop: true,
-              slidesToScroll: 3,
+              slidesToScroll: 2, // Reduced from 3 to 2
               breakpoints: {
                 '(max-width: 768px)': { slidesToScroll: 1 },
-                '(max-width: 1024px)': { slidesToScroll: 2 }
+                '(max-width: 1024px)': { slidesToScroll: 1 } // Reduced from 2 to 1
               }
-            }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
+            }} plugins={[Autoplay({ delay: 5000 })]} className="w-full"> {/* Increased delay */}
               <CarouselContent className="-ml-4">
                 {featuredTrucks.map((vehicle, index) => (
                   <CarouselItem key={vehicle.id || index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">

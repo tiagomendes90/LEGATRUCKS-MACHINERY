@@ -20,8 +20,8 @@ const VehicleDetails = () => {
   
   console.log('VehicleDetails - Vehicle ID from params:', id);
   
-  // Load ALL trucks without category filter to find the specific vehicle
-  const { data: allTrucks, isLoading, error } = useTrucks(undefined, 100);
+  // Load trucks with smaller limit and only essential data for performance
+  const { data: allTrucks, isLoading, error } = useTrucks(undefined, 50);
 
   console.log('VehicleDetails - All trucks loaded:', allTrucks?.length || 0);
   console.log('VehicleDetails - Looking for vehicle with ID:', id);
