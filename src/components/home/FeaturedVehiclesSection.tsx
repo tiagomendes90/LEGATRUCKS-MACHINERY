@@ -1,7 +1,9 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Truck } from "lucide-react";
 import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
@@ -12,8 +14,10 @@ import { useNavigate } from "react-router-dom";
 const FeaturedVehiclesSection = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: trucks } = useTrucks();
-  const { data: featuredTrucksData } = useFeaturedTrucks();
+  const { data: trucks, isLoading: trucksLoading } = useTrucks();
+  const { data: featuredTrucksData, isLoading: featuredLoading } = useFeaturedTrucks();
+
+  const isLoading = trucksLoading || featuredLoading;
 
   // Use featured trucks from database, fallback to first 6 trucks from inventory for carousel
   const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0 ? featuredTrucksData.map(featured => ({
@@ -36,11 +40,36 @@ const FeaturedVehiclesSection = () => {
     navigate(`/vehicle/${vehicleId}`);
   };
 
+  const LoadingSkeleton = () => (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[1, 2, 3].map((index) => (
+        <Card key={index} className="overflow-hidden">
+          <Skeleton className="w-full h-48" />
+          <CardHeader>
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-8 w-1/2" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 mb-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <section className="bg-slate-50 py-[90px]">
       <div className="container mx-auto px-6">
         <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">{t('home.featuredVehicles')}</h2>
-        {featuredTrucks.length > 0 ? (
+        
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : featuredTrucks.length > 0 ? (
           <div className="relative max-w-7xl mx-auto">
             <Carousel opts={{
               align: "start",
