@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +32,7 @@ export const useTrucks = (category?: string, limit = 12) => {
       
       let query = supabase
         .from('trucks')
-        .select('id, brand, model, year, price, condition, category, subcategory, features, images, created_at')
+        .select('id, brand, model, year, mileage, price, condition, engine, transmission, description, category, subcategory, features, images, created_at')
         .order('created_at', { ascending: false })
         .limit(limit);
 
