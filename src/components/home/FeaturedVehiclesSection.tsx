@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +7,11 @@ import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
 import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 const FeaturedVehiclesSection = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: trucks } = useTrucks();
   const { data: featuredTrucksData } = useFeaturedTrucks();
 
@@ -30,6 +31,10 @@ const FeaturedVehiclesSection = () => {
     image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
     features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
   })) : [];
+
+  const handleViewDetails = (vehicleId: string) => {
+    navigate(`/vehicle/${vehicleId}`);
+  };
 
   return (
     <section className="bg-slate-50 py-[90px]">
@@ -71,7 +76,10 @@ const FeaturedVehiclesSection = () => {
                             </li>
                           ))}
                         </ul>
-                        <Button className="w-full bg-slate-800 hover:bg-slate-700">
+                        <Button 
+                          className="w-full bg-slate-800 hover:bg-slate-700"
+                          onClick={() => handleViewDetails(vehicle.id)}
+                        >
                           {t('common.viewDetails')}
                         </Button>
                       </CardContent>
