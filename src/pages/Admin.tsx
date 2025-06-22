@@ -41,10 +41,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="add-truck" className="space-y-6">
-            <VehicleSpecificationsForm 
-              specifications={{}}
-              onSpecificationsChange={() => {}}
-            />
+            <VehicleSpecificationsForm />
           </TabsContent>
           
           <TabsContent value="tools" className="space-y-6">
