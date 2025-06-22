@@ -15,8 +15,6 @@ export interface FeaturedTruck {
     year: number;
     price: number;
     category: string;
-    subcategory: string;
-    images: string[];
     features: string[];
   };
 }
@@ -25,6 +23,8 @@ export const useFeaturedTrucks = () => {
   return useQuery({
     queryKey: ['featured-trucks'],
     queryFn: async () => {
+      console.log('Fetching featured trucks with optimized query...');
+      
       const { data, error } = await supabase
         .from('featured_trucks')
         .select(`
@@ -40,21 +40,27 @@ export const useFeaturedTrucks = () => {
             year,
             price,
             category,
-            images,
             features
           )
         `)
         .order('position', { ascending: true })
-        .limit(6); // Limit featured trucks to improve performance
+        .limit(4); // Reduced limit for faster loading
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching featured trucks:', error);
+        throw error;
+      }
+
+      console.log('Featured trucks fetched successfully:', data?.length || 0, 'trucks found');
       return data as FeaturedTruck[];
     },
-    staleTime: 1000 * 60 * 20, // Cache for 20 minutes
-    gcTime: 1000 * 60 * 40, // Keep in cache for 40 minutes
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour (increased)
+    gcTime: 1000 * 60 * 120, // Keep in cache for 2 hours (increased)
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // Don't refetch on mount if data exists
-    refetchInterval: 1000 * 60 * 30, // Background refetch every 30 minutes
+    refetchOnMount: false,
+    retry: 1, // Reduced retries for faster failure
+    retryDelay: 1000, // Faster retry
+    refetchInterval: 1000 * 60 * 60, // Background refetch every 1 hour (reduced frequency)
   });
 };
 
