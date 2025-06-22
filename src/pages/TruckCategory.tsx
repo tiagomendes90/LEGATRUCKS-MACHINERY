@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TruckFilter from "@/components/TruckFilter";
@@ -186,13 +187,59 @@ const TruckCategory = () => {
     }
   };
 
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index} className="overflow-hidden">
+          <Skeleton className="w-full h-48" />
+          <CardHeader>
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-4 w-1/4" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 mb-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 flex-1" />
+              <Skeleton className="h-10 flex-1" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg">{t('common.loading')}</div>
-        </div>
+        {data && (
+          <section className="relative py-[150px] bg-cover bg-center bg-no-repeat" style={{
+            backgroundImage: `url('${data.backgroundImage}')`
+          }}>
+            <div className="absolute inset-0 bg-black/60"></div>
+            <div className="relative z-10 container mx-auto px-6">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">{data.title}</h1>
+              <p className="text-xl text-blue-100 max-w-3xl">{data.description}</p>
+            </div>
+          </section>
+        )}
+        <section className="py-16">
+          <div className="container mx-auto px-6">
+            <div className="mb-6">
+              <Skeleton className="h-10 w-full max-w-4xl" />
+            </div>
+            <div className="mb-6">
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <LoadingSkeleton />
+          </div>
+        </section>
         <Footer />
         <WhatsAppFloat />
       </div>
@@ -275,7 +322,8 @@ const TruckCategory = () => {
                       <img 
                         src={truck.images && truck.images.length > 0 ? truck.images[0] : "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop"} 
                         alt={truck.model} 
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
                       />
                       <Badge className="absolute top-4 left-4 bg-blue-600">
                         {truck.subcategory || truck.category}

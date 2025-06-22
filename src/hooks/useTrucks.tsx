@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -51,11 +50,14 @@ export const useTrucks = (category?: string, limit = 12) => {
       console.log('Trucks fetched successfully:', data?.length || 0, 'trucks found');
       return data || [];
     },
-    staleTime: 1000 * 60 * 10, // Cache for 10 minutes (increased)
-    gcTime: 1000 * 60 * 20, // Keep in cache for 20 minutes (increased)
+    staleTime: 1000 * 60 * 15, // Cache for 15 minutes (increased from 10)
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes (increased from 20)
     refetchOnWindowFocus: false,
-    retry: 1, // Reduced retry attempts
-    retryDelay: 2000, // Fixed retry delay
+    refetchOnMount: false, // Don't refetch on component mount if data exists
+    retry: 1,
+    retryDelay: 2000,
+    // Enable background refetch for better UX
+    refetchInterval: 1000 * 60 * 20, // Background refetch every 20 minutes
   });
 };
 

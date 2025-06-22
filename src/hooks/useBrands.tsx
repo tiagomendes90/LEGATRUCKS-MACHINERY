@@ -37,8 +37,10 @@ export const useBrands = (category?: string) => {
       console.log('Brands fetched successfully:', data?.length || 0, 'brands found');
       return data || [];
     },
-    staleTime: 1000 * 60 * 10, // Cache for 10 minutes (brands change less frequently)
-    gcTime: 1000 * 60 * 20, // Keep in cache for 20 minutes
+    staleTime: 1000 * 60 * 30, // Cache for 30 minutes (increased from 10)
+    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour (increased from 20 minutes)
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchInterval: 1000 * 60 * 45, // Background refetch every 45 minutes
   });
 };

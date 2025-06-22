@@ -16,7 +16,7 @@ export interface Order {
   updated_at?: string;
 }
 
-export const useOrders = (status?: string, limit = 100) => {
+export const useOrders = (status?: string, limit = 50) => { // Reduced default limit from 100 to 50
   return useQuery({
     queryKey: ['orders', status, limit],
     queryFn: async () => {
@@ -43,9 +43,11 @@ export const useOrders = (status?: string, limit = 100) => {
       console.log('Orders fetched successfully:', data?.length || 0, 'orders found');
       return data as Order[];
     },
-    staleTime: 1000 * 60 * 2, // Cache for 2 minutes (orders change more frequently)
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes (increased from 2)
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes (increased from 5)
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchInterval: 1000 * 60 * 10, // Background refetch every 10 minutes
   });
 };
 

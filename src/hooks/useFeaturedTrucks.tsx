@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -45,11 +44,17 @@ export const useFeaturedTrucks = () => {
             features
           )
         `)
-        .order('position', { ascending: true });
+        .order('position', { ascending: true })
+        .limit(6); // Limit featured trucks to improve performance
 
       if (error) throw error;
       return data as FeaturedTruck[];
     },
+    staleTime: 1000 * 60 * 20, // Cache for 20 minutes
+    gcTime: 1000 * 60 * 40, // Keep in cache for 40 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchInterval: 1000 * 60 * 30, // Background refetch every 30 minutes
   });
 };
 

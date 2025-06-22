@@ -81,10 +81,12 @@ export const useFilterOptions = (category: string, filterType?: string) => {
       console.log('Filter options fetched successfully:', translatedData.length, 'options found');
       return translatedData;
     },
-    staleTime: 1000 * 60 * 30, // Cache for 30 minutes (filter options are quite static)
-    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour (increased from 30 minutes)
+    gcTime: 1000 * 60 * 120, // Keep in cache for 2 hours (increased from 1 hour)
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on mount if data exists
     retry: 2,
     retryDelay: 1000,
+    refetchInterval: 1000 * 60 * 90, // Background refetch every 1.5 hours
   });
 };
