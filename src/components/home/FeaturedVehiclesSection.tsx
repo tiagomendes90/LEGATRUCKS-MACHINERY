@@ -1,10 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Truck } from "lucide-react";
-import { useTrucks } from "@/hooks/useTrucks";
 import { useFeaturedTrucks } from "@/hooks/useFeaturedTrucks";
 import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from "react-i18next";
@@ -13,28 +13,9 @@ import { useNavigate } from "react-router-dom";
 const FeaturedVehiclesSection = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  // Reduce limit to 6 for better performance
-  const { data: trucks, isLoading: trucksLoading } = useTrucks(undefined, 6);
+  
+  // Only load featured trucks - don't fallback to all trucks for better performance
   const { data: featuredTrucksData, isLoading: featuredLoading } = useFeaturedTrucks();
-
-  const isLoading = trucksLoading || featuredLoading;
-
-  // Use featured trucks from database, fallback to trucks from inventory for carousel
-  const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0 ? featuredTrucksData.map(featured => ({
-    id: featured.trucks.id,
-    name: `${featured.trucks.brand} ${featured.trucks.model}`,
-    type: featured.trucks.subcategory || featured.trucks.category?.charAt(0).toUpperCase() + featured.trucks.category?.slice(1) || 'Vehicle',
-    price: `$${featured.trucks.price.toLocaleString()}`,
-    image: featured.trucks.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
-    features: featured.trucks.features?.slice(0, 3) || [`${featured.trucks.year} model`, "Premium engine", "Advanced transmission"]
-  })) : trucks && trucks.length > 0 ? trucks.slice(0, 6).map(truck => ({
-    id: truck.id,
-    name: `${truck.brand} ${truck.model}`,
-    type: truck.subcategory || truck.category?.charAt(0).toUpperCase() + truck.category?.slice(1) || 'Vehicle',
-    price: `$${truck.price.toLocaleString()}`,
-    image: truck.images?.[0] || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop",
-    features: truck.features?.slice(0, 3) || [`${truck.year} model`, `${truck.engine} engine`, `${truck.transmission} transmission`]
-  })) : [];
 
   const handleViewDetails = (vehicleId: string) => {
     navigate(`/vehicle/${vehicleId}`);
@@ -62,24 +43,34 @@ const FeaturedVehiclesSection = () => {
     </div>
   );
 
+  // Only use featured trucks from database - no fallback to reduce queries
+  const featuredTrucks = featuredTrucksData && featuredTrucksData.length > 0 ? featuredTrucksData.map(featured => ({
+    id: featured.trucks.id,
+    name: `${featured.trucks.brand} ${featured.trucks.model}`,
+    type: featured.trucks.category?.charAt(0).toUpperCase() + featured.trucks.category?.slice(1) || 'Vehicle',
+    price: `$${featured.trucks.price.toLocaleString()}`,
+    image: "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop", // Use consistent placeholder
+    features: featured.trucks.features?.slice(0, 3) || [`${featured.trucks.year} model`, "Premium engine", "Advanced transmission"]
+  })) : [];
+
   return (
     <section className="bg-slate-50 py-[90px]">
       <div className="container mx-auto px-6">
         <h2 className="text-4xl font-bold text-center mb-12 text-slate-800">{t('home.featuredVehicles')}</h2>
         
-        {isLoading ? (
+        {featuredLoading ? (
           <LoadingSkeleton />
         ) : featuredTrucks.length > 0 ? (
           <div className="relative max-w-7xl mx-auto">
             <Carousel opts={{
               align: "start",
               loop: true,
-              slidesToScroll: 2, // Reduced from 3 to 2
+              slidesToScroll: 1, // Reduced for better performance
               breakpoints: {
                 '(max-width: 768px)': { slidesToScroll: 1 },
-                '(max-width: 1024px)': { slidesToScroll: 1 } // Reduced from 2 to 1
+                '(max-width: 1024px)': { slidesToScroll: 1 }
               }
-            }} plugins={[Autoplay({ delay: 5000 })]} className="w-full"> {/* Increased delay */}
+            }} plugins={[Autoplay({ delay: 6000 })]} className="w-full">
               <CarouselContent className="-ml-4">
                 {featuredTrucks.map((vehicle, index) => (
                   <CarouselItem key={vehicle.id || index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
@@ -88,7 +79,8 @@ const FeaturedVehiclesSection = () => {
                         <img 
                           src={vehicle.image} 
                           alt={vehicle.name} 
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
                         />
                         <Badge className="absolute top-4 left-4 bg-blue-600">{vehicle.type}</Badge>
                       </div>
