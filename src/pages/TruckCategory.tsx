@@ -38,15 +38,18 @@ const TruckCategory = () => {
   const categoryData = useMemo(() => ({
     "trucks": {
       title: t('category.trucks.title'),
-      description: t('category.trucks.description')
+      description: t('category.trucks.description'),
+      backgroundImage: 'https://images.unsplash.com/photo-1469041797191-50ace28483c3?w=1920&h=600&fit=crop'
     },
     "machinery": {
       title: t('category.machinery.title'), 
-      description: t('category.machinery.description')
+      description: t('category.machinery.description'),
+      backgroundImage: 'https://images.unsplash.com/photo-1493962853295-0fd70327578a?w=1920&h=600&fit=crop'
     },
     "agriculture": {
       title: t('category.agriculture.title'),
-      description: t('category.agriculture.description')
+      description: t('category.agriculture.description'),
+      backgroundImage: 'https://images.unsplash.com/photo-1465379944081-7f47de8d74ac?w=1920&h=600&fit=crop'
     }
   }), [t]);
 
@@ -230,10 +233,13 @@ const TruckCategory = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Category Header */}
-      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[150px] bg-blue-500">
-        <div className="container mx-auto px-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{data.title}</h1>
+      {/* Category Header with Background Image */}
+      <section className="relative py-[150px] bg-cover bg-center bg-no-repeat" style={{
+        backgroundImage: `url('${data.backgroundImage}')`
+      }}>
+        <div className="absolute inset-0 bg-black/60"></div>
+        <div className="relative z-10 container mx-auto px-6">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">{data.title}</h1>
           <p className="text-xl text-blue-100 max-w-3xl">{data.description}</p>
         </div>
       </section>
