@@ -1,4 +1,3 @@
-
 // Utility for automatic image compression
 export interface CompressionOptions {
   maxWidth?: number;
@@ -8,10 +7,10 @@ export interface CompressionOptions {
 }
 
 const DEFAULT_OPTIONS: CompressionOptions = {
-  maxWidth: 1200,
-  maxHeight: 800,
-  quality: 0.8,
-  maxSizeKB: 500
+  maxWidth: 800, // Reduced from 1200 for faster loading
+  maxHeight: 600, // Reduced from 800 for faster loading
+  quality: 0.7, // Reduced from 0.8 for smaller files
+  maxSizeKB: 200 // Reduced from 500 for much smaller files
 };
 
 export const compressImage = async (
@@ -58,18 +57,18 @@ export const compressImage = async (
 
       const handleLoad = () => {
         try {
-          // Calculate new dimensions
+          // Calculate new dimensions with more aggressive resizing
           let { width, height } = img;
           
-          // Only resize if image is larger than target
-          if (opts.maxWidth && width > opts.maxWidth) {
-            height = Math.round((height * opts.maxWidth) / width);
-            width = opts.maxWidth;
-          }
-          
-          if (opts.maxHeight && height > opts.maxHeight) {
-            width = Math.round((width * opts.maxHeight) / height);
-            height = opts.maxHeight;
+          // Always resize if image is larger than target
+          if (width > opts.maxWidth! || height > opts.maxHeight!) {
+            if (width > height) {
+              height = Math.round((height * opts.maxWidth!) / width);
+              width = opts.maxWidth!;
+            } else {
+              width = Math.round((width * opts.maxHeight!) / height);
+              height = opts.maxHeight!;
+            }
           }
 
           canvas.width = width;
@@ -85,18 +84,20 @@ export const compressImage = async (
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Start with target quality
-            let quality = opts.quality || 0.8;
+            // Start with more aggressive quality reduction
+            let quality = opts.quality || 0.7;
             let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
             
-            // Quick size check and adjustment if needed
+            // Aggressive size reduction loop
             if (opts.maxSizeKB) {
-              const sizeKB = (compressedDataUrl.length * 0.75) / 1024;
+              let sizeKB = (compressedDataUrl.length * 0.75) / 1024;
+              let attempts = 0;
               
-              if (sizeKB > opts.maxSizeKB && quality > 0.3) {
-                // Reduce quality more aggressively for faster processing
-                quality = Math.max(0.3, quality * 0.7);
+              while (sizeKB > opts.maxSizeKB && quality > 0.1 && attempts < 5) {
+                quality = Math.max(0.1, quality * 0.8);
                 compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                sizeKB = (compressedDataUrl.length * 0.75) / 1024;
+                attempts++;
               }
             }
             
@@ -141,7 +142,7 @@ export const compressMultipleImages = async (
   options?: CompressionOptions
 ): Promise<string[]> => {
   // Process images in smaller batches for better performance
-  const batchSize = 3;
+  const batchSize = 2; // Reduced batch size for better performance
   const results: string[] = [];
   
   for (let i = 0; i < images.length; i += batchSize) {
@@ -157,4 +158,38 @@ export const compressMultipleImages = async (
 
 export const getImageSizeKB = (base64String: string): number => {
   return (base64String.length * 0.75) / 1024;
+};
+
+// New function to compress existing database images
+export const compressExistingImages = async (images: string[]): Promise<string[]> => {
+  console.log('Starting compression of', images.length, 'existing images...');
+  const compressedImages: string[] = [];
+  
+  for (let i = 0; i < images.length; i++) {
+    const image = images[i];
+    if (image && image.startsWith('data:')) {
+      try {
+        const originalSize = getImageSizeKB(image);
+        const compressed = await compressImage(image, {
+          maxWidth: 800,
+          maxHeight: 600,
+          quality: 0.7,
+          maxSizeKB: 200
+        });
+        const compressedSize = getImageSizeKB(compressed);
+        
+        console.log(`Image ${i + 1}/${images.length}: ${originalSize.toFixed(1)}KB -> ${compressedSize.toFixed(1)}KB (${((1 - compressedSize/originalSize) * 100).toFixed(1)}% reduction)`);
+        compressedImages.push(compressed);
+      } catch (error) {
+        console.error(`Failed to compress image ${i + 1}:`, error);
+        // Use original image if compression fails
+        compressedImages.push(image);
+      }
+    } else {
+      // Keep non-base64 images as they are
+      compressedImages.push(image);
+    }
+  }
+  
+  return compressedImages;
 };
