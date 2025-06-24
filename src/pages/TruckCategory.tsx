@@ -39,17 +39,17 @@ const TruckCategory = () => {
     "trucks": {
       title: t('category.trucks.title'),
       description: t('category.trucks.description'),
-      backgroundImage: '/lovable-uploads/bfe08265-4632-4d77-9010-e24c7b73a190.png'
+      backgroundImage: '/lovable-uploads/240cbee5-b11e-4a0d-9f9c-94679f92c587.png'
     },
     "machinery": {
       title: t('category.machinery.title'), 
       description: t('category.machinery.description'),
-      backgroundImage: '/lovable-uploads/b9ae92da-ab80-4cbf-b881-aa2b96dfa1dd.png'
+      backgroundImage: '/lovable-uploads/0d75adf6-bed5-48ee-a50f-0fb457552db4.png'
     },
     "agriculture": {
       title: t('category.agriculture.title'),
       description: t('category.agriculture.description'),
-      backgroundImage: '/lovable-uploads/73b57791-ed93-497f-9c53-178bc011d926.png'
+      backgroundImage: '/lovable-uploads/405038ad-8937-4781-abb0-328f0b1a4796.png'
     }
   }), [t]);
 
