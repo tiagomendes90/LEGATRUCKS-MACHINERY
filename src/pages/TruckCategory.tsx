@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,17 +39,17 @@ const TruckCategory = () => {
     "trucks": {
       title: t('category.trucks.title'),
       description: t('category.trucks.description'),
-      backgroundImage: 'https://images.unsplash.com/photo-1469041797191-50ace28483c3?w=1920&h=600&fit=crop'
+      backgroundImage: '/lovable-uploads/bfe08265-4632-4d77-9010-e24c7b73a190.png'
     },
     "machinery": {
       title: t('category.machinery.title'), 
       description: t('category.machinery.description'),
-      backgroundImage: 'https://images.unsplash.com/photo-1493962853295-0fd70327578a?w=1920&h=600&fit=crop'
+      backgroundImage: '/lovable-uploads/b9ae92da-ab80-4cbf-b881-aa2b96dfa1dd.png'
     },
     "agriculture": {
       title: t('category.agriculture.title'),
       description: t('category.agriculture.description'),
-      backgroundImage: 'https://images.unsplash.com/photo-1465379944081-7f47de8d74ac?w=1920&h=600&fit=crop'
+      backgroundImage: '/lovable-uploads/73b57791-ed93-497f-9c53-178bc011d926.png'
     }
   }), [t]);
 
