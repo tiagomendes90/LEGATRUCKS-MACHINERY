@@ -9,33 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      brands: {
-        Row: {
-          category: string
-          created_at: string | null
-          id: string
-          name: string
-          slug: string
-          updated_at: string | null
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          id?: string
-          name: string
-          slug: string
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          id?: string
-          name?: string
-          slug?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       categories: {
         Row: {
           created_at: string
@@ -59,38 +32,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      featured_trucks: {
-        Row: {
-          created_at: string
-          id: string
-          position: number
-          truck_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          position: number
-          truck_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          position?: number
-          truck_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "featured_trucks_truck_id_fkey"
-            columns: ["truck_id"]
-            isOneToOne: true
-            referencedRelation: "trucks"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       featured_vehicles: {
         Row: {
@@ -123,39 +64,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      filter_options: {
-        Row: {
-          category: string
-          created_at: string | null
-          filter_type: string
-          id: string
-          option_label: string
-          option_value: string
-          sort_order: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          filter_type: string
-          id?: string
-          option_label: string
-          option_value: string
-          sort_order?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          filter_type?: string
-          id?: string
-          option_label?: string
-          option_value?: string
-          sort_order?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       orders: {
         Row: {
@@ -272,66 +180,6 @@ export type Database = {
           },
         ]
       }
-      trucks: {
-        Row: {
-          brand: string
-          category: string | null
-          condition: string
-          created_at: string | null
-          description: string
-          engine: string
-          features: string[] | null
-          horsepower: number | null
-          id: string
-          images: string[] | null
-          mileage: number | null
-          model: string
-          price: number
-          subcategory: string | null
-          transmission: string
-          updated_at: string | null
-          year: number
-        }
-        Insert: {
-          brand: string
-          category?: string | null
-          condition: string
-          created_at?: string | null
-          description: string
-          engine: string
-          features?: string[] | null
-          horsepower?: number | null
-          id?: string
-          images?: string[] | null
-          mileage?: number | null
-          model: string
-          price: number
-          subcategory?: string | null
-          transmission: string
-          updated_at?: string | null
-          year: number
-        }
-        Update: {
-          brand?: string
-          category?: string | null
-          condition?: string
-          created_at?: string | null
-          description?: string
-          engine?: string
-          features?: string[] | null
-          horsepower?: number | null
-          id?: string
-          images?: string[] | null
-          mileage?: number | null
-          model?: string
-          price?: number
-          subcategory?: string | null
-          transmission?: string
-          updated_at?: string | null
-          year?: number
-        }
-        Relationships: []
-      }
       vehicle_brands: {
         Row: {
           created_at: string
@@ -384,119 +232,6 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicle_specifications: {
-        Row: {
-          abs_brakes: boolean | null
-          adaptive_cruise_control: boolean | null
-          air_conditioning: boolean | null
-          axle_configuration: string | null
-          blind_spot_monitoring: boolean | null
-          bucket_capacity: number | null
-          cabin_type: string | null
-          collision_avoidance: boolean | null
-          crane_capacity: string | null
-          created_at: string
-          cruise_control: boolean | null
-          drive_type: string | null
-          ebs_brakes: boolean | null
-          esp_system: boolean | null
-          euro_standard: string | null
-          fuel_consumption: number | null
-          fuel_type: string | null
-          hydraulic_system: string | null
-          id: string
-          lane_departure_warning: boolean | null
-          lifting_capacity: number | null
-          loading_capacity: number | null
-          max_reach: number | null
-          noise_level: number | null
-          operating_weight: number | null
-          pto_available: boolean | null
-          retarder: boolean | null
-          suspension_type: string | null
-          truck_id: string
-          updated_at: string
-          winch_available: boolean | null
-          working_pressure: number | null
-        }
-        Insert: {
-          abs_brakes?: boolean | null
-          adaptive_cruise_control?: boolean | null
-          air_conditioning?: boolean | null
-          axle_configuration?: string | null
-          blind_spot_monitoring?: boolean | null
-          bucket_capacity?: number | null
-          cabin_type?: string | null
-          collision_avoidance?: boolean | null
-          crane_capacity?: string | null
-          created_at?: string
-          cruise_control?: boolean | null
-          drive_type?: string | null
-          ebs_brakes?: boolean | null
-          esp_system?: boolean | null
-          euro_standard?: string | null
-          fuel_consumption?: number | null
-          fuel_type?: string | null
-          hydraulic_system?: string | null
-          id?: string
-          lane_departure_warning?: boolean | null
-          lifting_capacity?: number | null
-          loading_capacity?: number | null
-          max_reach?: number | null
-          noise_level?: number | null
-          operating_weight?: number | null
-          pto_available?: boolean | null
-          retarder?: boolean | null
-          suspension_type?: string | null
-          truck_id: string
-          updated_at?: string
-          winch_available?: boolean | null
-          working_pressure?: number | null
-        }
-        Update: {
-          abs_brakes?: boolean | null
-          adaptive_cruise_control?: boolean | null
-          air_conditioning?: boolean | null
-          axle_configuration?: string | null
-          blind_spot_monitoring?: boolean | null
-          bucket_capacity?: number | null
-          cabin_type?: string | null
-          collision_avoidance?: boolean | null
-          crane_capacity?: string | null
-          created_at?: string
-          cruise_control?: boolean | null
-          drive_type?: string | null
-          ebs_brakes?: boolean | null
-          esp_system?: boolean | null
-          euro_standard?: string | null
-          fuel_consumption?: number | null
-          fuel_type?: string | null
-          hydraulic_system?: string | null
-          id?: string
-          lane_departure_warning?: boolean | null
-          lifting_capacity?: number | null
-          loading_capacity?: number | null
-          max_reach?: number | null
-          noise_level?: number | null
-          operating_weight?: number | null
-          pto_available?: boolean | null
-          retarder?: boolean | null
-          suspension_type?: string | null
-          truck_id?: string
-          updated_at?: string
-          winch_available?: boolean | null
-          working_pressure?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_specifications_truck_id_fkey"
-            columns: ["truck_id"]
-            isOneToOne: false
-            referencedRelation: "trucks"
             referencedColumns: ["id"]
           },
         ]
