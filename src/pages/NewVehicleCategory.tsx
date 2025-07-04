@@ -32,7 +32,16 @@ const NewVehicleCategory = () => {
     priceTo: '',
     condition: '',
     fuelType: '',
-    search: ''
+    search: '',
+    mileageMax: '',
+    operatingHoursMax: '',
+    gearbox: '',
+    drivetrain: '',
+    axles: '',
+    powerPs: '',
+    weightKg: '',
+    bodyColor: '',
+    sortBy: ''
   });
   const [currentPage, setCurrentPage] = useState(1);
 
