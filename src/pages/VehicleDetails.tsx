@@ -1,88 +1,42 @@
 
-import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useTrucks } from "@/hooks/useTrucks";
+import { useParams } from "react-router-dom";
+import { useVehicle } from "@/hooks/useVehicles";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar, MapPin, Gauge, Fuel, Settings, Truck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
-import VehicleImageGallery from "@/components/VehicleImageGallery";
-import VehicleInfo from "@/components/VehicleInfo";
 import VehicleActions from "@/components/VehicleActions";
+import VehicleImageGallery from "@/components/VehicleImageGallery";
 import SimilarVehicles from "@/components/SimilarVehicles";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { useTranslation } from "react-i18next";
 
 const VehicleDetails = () => {
+  const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const { id } = useParams();
-  const navigate = useNavigate();
-  
-  console.log('VehicleDetails - Vehicle ID from params:', id);
-  
-  // Load trucks with smaller limit and only essential data for performance
-  const { data: allTrucks, isLoading, error } = useTrucks(undefined, 50);
-
-  console.log('VehicleDetails - All trucks loaded:', allTrucks?.length || 0);
-  console.log('VehicleDetails - Looking for vehicle with ID:', id);
-
-  const vehicle = allTrucks?.find(truck => {
-    console.log('VehicleDetails - Comparing truck ID:', truck.id, 'with target:', id);
-    return truck.id === id;
-  });
-
-  console.log('VehicleDetails - Found vehicle:', vehicle ? 'Yes' : 'No');
-  if (vehicle) {
-    console.log('VehicleDetails - Vehicle data:', JSON.stringify(vehicle, null, 2));
-  }
+  const { data: vehicle, isLoading, error } = useVehicle(id!);
 
   if (isLoading) {
-    console.log('VehicleDetails - Still loading...');
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg">{t('common.loading')}</div>
-        </div>
-        <Footer />
-        <WhatsAppFloat />
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error('VehicleDetails - Error loading trucks:', error);
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg text-red-600">
-            {t('common.error')}: {error?.message || 'Erro ao carregar dados'}
-          </div>
-        </div>
-        <Footer />
-        <WhatsAppFloat />
-      </div>
-    );
-  }
-
-  if (!vehicle) {
-    console.error('VehicleDetails - Vehicle not found with ID:', id);
-    console.log('VehicleDetails - Available truck IDs:', allTrucks?.map(t => t.id));
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="text-lg text-red-600 mb-4">
-              Veículo não encontrado
+        <div className="container mx-auto px-6 py-8">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <Skeleton className="w-full h-96 mb-6" />
+              <Skeleton className="h-8 w-3/4 mb-4" />
+              <Skeleton className="h-6 w-1/2 mb-6" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-4 w-full" />
+                ))}
+              </div>
             </div>
-            <p className="text-gray-600 mb-4">
-              O veículo que você está procurando não foi encontrado.
-            </p>
-            <Button onClick={() => navigate(-1)}>
-              Voltar
-            </Button>
+            <div className="lg:col-span-1">
+              <Skeleton className="w-full h-64" />
+            </div>
           </div>
         </div>
         <Footer />
@@ -91,63 +45,157 @@ const VehicleDetails = () => {
     );
   }
 
-  const similarVehicles = allTrucks
-    ?.filter(truck => truck.category === vehicle.category && truck.id !== vehicle.id)
-    .slice(0, 3);
+  if (error || !vehicle) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-6 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              {t('vehicleDetails.notFound')}
+            </h1>
+            <p className="text-gray-600">
+              {t('vehicleDetails.notFoundDescription')}
+            </p>
+          </div>
+        </div>
+        <Footer />
+        <WhatsAppFloat />
+      </div>
+    );
+  }
 
-  const handleBackClick = () => {
-    navigate(-1);
-  };
+  const specifications = [
+    { 
+      icon: Calendar, 
+      label: t('vehicleDetails.year'), 
+      value: vehicle.registration_year 
+    },
+    { 
+      icon: MapPin, 
+      label: t('vehicleDetails.location'), 
+      value: vehicle.location || t('vehicleDetails.notSpecified') 
+    },
+    { 
+      icon: Gauge, 
+      label: vehicle.mileage_km ? t('vehicleDetails.mileage') : t('vehicleDetails.operatingHours'), 
+      value: vehicle.mileage_km ? `${vehicle.mileage_km.toLocaleString()} km` : vehicle.operating_hours ? `${vehicle.operating_hours.toLocaleString()} h` : t('vehicleDetails.notSpecified')
+    },
+    { 
+      icon: Fuel, 
+      label: t('vehicleDetails.fuelType'), 
+      value: vehicle.fuel_type || t('vehicleDetails.notSpecified') 
+    },
+    { 
+      icon: Settings, 
+      label: t('vehicleDetails.gearbox'), 
+      value: vehicle.gearbox || t('vehicleDetails.notSpecified') 
+    },
+    { 
+      icon: Truck, 
+      label: t('vehicleDetails.power'), 
+      value: vehicle.power_ps ? `${vehicle.power_ps} PS` : t('vehicleDetails.notSpecified') 
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Product Banner with full height gradient */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-600 text-white py-16 pt-28">
-        <div className="container mx-auto px-4 lg:px-6">
-          <div className="text-center">
-            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
-              {vehicle.brand} {vehicle.model}
-            </h1>
-            <p className="text-lg lg:text-xl text-slate-200">
-              {vehicle.subcategory || vehicle.category} • {vehicle.year}
-            </p>
+      <div className="container mx-auto px-6 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {/* Image Gallery */}
+            <VehicleImageGallery 
+              images={vehicle.images || []} 
+              mainImage={vehicle.main_image_url}
+              title={vehicle.title}
+            />
+            
+            {/* Vehicle Info */}
+            <div className="mt-8">
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <Badge variant="secondary">
+                  {vehicle.subcategory?.name || t('vehicleDetails.vehicle')}
+                </Badge>
+                <Badge variant="outline">
+                  {vehicle.condition}
+                </Badge>
+                {vehicle.brand?.name && (
+                  <Badge variant="outline">
+                    {vehicle.brand.name}
+                  </Badge>
+                )}
+              </div>
+              
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {vehicle.title}
+              </h1>
+              
+              <div className="text-3xl font-bold text-orange-600 mb-6">
+                €{vehicle.price_eur.toLocaleString()}
+              </div>
+              
+              <div className="prose max-w-none">
+                <h3 className="text-xl font-semibold mb-4">
+                  {t('vehicleDetails.description')}
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  {vehicle.description}
+                </p>
+              </div>
+            </div>
+            
+            {/* Specifications */}
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>{t('vehicleDetails.specifications')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {specifications.map((spec, index) => (
+                    <div key={index} className="flex items-center space-x-3">
+                      <spec.icon className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <span className="font-medium text-gray-900">
+                          {spec.label}:
+                        </span>
+                        <span className="ml-2 text-gray-600">
+                          {spec.value}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
+          
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('vehicleDetails.contactInfo')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <VehicleActions vehicle={vehicle} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+        
+        {/* Similar Vehicles */}
+        <div className="mt-16">
+          <SimilarVehicles 
+            currentVehicleId={vehicle.id}
+            subcategoryId={vehicle.subcategory_id}
+          />
         </div>
       </div>
       
-      <div className="container mx-auto px-4 lg:px-6 py-8">
-        {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          onClick={handleBackClick}
-          className="mb-6 hover:bg-gray-100"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t('common.back')}
-        </Button>
-
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Left Column - Images */}
-          <div>
-            <VehicleImageGallery 
-              images={vehicle.images || []} 
-              vehicleName={`${vehicle.brand} ${vehicle.model}`}
-            />
-          </div>
-
-          {/* Right Column - Vehicle Info */}
-          <div className="space-y-8">
-            <VehicleInfo vehicle={vehicle} />
-            <VehicleActions />
-          </div>
-        </div>
-
-        {/* Similar Vehicles */}
-        <SimilarVehicles vehicles={similarVehicles || []} />
-      </div>
-
       <Footer />
       <WhatsAppFloat />
     </div>
