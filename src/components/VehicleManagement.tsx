@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,21 +34,6 @@ export const VehicleManagement = () => {
     return <Badge className="bg-blue-600">Publicado</Badge>;
   };
 
-  // Display brand categories as badges
-  const getBrandCategoriesBadges = (brand: any) => {
-    if (!brand?.category || !Array.isArray(brand.category)) return null;
-    
-    return (
-      <div className="flex flex-wrap gap-1 mt-1">
-        {brand.category.map((cat: string, index: number) => (
-          <Badge key={index} variant="outline" className="text-xs">
-            {cat}
-          </Badge>
-        ))}
-      </div>
-    );
-  };
-
   const filteredVehicles = statusFilter === "all" 
     ? vehicles 
     : vehicles.filter(vehicle => {
@@ -77,6 +61,7 @@ export const VehicleManagement = () => {
 
   return (
     <div className="space-y-6">
+      
       <div className="grid md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
@@ -173,13 +158,8 @@ export const VehicleManagement = () => {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{vehicle.subcategory?.name}</TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{vehicle.brand?.name}</p>
-                      {getBrandCategoriesBadges(vehicle.brand)}
-                    </div>
-                  </TableCell>
+                  <TableCell>{vehicle.subcategory?.category?.name}</TableCell>
+                  <TableCell>{vehicle.brand?.name}</TableCell>
                   <TableCell>{vehicle.registration_year}</TableCell>
                   <TableCell>€{vehicle.price_eur.toLocaleString()}</TableCell>
                   <TableCell>{getStatusBadge(vehicle)}</TableCell>
