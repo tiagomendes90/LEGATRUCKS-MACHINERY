@@ -182,24 +182,30 @@ export type Database = {
       }
       vehicle_brands: {
         Row: {
+          category: string[] | null
           created_at: string
           id: string
           name: string
           slug: string
+          subcategories: string[] | null
           updated_at: string
         }
         Insert: {
+          category?: string[] | null
           created_at?: string
           id?: string
           name: string
           slug: string
+          subcategories?: string[] | null
           updated_at?: string
         }
         Update: {
+          category?: string[] | null
           created_at?: string
           id?: string
           name?: string
           slug?: string
+          subcategories?: string[] | null
           updated_at?: string
         }
         Relationships: []

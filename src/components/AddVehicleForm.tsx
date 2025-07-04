@@ -1,785 +1,461 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { useCategories } from "@/hooks/useCategories";
-import { useAddVehicle } from "@/hooks/useVehicles";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import { MainImageUpload } from "./MainImageUpload";
-import { SecondaryImagesUpload } from "./SecondaryImagesUpload";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
+import MainImageUpload from "./MainImageUpload";
+import SecondaryImagesUpload from "./SecondaryImagesUpload";
+import CategoryFieldMapper from "./CategoryFieldMapper";
 
-const vehicleSchema = z.object({
-  title: z.string().min(1, "Nome/Modelo do veículo é obrigatório"),
-  description: z.string().optional(),
-  brand_id: z.string().min(1, "Marca é obrigatória"),
-  subcategory_id: z.string().min(1, "Subcategoria é obrigatória"),
-  condition: z.enum(["new", "used", "restored", "modified"]),
-  registration_year: z.number().min(1900, "Ano deve ser válido").max(new Date().getFullYear() + 1, "Ano não pode ser futuro"),
-  price_eur: z.number().min(0, "Preço deve ser positivo"),
-  mileage_km: z.number().min(0).optional(),
-  operating_hours: z.number().min(0).optional(),
-  fuel_type: z.enum(["diesel", "electric", "hybrid", "petrol", "gas"]).optional(),
-  gearbox: z.enum(["manual", "automatic", "semi-automatic"]).optional(),
-  power_ps: z.number().min(0).optional(),
-  drivetrain: z.enum(["4x2", "4x4", "6x2", "6x4", "8x4", "8x6"]).optional(),
-  axles: z.number().min(0).optional(),
-  weight_kg: z.number().min(0).optional(),
-  body_color: z.string().optional(),
-  location: z.string().optional(),
-  contact_info: z.string().optional(),
-  is_published: z.boolean().default(false),
-  is_featured: z.boolean().default(false),
-});
-
-type VehicleFormData = z.infer<typeof vehicleSchema>;
-
-interface AddVehicleFormProps {
-  onSuccess?: () => void;
-}
-
-export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [mainImage, setMainImage] = useState<File | null>(null);
-  const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
-  
-  // Usar o hook básico primeiro para garantir que as marcas aparecem
-  const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
-  const { data: categories = [] } = useCategories();
-  const addVehicleMutation = useAddVehicle();
-  const { uploadImages, isUploading } = useImageUpload();
-  const { toast } = useToast();
-
-  // Log para debug
-  console.log('🔍 Brands in AddVehicleForm:', brands);
-  console.log('🔍 Brands loading:', brandsLoading);
-  console.log('🔍 Brands error:', brandsError);
-
-  const form = useForm<VehicleFormData>({
-    resolver: zodResolver(vehicleSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      brand_id: "",
-      subcategory_id: "",
-      condition: "used",
-      registration_year: new Date().getFullYear(),
-      price_eur: 0,
-      is_published: false,
-      is_featured: false,
-    },
+export const AddVehicleForm = () => {
+  // State declarations
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    price_eur: "",
+    registration_year: "",
+    condition: "used",
+    brand_id: "",
+    subcategory_id: "",
+    fuel_type: "",
+    gearbox: "",
+    mileage_km: "",
+    operating_hours: "",
+    drivetrain: "",
+    axles: "",
+    power_ps: "",
+    weight_kg: "",
+    body_color: "",
+    location: "",
+    contact_info: "",
+    is_published: false,
+    is_featured: false,
+    is_active: true,
   });
 
-  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
-  const availableSubcategories = selectedCategory?.subcategories || [];
-  const categorySlug = selectedCategory?.slug;
+  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Campos dinâmicos baseados na categoria
-  const showMileage = categorySlug === "trucks";
-  const showOperatingHours = categorySlug === "machinery" || categorySlug === "agriculture";
+  const { toast } = useToast();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
 
-  const onSubmit = async (data: VehicleFormData) => {
-    // Validação da imagem principal
-    if (!mainImage) {
-      toast({
-        title: "Erro",
-        description: "Imagem principal é obrigatória.",
-        variant: "destructive",
-      });
-      return;
+  // Filter subcategories based on selected brand's category
+  const availableSubcategories = React.useMemo(() => {
+    if (!formData.brand_id || !brands.length || !categories.length) return [];
+    
+    const selectedBrand = brands.find(brand => brand.id === formData.brand_id);
+    if (!selectedBrand?.category?.length) return [];
+    
+    // Get all subcategories for the brand's categories
+    const brandCategories = selectedBrand.category;
+    const subcategories = categories
+      .filter(cat => brandCategories.includes(cat.name))
+      .flatMap(cat => cat.subcategories || []);
+    
+    return subcategories;
+  }, [formData.brand_id, brands, categories]);
+
+  // Reset subcategory when brand changes
+  useEffect(() => {
+    if (formData.brand_id) {
+      setFormData(prev => ({ ...prev, subcategory_id: "" }));
     }
+  }, [formData.brand_id]);
 
-    // Validação dos campos condicionais
-    if (showMileage && (!data.mileage_km || data.mileage_km <= 0)) {
-      toast({
-        title: "Erro",
-        description: "Quilómetros é obrigatório para veículos da categoria trucks.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // handleInputChange function
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
-    if (showOperatingHours && (!data.operating_hours || data.operating_hours <= 0)) {
-      toast({
-        title: "Erro",
-        description: "Horas de uso é obrigatório para esta categoria.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // handleSubmit function
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const vehicleData = {
-        title: data.title,
-        description: data.description || "",
-        brand_id: data.brand_id,
-        subcategory_id: data.subcategory_id,
-        condition: data.condition,
-        registration_year: data.registration_year,
-        price_eur: data.price_eur,
-        mileage_km: data.mileage_km,
-        operating_hours: data.operating_hours,
-        fuel_type: data.fuel_type,
-        gearbox: data.gearbox,
-        power_ps: data.power_ps,
-        drivetrain: data.drivetrain,
-        axles: data.axles,
-        weight_kg: data.weight_kg,
-        body_color: data.body_color,
-        location: data.location,
-        contact_info: data.contact_info,
-        is_published: data.is_published,
-        is_featured: data.is_featured,
-        is_active: true, // Sempre ativo por defeito
-      };
-      
-      const newVehicle = await addVehicleMutation.mutateAsync(vehicleData);
-      
-      // Upload das imagens
-      const allImages = [];
+      // Validate required fields
+      if (!formData.title || !formData.description || !formData.price_eur || 
+          !formData.registration_year || !formData.brand_id || !formData.subcategory_id) {
+        toast({
+          title: "Erro de validação",
+          description: "Por favor preencha todos os campos obrigatórios.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Upload main image if provided
+      let mainImageUrl = null;
       if (mainImage) {
-        allImages.push(mainImage);
+        const fileExt = mainImage.name.split('.').pop();
+        const fileName = `${Date.now()}-main.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('vehicle-images')
+          .upload(fileName, mainImage);
+
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('vehicle-images')
+          .getPublicUrl(fileName);
+        
+        mainImageUrl = publicUrl;
       }
-      if (secondaryImages.length > 0) {
-        allImages.push(...secondaryImages);
+
+      // Create vehicle record
+      const vehicleData = {
+        ...formData,
+        price_eur: parseFloat(formData.price_eur),
+        registration_year: parseInt(formData.registration_year),
+        mileage_km: formData.mileage_km ? parseInt(formData.mileage_km) : null,
+        operating_hours: formData.operating_hours ? parseInt(formData.operating_hours) : null,
+        axles: formData.axles ? parseInt(formData.axles) : null,
+        power_ps: formData.power_ps ? parseInt(formData.power_ps) : null,
+        weight_kg: formData.weight_kg ? parseInt(formData.weight_kg) : null,
+        main_image_url: mainImageUrl,
+      };
+
+      const { data: vehicle, error: vehicleError } = await supabase
+        .from('vehicles')
+        .insert([vehicleData])
+        .select()
+        .single();
+
+      if (vehicleError) throw vehicleError;
+
+      // Upload secondary images
+      if (secondaryImages.length > 0 && vehicle) {
+        const imagePromises = secondaryImages.map(async (image, index) => {
+          const fileExt = image.name.split('.').pop();
+          const fileName = `${Date.now()}-${index}.${fileExt}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('vehicle-images')
+            .upload(fileName, image);
+
+          if (uploadError) throw uploadError;
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('vehicle-images')
+            .getPublicUrl(fileName);
+
+          return supabase
+            .from('vehicle_images')
+            .insert([{
+              vehicle_id: vehicle.id,
+              image_url: publicUrl,
+              sort_order: index + 1
+            }]);
+        });
+
+        await Promise.all(imagePromises);
       }
-      
-      if (allImages.length > 0) {
-        await uploadImages(allImages, newVehicle.id);
-      }
-      
+
       toast({
         title: "Sucesso!",
-        description: "Veículo adicionado com sucesso ao inventário.",
+        description: "Veículo adicionado com sucesso.",
       });
-      
-      // Reset do formulário
-      form.reset();
-      setSelectedCategoryId("");
+
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        price_eur: "",
+        registration_year: "",
+        condition: "used",
+        brand_id: "",
+        subcategory_id: "",
+        fuel_type: "",
+        gearbox: "",
+        mileage_km: "",
+        operating_hours: "",
+        drivetrain: "",
+        axles: "",
+        power_ps: "",
+        weight_kg: "",
+        body_color: "",
+        location: "",
+        contact_info: "",
+        is_published: false,
+        is_featured: false,
+        is_active: true,
+      });
       setMainImage(null);
       setSecondaryImages([]);
-      onSuccess?.();
+
     } catch (error) {
-      console.error('Erro ao adicionar veículo:', error);
+      console.error('Error adding vehicle:', error);
       toast({
         title: "Erro",
-        description: "Falha ao adicionar veículo. Verifique os dados e tente novamente.",
+        description: "Erro ao adicionar veículo. Tente novamente.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleSaveAsDraft = () => {
-    form.setValue("is_published", false);
-    form.handleSubmit(onSubmit)();
-  };
-
-  const handlePublish = () => {
-    form.setValue("is_published", true);
-    form.handleSubmit(onSubmit)();
-  };
-
-  const isSubmitting = addVehicleMutation.isPending || isUploading;
-
-  // Mostrar estado de carregamento se as marcas estão a carregar
-  if (brandsLoading) {
+  if (categoriesLoading || brandsLoading) {
     return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2">A carregar marcas...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-lg">A carregar formulário...</div>
+      </div>
     );
   }
 
-  // Mostrar erro se houver problema a carregar marcas
   if (brandsError) {
     return (
-      <Card>
-        <CardContent className="p-8">
-          <div className="text-center text-red-600">
-            <p>Erro ao carregar marcas: {brandsError.message}</p>
-            <p className="text-sm mt-2">Por favor, recarregue a página.</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-lg text-red-600 mb-2">Erro ao carregar marcas</div>
+          <p className="text-gray-600">Tente recarregar a página</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>Adicionar Novo Veículo</CardTitle>
-        <CardDescription>Preencha os dados do veículo. Campos marcados com * são obrigatórios.</CardDescription>
+        <CardDescription>
+          Preencha os detalhes do veículo para adicionar ao inventário
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form className="space-y-8">
-            {/* 1. Dados Básicos do Veículo */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">📋 Dados Básicos</h3>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome/Modelo do Veículo *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Mercedes Actros 1845, Volvo FH12" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="basic">Básico</TabsTrigger>
+              <TabsTrigger value="specs">Especificações</TabsTrigger>
+              <TabsTrigger value="images">Imagens</TabsTrigger>
+              <TabsTrigger value="settings">Configurações</TabsTrigger>
+            </TabsList>
 
-                <FormField
-                  control={form.control}
-                  name="brand_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Marca *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a marca" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {brands.length > 0 ? (
-                            brands.map((brand) => (
-                              <SelectItem key={brand.id} value={brand.id}>
-                                {brand.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="" disabled>
-                              Nenhuma marca disponível
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                      {brands.length === 0 && (
-                        <p className="text-sm text-red-500">
-                          Não foram encontradas marcas. Verifique a base de dados.
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-              </div>
+            <TabsContent value="basic" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="title">Título *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="Ex: Volvo FH16 750 Globetrotter"
+                    required
+                  />
+                </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <FormItem>
-                  <FormLabel>Categoria *</FormLabel>
-                  <Select
-                    value={selectedCategoryId}
-                    onValueChange={(value) => {
-                      setSelectedCategoryId(value);
-                      form.setValue("subcategory_id", "");
-                    }}
-                  >
+                <div>
+                  <Label htmlFor="price_eur">Preço (EUR) *</Label>
+                  <Input
+                    id="price_eur"
+                    type="number"
+                    value={formData.price_eur}
+                    onChange={(e) => handleInputChange('price_eur', e.target.value)}
+                    placeholder="Ex: 45000"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="registration_year">Ano de Registo *</Label>
+                  <Input
+                    id="registration_year"
+                    type="number"
+                    value={formData.registration_year}
+                    onChange={(e) => handleInputChange('registration_year', e.target.value)}
+                    placeholder="Ex: 2020"
+                    min="1990"
+                    max={new Date().getFullYear() + 1}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="condition">Estado *</Label>
+                  <Select value={formData.condition} onValueChange={(value) => handleInputChange('condition', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione a categoria" />
+                      <SelectValue placeholder="Selecione o estado" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
+                      <SelectItem value="new">Novo</SelectItem>
+                      <SelectItem value="used">Usado</SelectItem>
+                      <SelectItem value="restored">Restaurado</SelectItem>
+                      <SelectItem value="modified">Modificado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="brand_id">Marca *</Label>
+                  <Select value={formData.brand_id} onValueChange={(value) => handleInputChange('brand_id', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a marca" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {brands.map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{brand.name}</span>
+                            {brand.category && (
+                              <div className="flex gap-1">
+                                {brand.category.map((cat) => (
+                                  <Badge key={cat} variant="secondary" className="text-xs">
+                                    {cat}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {!selectedCategoryId && (
-                    <p className="text-sm text-red-500">Categoria é obrigatória</p>
-                  )}
-                </FormItem>
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="subcategory_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subcategoria *</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={!selectedCategoryId}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a subcategoria" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableSubcategories.map((subcategory) => (
-                            <SelectItem key={subcategory.id} value={subcategory.id}>
-                              {subcategory.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="condition"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estado *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="new">Novo</SelectItem>
-                          <SelectItem value="used">Usado</SelectItem>
-                          <SelectItem value="restored">Restaurado</SelectItem>
-                          <SelectItem value="modified">Modificado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="registration_year"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ano *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="2020"
-                          {...field} 
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="price_eur"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço (€) *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="50000"
-                          {...field} 
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Campos dinâmicos baseados na categoria */}
-              <div className="grid md:grid-cols-2 gap-4">
-                {showMileage && (
-                  <FormField
-                    control={form.control}
-                    name="mileage_km"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quilómetros (km) *</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="100000"
-                            {...field} 
-                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                {showOperatingHours && (
-                  <FormField
-                    control={form.control}
-                    name="operating_hours"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Horas de Uso *</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="5000"
-                            {...field} 
-                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Localização</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Lisboa, Portugal" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Descrição detalhada do veículo, estado, equipamentos, etc..." 
-                        rows={4} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* 2. Especificações Técnicas */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">⚙️ Especificações Técnicas</h3>
-              
-              <div className="grid md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="fuel_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Combustível</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o combustível" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="diesel">Diesel</SelectItem>
-                          <SelectItem value="petrol">Gasolina</SelectItem>
-                          <SelectItem value="electric">Elétrico</SelectItem>
-                          <SelectItem value="hybrid">Híbrido</SelectItem>
-                          <SelectItem value="gas">Gás</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="gearbox"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Transmissão</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a transmissão" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="manual">Manual</SelectItem>
-                          <SelectItem value="automatic">Automática</SelectItem>
-                          <SelectItem value="semi-automatic">Semi-automática</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="power_ps"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Potência (PS)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="450"
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid md:grid-cols-4 gap-4">
-                <FormField
-                  control={form.control}
-                  name="drivetrain"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tração</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Tração" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="4x2">4x2</SelectItem>
-                          <SelectItem value="4x4">4x4</SelectItem>
-                          <SelectItem value="6x2">6x2</SelectItem>
-                          <SelectItem value="6x4">6x4</SelectItem>
-                          <SelectItem value="8x4">8x4</SelectItem>
-                          <SelectItem value="8x6">8x6</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="axles"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Eixos</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="2"
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="weight_kg"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Peso (kg)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="12000"
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="body_color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cor</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Branco, Azul..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* 3. Upload de Imagens */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">📸 Imagens do Veículo</h3>
-              
-              <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h4 className="text-base font-medium mb-4 text-gray-700">
-                    Imagem Principal * 
-                    <span className="text-sm text-gray-500 ml-2">(obrigatória)</span>
-                  </h4>
-                  <MainImageUpload
-                    image={mainImage}
-                    onImageChange={setMainImage}
+                  <Label htmlFor="subcategory_id">Subcategoria *</Label>
+                  <Select 
+                    value={formData.subcategory_id} 
+                    onValueChange={(value) => handleInputChange('subcategory_id', value)}
+                    disabled={!formData.brand_id || availableSubcategories.length === 0}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a subcategoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSubcategories.map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.brand_id && availableSubcategories.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Nenhuma subcategoria disponível para esta marca
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="description">Descrição *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Descreva as características e estado do veículo..."
+                  rows={4}
+                  required
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="specs" className="space-y-4">
+              <CategoryFieldMapper
+                formData={formData}
+                handleInputChange={handleInputChange}
+                selectedBrand={brands.find(b => b.id === formData.brand_id)}
+                availableSubcategories={availableSubcategories}
+              />
+            </TabsContent>
+
+            <TabsContent value="images" className="space-y-4">
+              <div>
+                <Label>Imagem Principal</Label>
+                <MainImageUpload
+                  onImageSelect={setMainImage}
+                  currentImage={mainImage}
+                />
+              </div>
+
+              <div>
+                <Label>Imagens Secundárias</Label>
+                <SecondaryImagesUpload
+                  onImagesSelect={setSecondaryImages}
+                  currentImages={secondaryImages}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_published"
+                    checked={formData.is_published}
+                    onCheckedChange={(checked) => handleInputChange('is_published', checked)}
+                  />
+                  <Label htmlFor="is_published">Publicado</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_featured"
+                    checked={formData.is_featured}
+                    onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
+                  />
+                  <Label htmlFor="is_featured">Em Destaque</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => handleInputChange('is_active', checked)}
+                  />
+                  <Label htmlFor="is_active">Ativo</Label>
+                </div>
+
+                <div>
+                  <Label htmlFor="location">Localização</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    placeholder="Ex: Lisboa, Portugal"
                   />
                 </div>
-                
+
                 <div>
-                  <h4 className="text-base font-medium mb-4 text-gray-700">
-                    Imagens de Detalhe 
-                    <span className="text-sm text-gray-500 ml-2">(máx. 20)</span>
-                  </h4>
-                  <SecondaryImagesUpload
-                    images={secondaryImages}
-                    onImagesChange={setSecondaryImages}
-                    maxImages={20}
+                  <Label htmlFor="contact_info">Informações de Contacto</Label>
+                  <Textarea
+                    id="contact_info"
+                    value={formData.contact_info}
+                    onChange={(e) => handleInputChange('contact_info', e.target.value)}
+                    placeholder="Informações de contacto específicas para este veículo..."
+                    rows={3}
                   />
                 </div>
               </div>
-            </div>
+            </TabsContent>
+          </Tabs>
 
-            {/* 4. Configurações de Visibilidade */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">👁️ Visibilidade</h3>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="is_published"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Publicar veículo</FormLabel>
-                        <p className="text-sm text-gray-500">
-                          Torna o veículo visível no website
-                        </p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="is_featured"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Veículo em destaque</FormLabel>
-                        <p className="text-sm text-gray-500">
-                          Aparece na página inicial
-                        </p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* 5. Informações de Contacto */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">📞 Contacto</h3>
-              
-              <FormField
-                control={form.control}
-                name="contact_info"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Informações de Contacto</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Nome, telefone, email, horários de contacto..." 
-                        rows={3} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* 6. Botões de Ação */}
-            <div className="flex gap-4 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSaveAsDraft}
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Guardar como Rascunho
-              </Button>
-              
-              <Button
-                type="button"
-                onClick={handlePublish}
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Publicar Veículo
-              </Button>
-              
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  form.reset();
-                  setSelectedCategoryId("");
-                  setMainImage(null);
-                  setSecondaryImages([]);
-                }}
-                disabled={isSubmitting}
-              >
-                Limpar Formulário
-              </Button>
-            </div>
-          </form>
-        </Form>
+          <div className="flex justify-end space-x-2 pt-6 border-t">
+            <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "A adicionar..." : "Adicionar Veículo"}
+            </Button>
+          </div>
+        </form>
       </CardContent>
     </Card>
   );
