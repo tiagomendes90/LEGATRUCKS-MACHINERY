@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +7,7 @@ import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { VehicleManagement } from "@/components/VehicleManagement";
-import { AddVehicleForm } from "@/components/AddVehicleForm";
+import AddVehicleForm from "@/components/AddVehicleForm";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useOrders } from "@/hooks/useOrders";
 import { Plus, Package, Star, TrendingUp, BarChart3, ExternalLink, LogOut } from "lucide-react";
