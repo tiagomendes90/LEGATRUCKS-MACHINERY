@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Truck, Cog, Tractor } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import NewVehicleFilter from "@/components/NewVehicleFilter";
@@ -36,17 +36,20 @@ const NewVehicleCategory = () => {
     "trucks": {
       title: t('category.trucks.title'),
       description: t('category.trucks.description'),
-      backgroundImage: '/lovable-uploads/9a6779b8-e3a5-4439-b3eb-8be68728310f.png'
+      backgroundImage: '/lovable-uploads/9a6779b8-e3a5-4439-b3eb-8be68728310f.png',
+      icon: <Truck className="h-8 w-8 text-white" />
     },
     "machinery": {
       title: t('category.machinery.title'), 
       description: t('category.machinery.description'),
-      backgroundImage: '/lovable-uploads/09c6807f-f3a9-4f65-868e-06d1df1d5af6.png'
+      backgroundImage: '/lovable-uploads/09c6807f-f3a9-4f65-868e-06d1df1d5af6.png',
+      icon: <Cog className="h-8 w-8 text-white" />
     },
     "agriculture": {
       title: t('category.agriculture.title'),
       description: t('category.agriculture.description'),
-      backgroundImage: '/lovable-uploads/81c579e1-9054-4cc1-a76a-6eaea0e135ac.png'
+      backgroundImage: '/lovable-uploads/81c579e1-9054-4cc1-a76a-6eaea0e135ac.png',
+      icon: <Tractor className="h-8 w-8 text-white" />
     }
   }), [t]);
 
@@ -95,7 +98,6 @@ const NewVehicleCategory = () => {
     }
   };
 
-  // Loading skeleton
   const LoadingSkeleton = () => (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
       {Array.from({ length: 6 }).map((_, index) => (
@@ -132,7 +134,10 @@ const NewVehicleCategory = () => {
           }}>
             <div className="absolute inset-0 bg-black/60"></div>
             <div className="relative z-10 container mx-auto px-6">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">{data.title}</h1>
+              <div className="flex items-center gap-4 mb-4">
+                {data.icon}
+                <h1 className="text-4xl md:text-5xl font-bold text-white">{data.title}</h1>
+              </div>
               <p className="text-xl text-blue-100 max-w-3xl">{data.description}</p>
             </div>
           </section>
@@ -182,20 +187,27 @@ const NewVehicleCategory = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Category Header with Background Image */}
+      {/* Category Header with Background Image and Icon */}
       <section className="relative py-[150px] bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url('${data.backgroundImage}')`
       }}>
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative z-10 container mx-auto px-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">{data.title}</h1>
+          <div className="flex items-center gap-4 mb-4">
+            {data.icon}
+            <h1 className="text-4xl md:text-5xl font-bold text-white">{data.title}</h1>
+          </div>
           <p className="text-xl text-blue-100 max-w-3xl">{data.description}</p>
         </div>
       </section>
 
       <section className="py-16">
         <div className="container mx-auto px-6">
-          <NewVehicleFilter category={category} onFilterChange={handleFilterChange} />
+          <NewVehicleFilter 
+            category={category} 
+            onFilterChange={handleFilterChange} 
+            vehicleCount={vehicles?.length || 0}
+          />
 
           {/* Results count and pagination info */}
           <div className="mb-6 flex justify-between items-center">
@@ -213,7 +225,7 @@ const NewVehicleCategory = () => {
             </p>
           </div>
 
-          {/* Vehicles Grid or No Results */}
+          {/* Vehicles Grid or No Results */}  
           {vehicles && vehicles.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">

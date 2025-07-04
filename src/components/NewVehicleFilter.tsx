@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, Search } from "lucide-react";
+import { X, Filter, Search, Truck, Cog, Tractor } from "lucide-react";
 import { useSubcategories } from "@/hooks/useCategories";
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
 import { VehicleFilters } from "@/hooks/useVehicles";
@@ -14,9 +13,10 @@ import { VehicleFilters } from "@/hooks/useVehicles";
 interface NewVehicleFilterProps {
   category?: string;
   onFilterChange: (filters: VehicleFilters) => void;
+  vehicleCount?: number;
 }
 
-const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) => {
+const NewVehicleFilter = ({ category, onFilterChange, vehicleCount = 0 }: NewVehicleFilterProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [filters, setFilters] = useState<VehicleFilters>({
     category: category || undefined,
@@ -63,6 +63,32 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
     return Object.entries(filters).filter(([key, value]) => 
       value !== undefined && value !== '' && key !== 'category'
     ).length;
+  };
+
+  const getCategoryIcon = (categorySlug?: string) => {
+    switch (categorySlug) {
+      case 'trucks':
+        return <Truck className="h-5 w-5" />;
+      case 'machinery':
+        return <Cog className="h-5 w-5" />;
+      case 'agriculture':
+        return <Tractor className="h-5 w-5" />;
+      default:
+        return <Filter className="h-5 w-5" />;
+    }
+  };
+
+  const getCategoryName = (categorySlug?: string) => {
+    switch (categorySlug) {
+      case 'trucks':
+        return 'Camiões';
+      case 'machinery':
+        return 'Máquinas';
+      case 'agriculture':
+        return 'Agricultura';
+      default:
+        return 'Veículos';
+    }
   };
 
   const getCurrentYear = () => new Date().getFullYear();
@@ -119,8 +145,8 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros de Pesquisa
+            {getCategoryIcon(category)}
+            Filtros de {getCategoryName(category)}
             {getActiveFiltersCount() > 0 && (
               <Badge variant="secondary">
                 {getActiveFiltersCount()} filtro{getActiveFiltersCount() > 1 ? 's' : ''} ativo{getActiveFiltersCount() > 1 ? 's' : ''}
@@ -140,6 +166,13 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
             >
               {isExpanded ? 'Menos Filtros' : 'Mais Filtros'}
             </Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg"
+              size="sm"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Pesquisar {vehicleCount} ofertas
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -147,7 +180,10 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
         {/* Quick Filters - Always Visible */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="subcategory">Subcategoria</Label>
+            <Label htmlFor="subcategory" className="flex items-center gap-2">
+              {getCategoryIcon(category)}
+              Subcategoria
+            </Label>
             <Select 
               value={filters.subcategory || 'all'} 
               onValueChange={(value) => handleFilterChange('subcategory', value === 'all' ? undefined : value)}
