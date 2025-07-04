@@ -83,19 +83,34 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
         query = query.eq('is_published', true);
       }
 
-      // Apply category filter correctly
+      // Apply category filter - Fixed the approach
       if (filters?.category) {
-        // We need to filter by the category slug through the subcategory relationship
-        const { data: categorySubcategories } = await supabase
-          .from('subcategories')
-          .select('id')
-          .eq('category.slug', filters.category);
+        console.log('Filtering by category:', filters.category);
         
-        if (categorySubcategories && categorySubcategories.length > 0) {
-          const subcategoryIds = categorySubcategories.map(sub => sub.id);
-          query = query.in('subcategory_id', subcategoryIds);
+        // First get all subcategories for this category
+        const { data: categoryData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('slug', filters.category)
+          .single();
+        
+        if (categoryData) {
+          const { data: subcategoryIds } = await supabase
+            .from('subcategories')
+            .select('id')
+            .eq('category_id', categoryData.id);
+          
+          if (subcategoryIds && subcategoryIds.length > 0) {
+            const ids = subcategoryIds.map(sub => sub.id);
+            query = query.in('subcategory_id', ids);
+            console.log('Found subcategories for category:', ids);
+          } else {
+            console.log('No subcategories found for category:', filters.category);
+            // Return empty result if no subcategories found
+            return [];
+          }
         } else {
-          // If no subcategories found for this category, return empty result
+          console.log('Category not found:', filters.category);
           return [];
         }
       }
