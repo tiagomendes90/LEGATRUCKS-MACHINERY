@@ -16,7 +16,10 @@ const BrandsCarousel = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full" />
+              <div key={i} className="text-center">
+                <Skeleton className="h-16 w-16 rounded-full mx-auto mb-2" />
+                <Skeleton className="h-4 w-20 mx-auto" />
+              </div>
             ))}
           </div>
         </div>
@@ -35,13 +38,20 @@ const BrandsCarousel = () => {
           <h2 className="text-3xl font-bold mb-4">Trusted Brands</h2>
           <p className="text-gray-600">We work with the most reliable vehicle manufacturers</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {brands.map((brand) => (
-            <Card key={brand.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <h3 className="font-semibold text-lg">{brand.name}</h3>
-              </CardContent>
-            </Card>
+            <div key={brand.id} className="text-center group cursor-pointer">
+              <div className="w-16 h-16 bg-white rounded-full shadow-md flex items-center justify-center mx-auto mb-3 group-hover:shadow-lg transition-shadow border-2 border-gray-100">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                  <span className="text-primary font-bold text-sm">
+                    {brand.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              <h3 className="font-medium text-sm text-gray-700 group-hover:text-primary transition-colors">
+                {brand.name}
+              </h3>
+            </div>
           ))}
         </div>
       </div>
