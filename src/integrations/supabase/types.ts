@@ -36,6 +36,30 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       featured_trucks: {
         Row: {
           created_at: string
@@ -64,6 +88,38 @@ export type Database = {
             columns: ["truck_id"]
             isOneToOne: true
             referencedRelation: "trucks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      featured_vehicles: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position: number
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_vehicles_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]
@@ -175,6 +231,41 @@ export type Database = {
         }
         Relationships: []
       }
+      subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trucks: {
         Row: {
           brand: string
@@ -234,6 +325,62 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      vehicle_brands: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vehicle_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          sort_order: number
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          sort_order?: number
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          sort_order?: number
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_images_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicle_specifications: {
         Row: {
@@ -344,6 +491,105 @@ export type Database = {
             columns: ["truck_id"]
             isOneToOne: false
             referencedRelation: "trucks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          axles: number | null
+          body_color: string | null
+          brand_id: string
+          condition: string
+          contact_info: string | null
+          created_at: string
+          description: string
+          drivetrain: string | null
+          fuel_type: string | null
+          gearbox: string | null
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          is_published: boolean
+          location: string | null
+          main_image_url: string | null
+          mileage_km: number | null
+          operating_hours: number | null
+          power_ps: number | null
+          price_eur: number
+          registration_year: number
+          subcategory_id: string
+          title: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          axles?: number | null
+          body_color?: string | null
+          brand_id: string
+          condition?: string
+          contact_info?: string | null
+          created_at?: string
+          description: string
+          drivetrain?: string | null
+          fuel_type?: string | null
+          gearbox?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          is_published?: boolean
+          location?: string | null
+          main_image_url?: string | null
+          mileage_km?: number | null
+          operating_hours?: number | null
+          power_ps?: number | null
+          price_eur: number
+          registration_year: number
+          subcategory_id: string
+          title: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          axles?: number | null
+          body_color?: string | null
+          brand_id?: string
+          condition?: string
+          contact_info?: string | null
+          created_at?: string
+          description?: string
+          drivetrain?: string | null
+          fuel_type?: string | null
+          gearbox?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          is_published?: boolean
+          location?: string | null
+          main_image_url?: string | null
+          mileage_km?: number | null
+          operating_hours?: number | null
+          power_ps?: number | null
+          price_eur?: number
+          registration_year?: number
+          subcategory_id?: string
+          title?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
             referencedColumns: ["id"]
           },
         ]
