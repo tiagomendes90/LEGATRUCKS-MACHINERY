@@ -56,22 +56,22 @@ const FeaturedVehiclesSection = () => {
           <p className="text-gray-600">Hand-picked premium vehicles for you</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredVehicles.slice(0, 6).map((vehicle) => (
-            <Card key={vehicle.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+          {featuredVehicles.slice(0, 6).map((featuredVehicle) => (
+            <Card key={featuredVehicle.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <div className="relative">
                 <img 
-                  src={vehicle.main_image_url || vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
-                  alt={vehicle.title}
+                  src={featuredVehicle.vehicle.main_image_url || featuredVehicle.vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
+                  alt={featuredVehicle.vehicle.title}
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
                 <Badge className="absolute top-2 right-2 bg-red-600">Featured</Badge>
               </div>
               <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{vehicle.title}</h3>
-                <p className="text-gray-600 mb-2">{vehicle.brand?.name} • {vehicle.registration_year}</p>
-                <p className="text-lg font-bold text-primary mb-4">€{vehicle.price_eur.toLocaleString()}</p>
+                <h3 className="text-xl font-semibold mb-2">{featuredVehicle.vehicle.title}</h3>
+                <p className="text-gray-600 mb-2">{featuredVehicle.vehicle.brand?.name} • {featuredVehicle.vehicle.registration_year}</p>
+                <p className="text-lg font-bold text-primary mb-4">€{featuredVehicle.vehicle.price_eur.toLocaleString()}</p>
                 <Button 
-                  onClick={() => navigate(`/vehicle/${vehicle.id}`)}
+                  onClick={() => navigate(`/vehicle/${featuredVehicle.vehicle.id}`)}
                   className="w-full"
                 >
                   View Details

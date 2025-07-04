@@ -3,10 +3,10 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
-import { Truck } from "@/hooks/useTrucks";
+import { Vehicle } from "@/hooks/useVehicles";
 
 interface VehicleInfoProps {
-  vehicle: Truck;
+  vehicle: Vehicle;
 }
 
 const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
@@ -14,12 +14,20 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
 
   // Helper function to get the correct unit label based on category
   const getMileageUnit = () => {
-    if (vehicle.category === 'trucks') {
+    if (vehicle.subcategory?.category?.slug === 'trucks') {
       return 'km';
-    } else if (vehicle.category === 'machinery' || vehicle.category === 'agriculture') {
+    } else if (vehicle.subcategory?.category?.slug === 'machinery' || vehicle.subcategory?.category?.slug === 'agriculture') {
       return t('vehicleDetails.hours');
     }
     return t('vehicleDetails.hours');
+  };
+
+  const getMileageValue = () => {
+    if (vehicle.subcategory?.category?.slug === 'trucks') {
+      return vehicle.mileage_km ? vehicle.mileage_km.toLocaleString() : '0';
+    } else {
+      return vehicle.operating_hours ? vehicle.operating_hours.toLocaleString() : '0';
+    }
   };
 
   return (
@@ -27,13 +35,13 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
       {/* Header Info */}
       <div>
         <Badge variant="secondary" className="mb-3">
-          {vehicle.category}
+          {vehicle.subcategory?.category?.name || 'Vehicle'}
         </Badge>
         <h1 className="text-3xl lg:text-4xl font-bold mb-2">
-          {vehicle.brand} {vehicle.model}
+          {vehicle.brand?.name} {vehicle.title}
         </h1>
         <p className="text-3xl lg:text-4xl text-primary font-bold">
-          ${vehicle.price.toLocaleString()}
+          €{vehicle.price_eur.toLocaleString()}
         </p>
       </div>
 
@@ -41,66 +49,71 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
         <div className="text-center">
           <p className="text-sm text-gray-600">{t('vehicleDetails.year')}</p>
-          <p className="font-semibold text-lg">{vehicle.year}</p>
+          <p className="font-semibold text-lg">{vehicle.registration_year}</p>
         </div>
         <div className="text-center">
           <p className="text-sm text-gray-600">{t('vehicleDetails.mileage')}</p>
           <p className="font-semibold text-lg">
-            {vehicle.mileage ? vehicle.mileage.toLocaleString() : '0'} {getMileageUnit()}
+            {getMileageValue()} {getMileageUnit()}
           </p>
         </div>
         <div className="text-center">
           <p className="text-sm text-gray-600">{t('vehicleDetails.condition')}</p>
           <p className="font-semibold text-lg">{vehicle.condition}</p>
         </div>
-        {vehicle.horsepower && (
+        {vehicle.power_ps && (
           <div className="text-center">
             <p className="text-sm text-gray-600">{t('vehicleDetails.horsepower')}</p>
-            <p className="font-semibold text-lg">{vehicle.horsepower} HP</p>
+            <p className="font-semibold text-lg">{vehicle.power_ps} PS</p>
           </div>
         )}
       </div>
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">{t('vehicleDetails.overview')}</TabsTrigger>
           <TabsTrigger value="specifications">{t('vehicleDetails.specifications')}</TabsTrigger>
-          <TabsTrigger value="features">{t('vehicleDetails.features')}</TabsTrigger>
           <TabsTrigger value="description">{t('vehicleDetails.description')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4 mt-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.engine')}</h4>
-                <p className="text-lg">{vehicle.engine}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.transmission')}</h4>
-                <p className="text-lg">{vehicle.transmission}</p>
-              </div>
+              {vehicle.fuel_type && (
+                <div>
+                  <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.fuelType')}</h4>
+                  <p className="text-lg">{vehicle.fuel_type}</p>
+                </div>
+              )}
+              {vehicle.gearbox && (
+                <div>
+                  <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.gearbox')}</h4>
+                  <p className="text-lg">{vehicle.gearbox}</p>
+                </div>
+              )}
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.category')}</h4>
-                <p className="text-lg">{vehicle.category}</p>
+                <p className="text-lg">{vehicle.subcategory?.category?.name}</p>
               </div>
             </div>
             <div className="space-y-4">
               {vehicle.subcategory && (
                 <div>
                   <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.subcategory')}</h4>
-                  <p className="text-lg">{vehicle.subcategory}</p>
+                  <p className="text-lg">{vehicle.subcategory.name}</p>
                 </div>
               )}
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.brand')}</h4>
-                <p className="text-lg">{vehicle.brand}</p>
+                <p className="text-lg">{vehicle.brand?.name}</p>
               </div>
-              <div>
-                <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.model')}</h4>
-                <p className="text-lg">{vehicle.model}</p>
-              </div>
+              {vehicle.location && (
+                <div>
+                  <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.location')}</h4>
+                  <p className="text-lg">{vehicle.location}</p>
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
@@ -108,51 +121,40 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
         <TabsContent value="specifications" className="space-y-4 mt-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.engine')}</h4>
-                <p className="text-lg">{vehicle.engine}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.transmission')}</h4>
-                <p className="text-lg">{vehicle.transmission}</p>
-              </div>
+              {vehicle.fuel_type && (
+                <div>
+                  <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.fuelType')}</h4>
+                  <p className="text-lg">{vehicle.fuel_type}</p>
+                </div>
+              )}
+              {vehicle.gearbox && (
+                <div>
+                  <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.gearbox')}</h4>
+                  <p className="text-lg">{vehicle.gearbox}</p>
+                </div>
+              )}
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.year')}</h4>
-                <p className="text-lg">{vehicle.year}</p>
+                <p className="text-lg">{vehicle.registration_year}</p>
               </div>
             </div>
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.mileage')}</h4>
-                <p className="text-lg">{vehicle.mileage ? vehicle.mileage.toLocaleString() : '0'} {getMileageUnit()}</p>
+                <p className="text-lg">{getMileageValue()} {getMileageUnit()}</p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.condition')}</h4>
                 <p className="text-lg">{vehicle.condition}</p>
               </div>
-              {vehicle.horsepower && (
+              {vehicle.power_ps && (
                 <div>
-                  <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.horsepower')}</h4>
-                  <p className="text-lg">{vehicle.horsepower} HP</p>
+                  <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.power')}</h4>
+                  <p className="text-lg">{vehicle.power_ps} PS</p>
                 </div>
               )}
             </div>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="features" className="space-y-4 mt-6">
-          {vehicle.features && vehicle.features.length > 0 ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              {vehicle.features.map((feature, index) => (
-                <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0"></div>
-                  <span>{feature}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">{t('vehicleDetails.noFeatures')}</p>
-          )}
         </TabsContent>
         
         <TabsContent value="description" className="space-y-4 mt-6">
