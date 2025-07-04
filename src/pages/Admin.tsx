@@ -10,7 +10,7 @@ import { Navigate } from "react-router-dom";
 import { VehicleManagement } from "@/components/VehicleManagement";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useOrders } from "@/hooks/useOrders";
-import { Plus, Package, Star, TrendingUp, ShoppingCart, BarChart3 } from "lucide-react";
+import { Plus, Package, Star, TrendingUp, BarChart3 } from "lucide-react";
 
 const Admin = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -34,11 +34,6 @@ const Admin = () => {
   const totalValue = vehicles.reduce((sum, vehicle) => sum + vehicle.price_eur, 0);
   const averagePrice = totalInventory > 0 ? totalValue / totalInventory : 0;
   const newVehicles = vehicles.filter(v => v.condition === 'new').length;
-
-  const totalOrders = orders.length;
-  const totalRevenue = orders.filter(o => o.payment_status === 'paid').reduce((sum, order) => sum + order.amount, 0);
-  const pendingOrders = orders.filter(o => o.status === 'pending').length;
-  const deliveredOrders = orders.filter(o => o.status === 'delivered').length;
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -153,41 +148,6 @@ const Admin = () => {
         </TabsContent>
 
         <TabsContent value="orders">
-          {/* Orders Statistics */}
-          <div className="grid md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{totalOrders}</p>
-                  <p className="text-sm text-gray-600">Total Orders</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-600">${(totalRevenue / 1000000).toFixed(1)}M</p>
-                  <p className="text-sm text-gray-600">Total Revenue</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">{pendingOrders}</p>
-                  <p className="text-sm text-gray-600">Pending Orders</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-orange-600">{deliveredOrders}</p>
-                  <p className="text-sm text-gray-600">Delivered</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
           <RealOrderManagement />
         </TabsContent>
 
