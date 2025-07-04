@@ -42,6 +42,7 @@ export const AddVehicleForm = () => {
     is_active: true,
   });
 
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,28 +51,41 @@ export const AddVehicleForm = () => {
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
 
-  // Filter subcategories based on selected brand's category
-  const availableSubcategories = React.useMemo(() => {
-    if (!formData.brand_id || !brands.length || !categories.length) return [];
-    
-    const selectedBrand = brands.find(brand => brand.id === formData.brand_id);
-    if (!selectedBrand?.category?.length) return [];
-    
-    // Get all subcategories for the brand's categories
-    const brandCategories = selectedBrand.category;
-    const subcategories = categories
-      .filter(cat => brandCategories.includes(cat.name))
-      .flatMap(cat => cat.subcategories || []);
-    
-    return subcategories;
-  }, [formData.brand_id, brands, categories]);
+  // Get selected category
+  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
 
-  // Reset subcategory when brand changes
+  // Filter subcategories based on selected category
+  const availableSubcategories = selectedCategory?.subcategories || [];
+
+  // Filter brands based on selected category
+  const availableBrands = React.useMemo(() => {
+    if (!selectedCategoryId || !brands.length || !categories.length) return [];
+    
+    const categoryName = categories.find(cat => cat.id === selectedCategoryId)?.name;
+    if (!categoryName) return [];
+    
+    return brands.filter(brand => 
+      brand.category?.includes(categoryName)
+    );
+  }, [selectedCategoryId, brands, categories]);
+
+  // Reset subcategory and brand when category changes
   useEffect(() => {
-    if (formData.brand_id) {
-      setFormData(prev => ({ ...prev, subcategory_id: "" }));
+    if (selectedCategoryId) {
+      setFormData(prev => ({ 
+        ...prev, 
+        subcategory_id: "",
+        brand_id: ""
+      }));
     }
-  }, [formData.brand_id]);
+  }, [selectedCategoryId]);
+
+  // Reset brand when subcategory changes (if needed for further filtering)
+  useEffect(() => {
+    if (formData.subcategory_id) {
+      // Could add brand filtering by subcategory here if needed
+    }
+  }, [formData.subcategory_id]);
 
   // handleInputChange function
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -195,6 +209,7 @@ export const AddVehicleForm = () => {
         is_featured: false,
         is_active: true,
       });
+      setSelectedCategoryId("");
       setMainImage(null);
       setSecondaryImages([]);
 
@@ -249,7 +264,7 @@ export const AddVehicleForm = () => {
 
             <TabsContent value="basic" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className="md:col-span-2">
                   <Label htmlFor="title">Título *</Label>
                   <Input
                     id="title"
@@ -258,6 +273,83 @@ export const AddVehicleForm = () => {
                     placeholder="Ex: Volvo FH16 750 Globetrotter"
                     required
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="category">Categoria *</Label>
+                  <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="subcategory_id">Subcategoria *</Label>
+                  <Select 
+                    value={formData.subcategory_id} 
+                    onValueChange={(value) => handleInputChange('subcategory_id', value)}
+                    disabled={!selectedCategoryId || availableSubcategories.length === 0}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a subcategoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSubcategories.map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedCategoryId && availableSubcategories.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Nenhuma subcategoria disponível para esta categoria
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="brand_id">Marca *</Label>
+                  <Select 
+                    value={formData.brand_id} 
+                    onValueChange={(value) => handleInputChange('brand_id', value)}
+                    disabled={!selectedCategoryId || availableBrands.length === 0}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a marca" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableBrands.map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{brand.name}</span>
+                            {brand.category && (
+                              <div className="flex gap-1">
+                                {brand.category.map((cat) => (
+                                  <Badge key={cat} variant="secondary" className="text-xs">
+                                    {cat}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedCategoryId && availableBrands.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Nenhuma marca disponível para esta categoria
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -299,58 +391,6 @@ export const AddVehicleForm = () => {
                       <SelectItem value="modified">Modificado</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="brand_id">Marca *</Label>
-                  <Select value={formData.brand_id} onValueChange={(value) => handleInputChange('brand_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a marca" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {brands.map((brand) => (
-                        <SelectItem key={brand.id} value={brand.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{brand.name}</span>
-                            {brand.category && (
-                              <div className="flex gap-1">
-                                {brand.category.map((cat) => (
-                                  <Badge key={cat} variant="secondary" className="text-xs">
-                                    {cat}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="subcategory_id">Subcategoria *</Label>
-                  <Select 
-                    value={formData.subcategory_id} 
-                    onValueChange={(value) => handleInputChange('subcategory_id', value)}
-                    disabled={!formData.brand_id || availableSubcategories.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a subcategoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableSubcategories.map((subcategory) => (
-                        <SelectItem key={subcategory.id} value={subcategory.id}>
-                          {subcategory.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData.brand_id && availableSubcategories.length === 0 && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Nenhuma subcategoria disponível para esta marca
-                    </p>
-                  )}
                 </div>
               </div>
 
