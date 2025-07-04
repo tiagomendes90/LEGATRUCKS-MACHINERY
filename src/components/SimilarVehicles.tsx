@@ -1,52 +1,73 @@
 
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useTranslation } from "react-i18next";
-import { Truck } from "@/hooks/useTrucks";
+import React from 'react';
+import { useVehicles } from '@/hooks/useVehicles';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface SimilarVehiclesProps {
-  vehicles: Truck[];
+  vehicleId: string;
+  subcategoryId: string;
 }
 
-const SimilarVehicles = ({ vehicles }: SimilarVehiclesProps) => {
+const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategoryId }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  
+  const { data: vehicles, isLoading } = useVehicles(
+    { subcategory: subcategoryId },
+    6
+  );
 
-  if (!vehicles || vehicles.length === 0) {
+  // Filter out the current vehicle
+  const similarVehicles = vehicles?.filter(v => v.id !== vehicleId) || [];
+
+  if (isLoading || similarVehicles.length === 0) {
     return null;
   }
 
+  const handleVehicleClick = (vehicle: any) => {
+    navigate(`/vehicle/${vehicle.id}`);
+  };
+
   return (
-    <section className="mt-16">
-      <h2 className="text-2xl font-bold mb-8">{t('vehicleDetails.similarVehicles')}</h2>
+    <div>
+      <h2 className="text-2xl font-bold mb-6">{t('vehicleDetails.similarVehicles')}</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vehicles.map(vehicle => (
-          <Card key={vehicle.id} className="group hover:shadow-lg transition-all duration-300">
+        {similarVehicles.slice(0, 3).map((vehicle) => (
+          <Card key={vehicle.id} className="group hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleVehicleClick(vehicle)}>
             <div className="relative overflow-hidden">
-              <img
-                src={vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : "https://via.placeholder.com/400x200"}
-                alt={`${vehicle.brand} ${vehicle.model}`}
+              <img 
+                src={vehicle.main_image_url || vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
+                alt={vehicle.title} 
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
               />
-              <Badge className="absolute top-4 left-4">{vehicle.category}</Badge>
+              <Badge className="absolute top-3 left-3 bg-blue-600">
+                {vehicle.subcategory?.name}
+              </Badge>
             </div>
-            <CardHeader>
-              <CardTitle className="text-xl">{vehicle.brand} {vehicle.model}</CardTitle>
-              <CardDescription className="text-xl text-primary font-semibold">
-                ${vehicle.price.toLocaleString()}
-              </CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg line-clamp-2">{vehicle.title}</CardTitle>
+              <div className="text-xl font-bold text-orange-600">
+                €{vehicle.price_eur.toLocaleString()}
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-                <div>Ano: {vehicle.year}</div>
-                <div>Estado: {vehicle.condition}</div>
+              <div className="text-sm text-gray-600 mb-4">
+                {vehicle.registration_year} • {vehicle.condition}
+                {vehicle.mileage_km && ` • ${vehicle.mileage_km.toLocaleString()} km`}
+                {vehicle.operating_hours && ` • ${vehicle.operating_hours.toLocaleString()} h`}
               </div>
               <Button 
-                className="w-full" 
-                onClick={() => navigate(`/vehicle/${vehicle.id}`)}
+                className="w-full bg-slate-800 hover:bg-slate-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleVehicleClick(vehicle);
+                }}
               >
                 {t('common.viewDetails')}
               </Button>
@@ -54,7 +75,7 @@ const SimilarVehicles = ({ vehicles }: SimilarVehiclesProps) => {
           </Card>
         ))}
       </div>
-    </section>
+    </div>
   );
 };
 

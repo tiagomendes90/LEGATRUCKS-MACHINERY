@@ -138,7 +138,7 @@ export const validateDatabaseStructure = async (): Promise<MigrationValidationRe
 
   try {
     // Check if all required tables exist with basic data
-    const tables = [
+    const requiredTables = [
       'categories',
       'subcategories',
       'vehicle_brands',
@@ -147,10 +147,10 @@ export const validateDatabaseStructure = async (): Promise<MigrationValidationRe
       'featured_vehicles'
     ];
 
-    for (const table of tables) {
-      const { error } = await supabase.from(table).select('id').limit(1);
+    for (const tableName of requiredTables) {
+      const { error } = await supabase.from(tableName as any).select('id').limit(1);
       if (error) {
-        errors.push(`Table ${table} is not accessible: ${error.message}`);
+        errors.push(`Table ${tableName} is not accessible: ${error.message}`);
       }
     }
 

@@ -65,6 +65,9 @@ const VehicleDetails = () => {
     );
   }
 
+  // Transform images array to string array for compatibility
+  const imageUrls = vehicle.images?.map(img => img.image_url) || [];
+
   const specifications = [
     { 
       icon: Calendar, 
@@ -108,7 +111,7 @@ const VehicleDetails = () => {
           <div className="lg:col-span-2">
             {/* Image Gallery */}
             <VehicleImageGallery 
-              images={vehicle.images || []} 
+              images={imageUrls} 
               mainImage={vehicle.main_image_url}
               title={vehicle.title}
             />
@@ -190,7 +193,7 @@ const VehicleDetails = () => {
         {/* Similar Vehicles */}
         <div className="mt-16">
           <SimilarVehicles 
-            currentVehicleId={vehicle.id}
+            vehicleId={vehicle.id}
             subcategoryId={vehicle.subcategory_id}
           />
         </div>
