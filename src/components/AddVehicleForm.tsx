@@ -128,8 +128,13 @@ export const AddVehicleForm = () => {
         axles: formData.axles ? parseInt(formData.axles) : null,
         power_ps: formData.power_ps ? parseInt(formData.power_ps) : null,
         weight_kg: formData.weight_kg ? parseInt(formData.weight_kg) : null,
-        // Ensure drivetrain is one of the valid values or null
+        // Ensure all optional string fields are null if empty
+        fuel_type: formData.fuel_type || null,
+        gearbox: formData.gearbox || null,
         drivetrain: formData.drivetrain || null,
+        body_color: formData.body_color || null,
+        location: formData.location || null,
+        contact_info: formData.contact_info || null,
       };
 
       console.log('🚀 Creating vehicle with data:', vehicleData);
