@@ -112,8 +112,7 @@ const VehicleDetails = () => {
             {/* Image Gallery */}
             <VehicleImageGallery 
               images={imageUrls} 
-              mainImage={vehicle.main_image_url}
-              title={vehicle.title}
+              vehicleName={vehicle.title}
             />
             
             {/* Vehicle Info */}
@@ -183,7 +182,10 @@ const VehicleDetails = () => {
                   <CardTitle>{t('vehicleDetails.contactInfo')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <VehicleActions vehicle={vehicle} />
+                  <VehicleActions vehicle={{
+                    ...vehicle,
+                    condition: vehicle.condition as 'new' | 'used' | 'restored' | 'modified'
+                  }} />
                 </CardContent>
               </Card>
             </div>
@@ -206,3 +208,4 @@ const VehicleDetails = () => {
 };
 
 export default VehicleDetails;
+
