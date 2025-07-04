@@ -13,7 +13,7 @@ interface SecondaryImagesUploadProps {
   maxImages?: number;
 }
 
-export const SecondaryImagesUpload = ({ images, onImagesChange, maxImages = 9 }: SecondaryImagesUploadProps) => {
+export const SecondaryImagesUpload = ({ images, onImagesChange, maxImages = 20 }: SecondaryImagesUploadProps) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const { toast } = useToast();
 
@@ -118,7 +118,7 @@ export const SecondaryImagesUpload = ({ images, onImagesChange, maxImages = 9 }:
           ) : (
             <>
               <Upload className="h-4 w-4 mr-2" />
-              Adicionar Imagens Secundárias ({images.length}/{maxImages})
+              Adicionar Imagens de Detalhe ({images.length}/{maxImages})
             </>
           )}
         </Button>
@@ -130,14 +130,14 @@ export const SecondaryImagesUpload = ({ images, onImagesChange, maxImages = 9 }:
       </div>
 
       {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {images.map((file, index) => (
             <Card key={index} className="relative">
               <CardContent className="p-2">
                 <div className="aspect-square relative rounded-md overflow-hidden bg-gray-100">
                   <img
                     src={getImagePreview(file)}
-                    alt={`Imagem secundária ${index + 1}`}
+                    alt={`Imagem de detalhe ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                   <Button
@@ -155,6 +155,9 @@ export const SecondaryImagesUpload = ({ images, onImagesChange, maxImages = 9 }:
                       WebP
                     </div>
                   )}
+                  <div className="absolute bottom-1 right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                    {index + 1}
+                  </div>
                 </div>
                 <div className="mt-2">
                   <p className="text-xs text-gray-500 truncate">
@@ -174,9 +177,9 @@ export const SecondaryImagesUpload = ({ images, onImagesChange, maxImages = 9 }:
         <Card className="border-dashed border-2 border-gray-300">
           <CardContent className="p-6 text-center">
             <ImageIcon className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-500">Imagens Secundárias</p>
+            <p className="text-gray-500 font-medium">Imagens de Detalhe</p>
             <p className="text-sm text-gray-400 mt-1">
-              Imagens de detalhe do veículo (máx. {maxImages})
+              Galeria de imagens do veículo (máx. {maxImages})
             </p>
             <p className="text-xs text-gray-400 mt-2">
               Serão automaticamente comprimidas para WebP (máx. 1MB, 1280px)

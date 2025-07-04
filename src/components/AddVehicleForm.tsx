@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,12 +20,12 @@ import { SecondaryImagesUpload } from "./SecondaryImagesUpload";
 import { useImageUpload } from "@/hooks/useImageUpload";
 
 const vehicleSchema = z.object({
-  title: z.string().min(1, "Nome do veículo é obrigatório"),
-  description: z.string().min(1, "Descrição é obrigatória"),
+  title: z.string().min(1, "Nome/Modelo do veículo é obrigatório"),
+  description: z.string().optional(),
   brand_id: z.string().min(1, "Marca é obrigatória"),
   subcategory_id: z.string().min(1, "Subcategoria é obrigatória"),
   condition: z.enum(["new", "used", "restored", "modified"]),
-  registration_year: z.number().min(1900).max(new Date().getFullYear() + 1),
+  registration_year: z.number().min(1900, "Ano deve ser válido").max(new Date().getFullYear() + 1, "Ano não pode ser futuro"),
   price_eur: z.number().min(0, "Preço deve ser positivo"),
   mileage_km: z.number().min(0).optional(),
   operating_hours: z.number().min(0).optional(),
@@ -76,14 +77,44 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
   const availableSubcategories = selectedCategory?.subcategories || [];
   const categorySlug = selectedCategory?.slug;
 
+  // Campos dinâmicos baseados na categoria
   const showMileage = categorySlug === "trucks";
   const showOperatingHours = categorySlug === "machinery" || categorySlug === "agriculture";
 
   const onSubmit = async (data: VehicleFormData) => {
+    // Validação da imagem principal
+    if (!mainImage) {
+      toast({
+        title: "Erro",
+        description: "Imagem principal é obrigatória.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação dos campos condicionais
+    if (showMileage && (!data.mileage_km || data.mileage_km <= 0)) {
+      toast({
+        title: "Erro",
+        description: "Quilómetros é obrigatório para veículos da categoria trucks.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (showOperatingHours && (!data.operating_hours || data.operating_hours <= 0)) {
+      toast({
+        title: "Erro",
+        description: "Horas de uso é obrigatório para esta categoria.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const vehicleData = {
         title: data.title,
-        description: data.description,
+        description: data.description || "",
         brand_id: data.brand_id,
         subcategory_id: data.subcategory_id,
         condition: data.condition,
@@ -102,12 +133,12 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
         contact_info: data.contact_info,
         is_published: data.is_published,
         is_featured: data.is_featured,
-        is_active: true,
+        is_active: true, // Sempre ativo por defeito
       };
       
       const newVehicle = await addVehicleMutation.mutateAsync(vehicleData);
       
-      // Upload images if any were selected
+      // Upload das imagens
       const allImages = [];
       if (mainImage) {
         allImages.push(mainImage);
@@ -121,10 +152,11 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
       }
       
       toast({
-        title: "Sucesso",
-        description: "Veículo adicionado com sucesso!",
+        title: "Sucesso!",
+        description: "Veículo adicionado com sucesso ao inventário.",
       });
       
+      // Reset do formulário
       form.reset();
       setSelectedCategoryId("");
       setMainImage(null);
@@ -134,7 +166,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
       console.error('Erro ao adicionar veículo:', error);
       toast({
         title: "Erro",
-        description: "Falha ao adicionar veículo. Tente novamente.",
+        description: "Falha ao adicionar veículo. Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
@@ -156,14 +188,14 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
     <Card>
       <CardHeader>
         <CardTitle>Adicionar Novo Veículo</CardTitle>
-        <CardDescription>Preencha todos os dados do veículo</CardDescription>
+        <CardDescription>Preencha os dados do veículo. Campos marcados com * são obrigatórios.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form className="space-y-6">
-            {/* 1. Dados Gerais do Veículo */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Dados Gerais</h3>
+          <form className="space-y-8">
+            {/* 1. Dados Básicos do Veículo */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">📋 Dados Básicos</h3>
               
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField
@@ -171,9 +203,9 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome do Veículo *</FormLabel>
+                      <FormLabel>Nome/Modelo do Veículo *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Mercedes Actros 1845" {...field} />
+                        <Input placeholder="Ex: Mercedes Actros 1845, Volvo FH12" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -227,6 +259,9 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {!selectedCategoryId && (
+                    <p className="text-sm text-red-500">Categoria é obrigatória</p>
+                  )}
                 </FormItem>
 
                 <FormField
@@ -259,31 +294,13 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição *</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Descrição detalhada do veículo..." 
-                        rows={4} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <div className="grid md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="condition"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Condição *</FormLabel>
+                      <FormLabel>Estado *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -307,7 +324,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                   name="registration_year"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Ano de Registo *</FormLabel>
+                      <FormLabel>Ano *</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
@@ -341,7 +358,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                 />
               </div>
 
-              {/* Quilometragem ou Horas de Uso - dependente da categoria */}
+              {/* Campos dinâmicos baseados na categoria */}
               <div className="grid md:grid-cols-2 gap-4">
                 {showMileage && (
                   <FormField
@@ -349,7 +366,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                     name="mileage_km"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Quilometragem (km)</FormLabel>
+                        <FormLabel>Quilómetros (km) *</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -370,7 +387,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                     name="operating_hours"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Horas de Uso</FormLabel>
+                        <FormLabel>Horas de Uso *</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -399,66 +416,30 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Descrição detalhada do veículo, estado, equipamentos, etc..." 
+                        rows={4} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* 2. Especificações Técnicas */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Especificações Técnicas</h3>
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">⚙️ Especificações Técnicas</h3>
               
-              <div className="grid md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="body_color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cor do Veículo</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Branco, Azul..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="axles"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número de Eixos</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="2"
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="power_ps"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Potência (PS)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="450"
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
               <div className="grid md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -510,6 +491,27 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
 
                 <FormField
                   control={form.control}
+                  name="power_ps"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Potência (PS)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="450"
+                          {...field} 
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
                   name="drivetrain"
                   render={({ field }) => (
                     <FormItem>
@@ -517,7 +519,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a tração" />
+                            <SelectValue placeholder="Tração" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -533,9 +535,26 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="axles"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Eixos</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="2"
+                          {...field} 
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="weight_kg"
@@ -554,16 +573,33 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="body_color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cor</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Branco, Azul..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 
-            {/* 3. Imagens do Veículo */}
+            {/* 3. Upload de Imagens */}
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold">Imagens do Veículo</h3>
+              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">📸 Imagens do Veículo</h3>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h4 className="text-base font-medium mb-4 text-gray-700">Imagem Principal</h4>
+                  <h4 className="text-base font-medium mb-4 text-gray-700">
+                    Imagem Principal * 
+                    <span className="text-sm text-gray-500 ml-2">(obrigatória)</span>
+                  </h4>
                   <MainImageUpload
                     image={mainImage}
                     onImageChange={setMainImage}
@@ -571,26 +607,29 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                 </div>
                 
                 <div>
-                  <h4 className="text-base font-medium mb-4 text-gray-700">Imagens Secundárias</h4>
+                  <h4 className="text-base font-medium mb-4 text-gray-700">
+                    Imagens de Detalhe 
+                    <span className="text-sm text-gray-500 ml-2">(máx. 20)</span>
+                  </h4>
                   <SecondaryImagesUpload
                     images={secondaryImages}
                     onImagesChange={setSecondaryImages}
-                    maxImages={9}
+                    maxImages={20}
                   />
                 </div>
               </div>
             </div>
 
-            {/* 4. Estado e Visibilidade */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Estado e Visibilidade</h3>
+            {/* 4. Configurações de Visibilidade */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">👁️ Visibilidade</h3>
               
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="is_published"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
@@ -598,10 +637,10 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Publicado</FormLabel>
-                        <div className="text-sm text-gray-500">
-                          Veículo visível no website
-                        </div>
+                        <FormLabel>Publicar veículo</FormLabel>
+                        <p className="text-sm text-gray-500">
+                          Torna o veículo visível no website
+                        </p>
                       </div>
                     </FormItem>
                   )}
@@ -611,7 +650,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                   control={form.control}
                   name="is_featured"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
@@ -619,10 +658,10 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Destaque</FormLabel>
-                        <div className="text-sm text-gray-500">
-                          Aparecer na página inicial
-                        </div>
+                        <FormLabel>Veículo em destaque</FormLabel>
+                        <p className="text-sm text-gray-500">
+                          Aparece na página inicial
+                        </p>
                       </div>
                     </FormItem>
                   )}
@@ -630,9 +669,9 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
               </div>
             </div>
 
-            {/* 5. Contacto */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Informações de Contacto</h3>
+            {/* 5. Informações de Contacto */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">📞 Contacto</h3>
               
               <FormField
                 control={form.control}
@@ -642,7 +681,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                     <FormLabel>Informações de Contacto</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Nome, telefone, email, horários..." 
+                        placeholder="Nome, telefone, email, horários de contacto..." 
                         rows={3} 
                         {...field} 
                       />
@@ -653,8 +692,8 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
               />
             </div>
 
-            {/* 6. Botões Finais */}
-            <div className="flex gap-4 pt-6">
+            {/* 6. Botões de Ação */}
+            <div className="flex gap-4 pt-6 border-t">
               <Button
                 type="button"
                 variant="outline"
@@ -691,7 +730,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                 }}
                 disabled={isSubmitting}
               >
-                Cancelar
+                Limpar Formulário
               </Button>
             </div>
           </form>
