@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +24,16 @@ const RealOrderManagement = () => {
       cancelled: "bg-red-100 text-red-800"
     };
 
+    const statusLabels = {
+      pending: "Pendente",
+      confirmed: "Confirmado",
+      delivered: "Entregue",
+      cancelled: "Cancelado"
+    };
+
     return (
       <Badge className={colors[status as keyof typeof colors]}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {statusLabels[status as keyof typeof statusLabels] || status}
       </Badge>
     );
   };
@@ -37,9 +45,15 @@ const RealOrderManagement = () => {
       refunded: "bg-gray-100 text-gray-800"
     };
 
+    const paymentLabels = {
+      pending: "Pendente",
+      paid: "Pago",
+      refunded: "Reembolsado"
+    };
+
     return (
       <Badge className={colors[status as keyof typeof colors]}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {paymentLabels[status as keyof typeof paymentLabels] || status}
       </Badge>
     );
   };
@@ -59,7 +73,7 @@ const RealOrderManagement = () => {
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    if (confirm('Are you sure you want to delete this order?')) {
+    if (confirm('Tem a certeza de que deseja eliminar este pedido?')) {
       deleteOrderMutation.mutate(orderId);
     }
   };
@@ -75,7 +89,7 @@ const RealOrderManagement = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-lg">Loading orders...</div>
+        <div className="text-lg">A carregar pedidos...</div>
       </div>
     );
   }
@@ -87,7 +101,7 @@ const RealOrderManagement = () => {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-2xl font-bold">{orders.length}</p>
-              <p className="text-sm text-gray-600">Total Orders</p>
+              <p className="text-sm text-gray-600">Total de Pedidos</p>
             </div>
           </CardContent>
         </Card>
@@ -95,9 +109,9 @@ const RealOrderManagement = () => {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">
-                ${(totalRevenue / 1000000).toFixed(1)}M
+                €{(totalRevenue / 1000000).toFixed(1)}M
               </p>
-              <p className="text-sm text-gray-600">Total Revenue</p>
+              <p className="text-sm text-gray-600">Receita Total</p>
             </div>
           </CardContent>
         </Card>
@@ -107,7 +121,7 @@ const RealOrderManagement = () => {
               <p className="text-2xl font-bold text-blue-600">
                 {orders.filter(o => o.status === "pending").length}
               </p>
-              <p className="text-sm text-gray-600">Pending Orders</p>
+              <p className="text-sm text-gray-600">Pedidos Pendentes</p>
             </div>
           </CardContent>
         </Card>
@@ -117,7 +131,7 @@ const RealOrderManagement = () => {
               <p className="text-2xl font-bold text-orange-600">
                 {orders.filter(o => o.status === "delivered").length}
               </p>
-              <p className="text-sm text-gray-600">Delivered</p>
+              <p className="text-sm text-gray-600">Entregues</p>
             </div>
           </CardContent>
         </Card>
@@ -127,8 +141,8 @@ const RealOrderManagement = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Order Management</CardTitle>
-              <CardDescription>Manage customer orders and track deliveries</CardDescription>
+              <CardTitle>Gestão de Pedidos</CardTitle>
+              <CardDescription>Gerir pedidos de clientes e acompanhar entregas</CardDescription>
             </div>
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -137,16 +151,16 @@ const RealOrderManagement = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Orders</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="all">Todos os Pedidos</SelectItem>
+                  <SelectItem value="pending">Pendentes</SelectItem>
+                  <SelectItem value="confirmed">Confirmados</SelectItem>
+                  <SelectItem value="delivered">Entregues</SelectItem>
+                  <SelectItem value="cancelled">Cancelados</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
-                Export
+                Exportar
               </Button>
             </div>
           </div>
@@ -155,14 +169,14 @@ const RealOrderManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Truck Model</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>ID do Pedido</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Modelo do Veículo</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Pagamento</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -176,8 +190,8 @@ const RealOrderManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>{order.truck_model}</TableCell>
-                  <TableCell>{new Date(order.order_date).toLocaleDateString()}</TableCell>
-                  <TableCell>${order.amount.toLocaleString()}</TableCell>
+                  <TableCell>{new Date(order.order_date).toLocaleDateString('pt-PT')}</TableCell>
+                  <TableCell>€{order.amount.toLocaleString('pt-PT')}</TableCell>
                   <TableCell>
                     <Select 
                       value={order.status} 
@@ -187,10 +201,10 @@ const RealOrderManagement = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="confirmed">Confirmado</SelectItem>
+                        <SelectItem value="delivered">Entregue</SelectItem>
+                        <SelectItem value="cancelled">Cancelado</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -203,15 +217,15 @@ const RealOrderManagement = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="refunded">Refunded</SelectItem>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="paid">Pago</SelectItem>
+                        <SelectItem value="refunded">Reembolsado</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" title="Ver">
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -220,6 +234,7 @@ const RealOrderManagement = () => {
                         onClick={() => handleDeleteOrder(order.id)}
                         className="text-red-600 hover:text-red-700"
                         disabled={deleteOrderMutation.isPending}
+                        title="Eliminar"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -231,7 +246,7 @@ const RealOrderManagement = () => {
           </Table>
           {filteredOrders.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              No orders found matching your criteria.
+              Nenhum pedido encontrado com os critérios selecionados.
             </div>
           )}
         </CardContent>
