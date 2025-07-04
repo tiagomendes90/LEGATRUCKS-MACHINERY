@@ -204,9 +204,12 @@ const NewVehicleCategory = () => {
       <section className="py-16">
         <div className="container mx-auto px-6">
           <NewVehicleFilter 
-            category={category} 
-            onFilterChange={handleFilterChange} 
-            vehicleCount={vehicles?.length || 0}
+            category={category}
+            filters={filters}
+            onFiltersChange={handleFilterChange}
+            onSearch={() => {}}
+            totalCount={vehicles?.length || 0}
+            brands={[]}
           />
 
           {/* Results count and pagination info */}

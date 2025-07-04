@@ -8,6 +8,7 @@ export interface Category {
   slug: string;
   created_at: string;
   updated_at: string;
+  subcategories?: Subcategory[];
 }
 
 export interface Subcategory {
@@ -26,7 +27,10 @@ export const useCategories = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select(`
+          *,
+          subcategories (*)
+        `)
         .order('name');
 
       if (error) {

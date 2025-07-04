@@ -111,6 +111,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
   };
 
   const getActiveFiltersCount = () => {
+    if (!filters) return 0;
     return Object.entries(filters).filter(([key, value]) => value && key !== 'search').length;
   };
 
