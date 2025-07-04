@@ -1,13 +1,6 @@
 
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 const BrandsCarousel = () => {
   const { data: brands = [], isLoading } = useNewVehicleBrands();
@@ -44,36 +37,21 @@ const BrandsCarousel = () => {
           <h2 className="text-3xl font-bold mb-4">Trusted Brands</h2>
           <p className="text-gray-600">We work with the most reliable vehicle manufacturers</p>
         </div>
-        
-        <div className="relative max-w-5xl mx-auto">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {brands.map((brand) => (
-                <CarouselItem key={brand.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
-                  <div className="text-center group cursor-pointer">
-                    <div className="w-16 h-16 bg-white rounded-full shadow-md flex items-center justify-center mx-auto mb-3 group-hover:shadow-lg transition-shadow border-2 border-gray-100">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-primary font-bold text-sm">
-                          {brand.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
-                    <h3 className="font-medium text-sm text-gray-700 group-hover:text-primary transition-colors">
-                      {brand.name}
-                    </h3>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden md:flex" />
-            <CarouselNext className="hidden md:flex" />
-          </Carousel>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          {brands.map((brand) => (
+            <div key={brand.id} className="text-center group cursor-pointer">
+              <div className="w-16 h-16 bg-white rounded-full shadow-md flex items-center justify-center mx-auto mb-3 group-hover:shadow-lg transition-shadow border-2 border-gray-100">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                  <span className="text-primary font-bold text-sm">
+                    {brand.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              <h3 className="font-medium text-sm text-gray-700 group-hover:text-primary transition-colors">
+                {brand.name}
+              </h3>
+            </div>
+          ))}
         </div>
       </div>
     </div>
