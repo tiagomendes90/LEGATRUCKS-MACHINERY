@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Search, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCategories } from "@/hooks/useCategories";
+import { useVehicleBrandsByCategory } from "@/hooks/useNewVehicleBrands";
 
 interface VehicleFilters {
   brand: string;
@@ -89,12 +90,16 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
   onFiltersChange,
   onSearch,
   totalCount,
-  brands,
+  brands: legacyBrands, // Keep for backward compatibility
   category
 }) => {
   const { data: categories = [] } = useCategories();
+  const { data: categoryBrands = [] } = useVehicleBrandsByCategory(category);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [priceRange, setPriceRange] = useState([filters.priceTo ? parseInt(filters.priceTo) : 500000]);
+  
+  // Use the new brands from the category-filtered hook
+  const brands = categoryBrands.length > 0 ? categoryBrands : legacyBrands;
   
   // Filter subcategories by the current category
   const subcategories = React.useMemo(() => {
@@ -192,7 +197,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
               </div>
             )}
 
-            {/* Brand */}
+            {/* Brand - Now uses category-filtered brands */}
             <div>
               <Label htmlFor="brand" className="text-sm font-medium text-gray-700 mb-2 block">
                 Marca
@@ -207,7 +212,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 <SelectContent>
                   <SelectItem value="all">Todas as marcas</SelectItem>
                   {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.slug}>
+                    <SelectItem key={brand.id} value={brand.slug || brand.name.toLowerCase()}>
                       {brand.name}
                     </SelectItem>
                   ))}

@@ -34,6 +34,21 @@ export const VehicleManagement = () => {
     return <Badge className="bg-blue-600">Publicado</Badge>;
   };
 
+  // Display brand categories as badges
+  const getBrandCategoriesBadges = (brand: any) => {
+    if (!brand?.category || !Array.isArray(brand.category)) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {brand.category.map((cat: string, index: number) => (
+          <Badge key={index} variant="outline" className="text-xs">
+            {cat}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
+
   const filteredVehicles = statusFilter === "all" 
     ? vehicles 
     : vehicles.filter(vehicle => {
@@ -158,7 +173,12 @@ export const VehicleManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>{vehicle.subcategory?.name}</TableCell>
-                  <TableCell>{vehicle.brand?.name}</TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{vehicle.brand?.name}</p>
+                      {getBrandCategoriesBadges(vehicle.brand)}
+                    </div>
+                  </TableCell>
                   <TableCell>{vehicle.registration_year}</TableCell>
                   <TableCell>€{vehicle.price_eur.toLocaleString()}</TableCell>
                   <TableCell>{getStatusBadge(vehicle)}</TableCell>
