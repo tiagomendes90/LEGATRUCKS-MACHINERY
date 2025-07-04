@@ -14,6 +14,8 @@ export const useNewVehicleBrands = () => {
   return useQuery({
     queryKey: ['vehicle-brands'],
     queryFn: async () => {
+      console.log('Fetching vehicle brands...');
+      
       const { data, error } = await supabase
         .from('vehicle_brands')
         .select('*')
@@ -24,6 +26,7 @@ export const useNewVehicleBrands = () => {
         throw error;
       }
 
+      console.log('Vehicle brands fetched:', data?.length || 0, data);
       return data || [];
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
