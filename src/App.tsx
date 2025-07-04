@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import TruckCategory from "./pages/TruckCategory";
+import NewVehicleCategory from "./pages/NewVehicleCategory";
 import VehicleDetails from "./pages/VehicleDetails";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -29,9 +30,17 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
+            
+            {/* Old structure routes (mantemos para compatibilidade) */}
             <Route path="/trucks" element={<TruckCategory />} />
             <Route path="/machinery" element={<TruckCategory />} />
             <Route path="/agriculture" element={<TruckCategory />} />
+            
+            {/* New structure routes */}
+            <Route path="/new-trucks" element={<NewVehicleCategory />} />
+            <Route path="/new-machinery" element={<NewVehicleCategory />} />
+            <Route path="/new-agriculture" element={<NewVehicleCategory />} />
+            
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
