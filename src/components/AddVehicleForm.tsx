@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -106,17 +107,32 @@ export const AddVehicleForm = () => {
         return;
       }
 
+      // Validate price format (remove commas and ensure it's a valid number)
+      const cleanPrice = formData.price_eur.replace(/,/g, '');
+      if (isNaN(parseFloat(cleanPrice)) || parseFloat(cleanPrice) <= 0) {
+        toast({
+          title: "Erro de validação",
+          description: "Por favor insira um preço válido.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Create vehicle record first
       const vehicleData = {
         ...formData,
-        price_eur: parseFloat(formData.price_eur),
+        price_eur: parseFloat(cleanPrice),
         registration_year: parseInt(formData.registration_year),
         mileage_km: formData.mileage_km ? parseInt(formData.mileage_km) : null,
         operating_hours: formData.operating_hours ? parseInt(formData.operating_hours) : null,
         axles: formData.axles ? parseInt(formData.axles) : null,
         power_ps: formData.power_ps ? parseInt(formData.power_ps) : null,
         weight_kg: formData.weight_kg ? parseInt(formData.weight_kg) : null,
+        // Ensure drivetrain is one of the valid values or null
+        drivetrain: formData.drivetrain || null,
       };
+
+      console.log('🚀 Creating vehicle with data:', vehicleData);
 
       const { data: vehicle, error: vehicleError } = await supabase
         .from('vehicles')
@@ -124,7 +140,10 @@ export const AddVehicleForm = () => {
         .select()
         .single();
 
-      if (vehicleError) throw vehicleError;
+      if (vehicleError) {
+        console.error('Vehicle creation error:', vehicleError);
+        throw vehicleError;
+      }
 
       console.log('✅ Vehicle created:', vehicle.id);
 
@@ -305,10 +324,14 @@ export const AddVehicleForm = () => {
                   <Label htmlFor="price_eur">Preço (EUR) *</Label>
                   <Input
                     id="price_eur"
-                    type="number"
+                    type="text"
                     value={formData.price_eur}
-                    onChange={(e) => handleInputChange('price_eur', e.target.value)}
-                    placeholder="Ex: 45000"
+                    onChange={(e) => {
+                      // Allow numbers, commas, and dots
+                      const value = e.target.value.replace(/[^0-9.,]/g, '');
+                      handleInputChange('price_eur', value);
+                    }}
+                    placeholder="Ex: 45000 ou 45.000"
                     required
                   />
                 </div>
@@ -366,9 +389,10 @@ export const AddVehicleForm = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="diesel">Diesel</SelectItem>
-                      <SelectItem value="gasoline">Gasolina</SelectItem>
+                      <SelectItem value="petrol">Gasolina</SelectItem>
                       <SelectItem value="electric">Elétrico</SelectItem>
                       <SelectItem value="hybrid">Híbrido</SelectItem>
+                      <SelectItem value="gas">Gás</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
