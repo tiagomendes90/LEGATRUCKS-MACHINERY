@@ -162,47 +162,53 @@ export type Database = {
           amount: number
           created_at: string | null
           customer_email: string
-          customer_name: string
           id: string
+          message: string | null
+          name: string
           order_date: string
           payment_status: string
+          phone: string | null
           status: string
-          truck_id: string | null
           truck_model: string
           updated_at: string | null
+          vehicle_id: string | null
         }
         Insert: {
           amount: number
           created_at?: string | null
           customer_email: string
-          customer_name: string
           id?: string
+          message?: string | null
+          name: string
           order_date?: string
           payment_status?: string
+          phone?: string | null
           status?: string
-          truck_id?: string | null
           truck_model: string
           updated_at?: string | null
+          vehicle_id?: string | null
         }
         Update: {
           amount?: number
           created_at?: string | null
           customer_email?: string
-          customer_name?: string
           id?: string
+          message?: string | null
+          name?: string
           order_date?: string
           payment_status?: string
+          phone?: string | null
           status?: string
-          truck_id?: string | null
           truck_model?: string
           updated_at?: string | null
+          vehicle_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "orders_truck_id_fkey"
-            columns: ["truck_id"]
+            foreignKeyName: "orders_vehicle_id_fkey"
+            columns: ["vehicle_id"]
             isOneToOne: false
-            referencedRelation: "trucks"
+            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]

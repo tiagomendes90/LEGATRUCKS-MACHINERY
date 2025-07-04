@@ -6,24 +6,27 @@ import { useAuth } from '@/hooks/useAuth';
 
 export interface ContactOrder {
   id: string;
-  customer_name: string;
+  name: string;
   customer_email: string;
   truck_model: string;
   amount: number;
   status: string;
   payment_status: string;
   order_date: string;
-  truck_id?: string;
+  vehicle_id?: string;
+  phone?: string | null;
+  message?: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateContactOrderData {
-  customer_name: string;
+  name: string;
   customer_email: string;
   vehicle_id: string;
   vehicle_title: string;
   vehicle_price: number;
+  phone?: string;
   message?: string;
 }
 
@@ -37,13 +40,15 @@ export const useCreateContactOrder = () => {
       const { data, error } = await supabase
         .from('orders')
         .insert([{
-          customer_name: orderData.customer_name,
+          name: orderData.name,
           customer_email: orderData.customer_email,
-          truck_id: orderData.vehicle_id,
+          vehicle_id: orderData.vehicle_id,
           truck_model: orderData.vehicle_title,
           amount: orderData.vehicle_price,
           status: 'pending',
           payment_status: 'pending',
+          phone: orderData.phone || null,
+          message: orderData.message || null,
         }])
         .select()
         .single();
@@ -99,8 +104,8 @@ export const useContactOrders = () => {
       return data || [];
     },
     enabled: !!(user && isAdmin),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 15, // 15 minutes
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
   });
 };
 

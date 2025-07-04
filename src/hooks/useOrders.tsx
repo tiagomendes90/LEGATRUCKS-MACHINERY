@@ -1,36 +1,38 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Order {
   id: string;
-  customer_name: string;
+  name: string;
   customer_email: string;
-  truck_id: string | null;
+  vehicle_id: string | null;
   truck_model: string;
   order_date: string;
   amount: number;
   status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
   payment_status: 'pending' | 'paid' | 'refunded';
+  phone?: string | null;
+  message?: string | null;
   created_at?: string;
   updated_at?: string;
 }
 
-export const useOrders = (status?: string, limit = 50) => { // Reduced default limit from 100 to 50
+export const useOrders = (status?: string, limit = 50) => {
   return useQuery({
     queryKey: ['orders', status, limit],
     queryFn: async () => {
       console.log('Fetching orders with indexed query...');
       
-      // Use indexed columns for better performance
       let query = supabase
         .from('orders')
         .select('*')
-        .order('created_at', { ascending: false }) // Uses idx_orders_created_at index
+        .order('created_at', { ascending: false })
         .limit(limit);
 
       if (status) {
-        query = query.eq('status', status); // Uses idx_orders_status index
+        query = query.eq('status', status);
       }
 
       const { data, error } = await query;
@@ -43,11 +45,11 @@ export const useOrders = (status?: string, limit = 50) => { // Reduced default l
       console.log('Orders fetched successfully:', data?.length || 0, 'orders found');
       return data as Order[];
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes (increased from 2)
-    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes (increased from 5)
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // Don't refetch on mount if data exists
-    refetchInterval: 1000 * 60 * 10, // Background refetch every 10 minutes
+    refetchOnMount: false,
+    refetchInterval: 1000 * 60 * 10,
   });
 };
 

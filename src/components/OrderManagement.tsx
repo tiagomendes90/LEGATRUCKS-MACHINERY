@@ -9,55 +9,65 @@ import { Eye, Download, Filter } from "lucide-react";
 
 interface Order {
   id: string;
-  customerName: string;
-  customerEmail: string;
-  truckModel: string;
-  orderDate: string;
+  name: string;
+  customer_email: string;
+  truck_model: string;
+  order_date: string;
   amount: number;
   status: "pending" | "confirmed" | "delivered" | "cancelled";
-  paymentStatus: "pending" | "paid" | "refunded";
+  payment_status: "pending" | "paid" | "refunded";
+  phone?: string | null;
+  message?: string | null;
 }
 
 const mockOrders: Order[] = [
   {
     id: "ORD-001",
-    customerName: "ABC Logistics Inc.",
-    customerEmail: "contact@abclogistics.com",
-    truckModel: "Volvo FH16 750",
-    orderDate: "2024-01-15",
+    name: "ABC Logistics Inc.",
+    customer_email: "contact@abclogistics.com",
+    truck_model: "Volvo FH16 750",
+    order_date: "2024-01-15",
     amount: 185000,
     status: "confirmed",
-    paymentStatus: "paid"
+    payment_status: "paid",
+    phone: "+351 912 345 678",
+    message: "Interested in this vehicle for our fleet expansion."
   },
   {
     id: "ORD-002",
-    customerName: "TransGlobal Solutions",
-    customerEmail: "orders@transglobal.com",
-    truckModel: "Scania R500",
-    orderDate: "2024-01-14",
+    name: "TransGlobal Solutions",
+    customer_email: "orders@transglobal.com",
+    truck_model: "Scania R500",
+    order_date: "2024-01-14",
     amount: 165000,
     status: "pending",
-    paymentStatus: "pending"
+    payment_status: "pending",
+    phone: "+351 913 456 789",
+    message: null
   },
   {
     id: "ORD-003",
-    customerName: "Highway Masters LLC",
-    customerEmail: "fleet@highwaymasters.com",
-    truckModel: "Mercedes Actros 2551",
-    orderDate: "2024-01-12",
+    name: "Highway Masters LLC",
+    customer_email: "fleet@highwaymasters.com",
+    truck_model: "Mercedes Actros 2551",
+    order_date: "2024-01-12",
     amount: 175000,
     status: "delivered",
-    paymentStatus: "paid"
+    payment_status: "paid",
+    phone: null,
+    message: "Need urgent delivery for project deadline."
   },
   {
     id: "ORD-004",
-    customerName: "City Freight Co.",
-    customerEmail: "purchasing@cityfreight.com",
-    truckModel: "MAN TGX 540",
-    orderDate: "2024-01-10",
+    name: "City Freight Co.",
+    customer_email: "purchasing@cityfreight.com",
+    truck_model: "MAN TGX 540",
+    order_date: "2024-01-10",
     amount: 155000,
     status: "cancelled",
-    paymentStatus: "refunded"
+    payment_status: "refunded",
+    phone: "+351 915 678 901",
+    message: "Changed requirements, looking for different specifications."
   },
 ];
 
@@ -66,13 +76,6 @@ const OrderManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      pending: "default",
-      confirmed: "secondary",
-      delivered: "default",
-      cancelled: "destructive"
-    };
-    
     const colors = {
       pending: "bg-yellow-100 text-yellow-800",
       confirmed: "bg-blue-100 text-blue-800",
@@ -106,7 +109,7 @@ const OrderManagement = () => {
     : orders.filter(order => order.status === statusFilter);
 
   const totalRevenue = orders
-    .filter(order => order.paymentStatus === "paid")
+    .filter(order => order.payment_status === "paid")
     .reduce((sum, order) => sum + order.amount, 0);
 
   return (
@@ -124,7 +127,7 @@ const OrderManagement = () => {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">
-                ${(totalRevenue / 1000000).toFixed(1)}M
+                €{(totalRevenue / 1000000).toFixed(1)}M
               </p>
               <p className="text-sm text-gray-600">Total Revenue</p>
             </div>
@@ -186,11 +189,12 @@ const OrderManagement = () => {
               <TableRow>
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead>Truck Model</TableHead>
+                <TableHead>Vehicle Model</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Payment</TableHead>
+                <TableHead>Contact</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -200,15 +204,25 @@ const OrderManagement = () => {
                   <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.customerName}</p>
-                      <p className="text-sm text-gray-500">{order.customerEmail}</p>
+                      <p className="font-medium">{order.name}</p>
+                      <p className="text-sm text-gray-500">{order.customer_email}</p>
                     </div>
                   </TableCell>
-                  <TableCell>{order.truckModel}</TableCell>
-                  <TableCell>{order.orderDate}</TableCell>
-                  <TableCell>${order.amount.toLocaleString()}</TableCell>
+                  <TableCell>{order.truck_model}</TableCell>
+                  <TableCell>{order.order_date}</TableCell>
+                  <TableCell>€{order.amount.toLocaleString()}</TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>{getPaymentBadge(order.paymentStatus)}</TableCell>
+                  <TableCell>{getPaymentBadge(order.payment_status)}</TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {order.phone && <p>📞 {order.phone}</p>}
+                      {order.message && (
+                        <p className="text-gray-500 truncate max-w-32" title={order.message}>
+                          💬 {order.message}
+                        </p>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm">
                       <Eye className="h-4 w-4 mr-1" />
