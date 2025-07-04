@@ -28,7 +28,7 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
     
     try {
       await createOrder.mutateAsync({
-        customer_name: formData.name,
+        name: formData.name,
         customer_email: formData.email,
         vehicle_id: vehicle.id,
         vehicle_title: vehicle.title,

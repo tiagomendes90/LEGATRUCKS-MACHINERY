@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -172,7 +171,7 @@ const RealOrderManagement = () => {
                   <TableCell className="font-medium">{order.id.slice(0, 8)}...</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.customer_name}</p>
+                      <p className="font-medium">{order.name}</p>
                       <p className="text-sm text-gray-500">{order.customer_email}</p>
                     </div>
                   </TableCell>
