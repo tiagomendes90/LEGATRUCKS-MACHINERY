@@ -6,16 +6,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RealOrderManagement from "@/components/RealOrderManagement";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { VehicleManagement } from "@/components/VehicleManagement";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useOrders } from "@/hooks/useOrders";
-import { Plus, Package, Star, TrendingUp, BarChart3 } from "lucide-react";
+import { Plus, Package, Star, TrendingUp, BarChart3, ExternalLink, LogOut } from "lucide-react";
 
 const Admin = () => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, signOut } = useAuth();
   const { data: vehicles = [] } = useVehicles({}, 1000);
   const { data: orders = [] } = useOrders();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -29,6 +30,15 @@ const Admin = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const handleGoToWebsite = () => {
+    navigate("/");
+  };
+
   // Calculate statistics
   const totalInventory = vehicles.length;
   const totalValue = vehicles.reduce((sum, vehicle) => sum + vehicle.price_eur, 0);
@@ -37,8 +47,18 @@ const Admin = () => {
 
   return (
     <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Bem-vindo, geral@lega.pt</h1>
+      <div className="mb-8 flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Bem-vindo, geral@lega.pt</h1>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleGoToWebsite}>
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Ir para Website
+          </Button>
+          <Button variant="outline" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+        </div>
       </div>
 
       {/* Main Statistics Cards */}
