@@ -3,9 +3,9 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { compressMultipleImages, getImageSizeKB } from '@/utils/imageCompression';
 
 interface ImageUploadProps {
   images: File[];
@@ -14,10 +14,10 @@ interface ImageUploadProps {
 }
 
 export const ImageUpload = ({ images, onImagesChange, maxImages = 10 }: ImageUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const { toast } = useToast();
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
     
@@ -39,8 +39,44 @@ export const ImageUpload = ({ images, onImagesChange, maxImages = 10 }: ImageUpl
       return;
     }
 
-    onImagesChange([...images, ...imageFiles]);
-    e.target.value = '';
+    if (imageFiles.length === 0) return;
+
+    setIsCompressing(true);
+
+    try {
+      // Show compression start toast
+      toast({
+        title: "A processar imagens...",
+        description: `Comprimindo ${imageFiles.length} imagem(ns) para WebP...`,
+      });
+
+      // Compress images automatically
+      const compressedImages = await compressMultipleImages(imageFiles);
+      
+      // Calculate total size reduction
+      const originalSize = imageFiles.reduce((sum, file) => sum + getImageSizeKB(file), 0);
+      const compressedSize = compressedImages.reduce((sum, file) => sum + getImageSizeKB(file), 0);
+      const reduction = Math.round(((originalSize - compressedSize) / originalSize) * 100);
+
+      onImagesChange([...images, ...compressedImages]);
+
+      toast({
+        title: "Imagens processadas!",
+        description: `${compressedImages.length} imagem(ns) comprimida(s). Redução: ${reduction}%`,
+      });
+    } catch (error) {
+      console.error('Error compressing images:', error);
+      toast({
+        title: "Erro na compressão",
+        description: "Algumas imagens podem não ter sido comprimidas corretamente.",
+        variant: "destructive",
+      });
+      // Fallback to original images
+      onImagesChange([...images, ...imageFiles]);
+    } finally {
+      setIsCompressing(false);
+      e.target.value = '';
+    }
   }, [images, onImagesChange, maxImages, toast]);
 
   const removeImage = useCallback((index: number) => {
@@ -50,6 +86,14 @@ export const ImageUpload = ({ images, onImagesChange, maxImages = 10 }: ImageUpl
 
   const getImagePreview = (file: File): string => {
     return URL.createObjectURL(file);
+  };
+
+  const formatFileSize = (sizeInBytes: number): string => {
+    const sizeKB = sizeInBytes / 1024;
+    if (sizeKB < 1024) {
+      return `${Math.round(sizeKB)} KB`;
+    }
+    return `${(sizeKB / 1024).toFixed(1)} MB`;
   };
 
   return (
@@ -62,16 +106,31 @@ export const ImageUpload = ({ images, onImagesChange, maxImages = 10 }: ImageUpl
           onChange={handleFileSelect}
           className="hidden"
           id="image-upload"
+          disabled={isCompressing}
         />
         <Button
           type="button"
           variant="outline"
           onClick={() => document.getElementById('image-upload')?.click()}
-          disabled={isUploading || images.length >= maxImages}
+          disabled={isCompressing || images.length >= maxImages}
         >
-          <Upload className="h-4 w-4 mr-2" />
-          Adicionar Imagens ({images.length}/{maxImages})
+          {isCompressing ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              A comprimir...
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              Adicionar Imagens ({images.length}/{maxImages})
+            </>
+          )}
         </Button>
+        {isCompressing && (
+          <p className="text-sm text-gray-500">
+            Comprimindo imagens para WebP (máx. 1MB)...
+          </p>
+        )}
       </div>
 
       {images.length > 0 && (
@@ -91,26 +150,40 @@ export const ImageUpload = ({ images, onImagesChange, maxImages = 10 }: ImageUpl
                     size="sm"
                     className="absolute top-1 right-1 h-6 w-6 p-0"
                     onClick={() => removeImage(index)}
+                    disabled={isCompressing}
                   >
                     <X className="h-3 w-3" />
                   </Button>
+                  {file.type === 'image/webp' && (
+                    <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-1 rounded">
+                      WebP
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-gray-500 mt-2 truncate">
-                  {file.name}
-                </p>
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500 truncate">
+                    {file.name}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {formatFileSize(file.size)}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {images.length === 0 && (
+      {images.length === 0 && !isCompressing && (
         <Card className="border-dashed border-2 border-gray-300">
           <CardContent className="p-8 text-center">
             <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">Nenhuma imagem selecionada</p>
             <p className="text-sm text-gray-400 mt-1">
               Clique em "Adicionar Imagens" para começar
+            </p>
+            <p className="text-xs text-gray-400 mt-2">
+              As imagens serão automaticamente comprimidas para WebP (máx. 1MB, 1280px)
             </p>
           </CardContent>
         </Card>
