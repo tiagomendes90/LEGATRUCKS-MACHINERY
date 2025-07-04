@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,7 @@ export const AddVehicleForm = () => {
     body_color: "",
     location: "",
     contact_info: "",
-    motor_description: "", // Novo campo Motor
+    motor_description: "",
     is_published: false,
     is_featured: false,
     is_active: true,
@@ -49,6 +48,7 @@ export const AddVehicleForm = () => {
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentTab, setCurrentTab] = useState("basic");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -113,6 +113,97 @@ export const AddVehicleForm = () => {
   };
 
   const distanceField = getDistanceFieldInfo();
+
+  // Tab navigation logic
+  const tabs = ["basic", "specs", "images", "settings"];
+  const tabLabels = {
+    basic: "Básico",
+    specs: "Especificações", 
+    images: "Imagens",
+    settings: "Configurações"
+  };
+
+  const getCurrentTabIndex = () => tabs.indexOf(currentTab);
+  const isLastTab = () => getCurrentTabIndex() === tabs.length - 1;
+  const isFirstTab = () => getCurrentTabIndex() === 0;
+
+  const goToNextTab = () => {
+    const currentIndex = getCurrentTabIndex();
+    if (currentIndex < tabs.length - 1) {
+      setCurrentTab(tabs[currentIndex + 1]);
+    }
+  };
+
+  const goToPreviousTab = () => {
+    const currentIndex = getCurrentTabIndex();
+    if (currentIndex > 0) {
+      setCurrentTab(tabs[currentIndex - 1]);
+    }
+  };
+
+  // Validation for current tab
+  const validateCurrentTab = () => {
+    switch (currentTab) {
+      case "basic":
+        if (!formData.title || !formData.price_eur || 
+            !formData.registration_year || !formData.brand_id || !formData.subcategory_id) {
+          toast({
+            title: "Erro de validação",
+            description: "Por favor preencha todos os campos obrigatórios (Nome/Modelo, Categoria, Subcategoria, Marca, Ano, Preço).",
+            variant: "destructive",
+          });
+          return false;
+        }
+        
+        if (distanceField && !formData[distanceField.field as keyof typeof formData]) {
+          toast({
+            title: "Erro de validação",
+            description: `Por favor preencha o campo ${distanceField.label}.`,
+            variant: "destructive",
+          });
+          return false;
+        }
+        
+        const cleanPrice = formData.price_eur.replace(/,/g, '');
+        if (isNaN(parseFloat(cleanPrice)) || parseFloat(cleanPrice) <= 0) {
+          toast({
+            title: "Erro de validação",
+            description: "Por favor insira um preço válido.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+        
+      case "images":
+        if (!mainImage) {
+          toast({
+            title: "Erro de validação",
+            description: "Por favor selecione uma imagem principal.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+        
+      default:
+        return true;
+    }
+  };
+
+  const handleNextOrSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateCurrentTab()) {
+      return;
+    }
+    
+    if (isLastTab()) {
+      await handleSubmit(e);
+    } else {
+      goToNextTab();
+    }
+  };
 
   // handleInputChange function
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -250,6 +341,7 @@ export const AddVehicleForm = () => {
       setSelectedCategoryId("");
       setMainImage(null);
       setSecondaryImages([]);
+      setCurrentTab("basic");
 
     } catch (error) {
       console.error('Error adding vehicle:', error);
@@ -291,8 +383,8 @@ export const AddVehicleForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs defaultValue="basic" className="w-full">
+        <form onSubmit={handleNextOrSubmit} className="space-y-6">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Básico</TabsTrigger>
               <TabsTrigger value="specs">Especificações</TabsTrigger>
@@ -635,13 +727,25 @@ export const AddVehicleForm = () => {
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end space-x-2 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={() => window.location.reload()}>
-              Cancelar
+          <div className="flex justify-between pt-6 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={goToPreviousTab}
+              disabled={isFirstTab()}
+            >
+              Anterior
             </Button>
-            <Button type="submit" disabled={isSubmitting || isUploading}>
-              {isSubmitting || isUploading ? "A processar..." : "Adicionar Veículo"}
-            </Button>
+            
+            <div className="flex space-x-2">
+              <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting || isUploading}>
+                {isSubmitting || isUploading ? "A processar..." : 
+                 isLastTab() ? "Adicionar Veículo" : "Próximo"}
+              </Button>
+            </div>
           </div>
         </form>
       </CardContent>
