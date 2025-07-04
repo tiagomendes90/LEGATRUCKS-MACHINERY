@@ -54,7 +54,8 @@ export const useVehicleBrandsByCategory = (category?: string) => {
 
       // Se categoria especificada, filtrar marcas que incluem essa categoria
       if (category) {
-        query = query.contains('category', [category]);
+        // Use the @> operator for array containment in PostgreSQL
+        query = query.filter('category', 'cs', `{${category}}`);
       }
 
       const { data, error } = await query;
@@ -65,6 +66,7 @@ export const useVehicleBrandsByCategory = (category?: string) => {
       }
 
       console.log(`✅ Brands for category "${category || 'all'}" fetched:`, data?.length || 0);
+      console.log('📋 Filtered brand data:', data);
       return data || [];
     },
     staleTime: 1000 * 60 * 30, // 30 minutes
