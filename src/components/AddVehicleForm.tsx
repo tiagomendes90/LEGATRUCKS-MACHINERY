@@ -55,7 +55,13 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
   const form = useForm<VehicleFormData>({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
+      title: "",
+      description: "",
+      brand_id: "",
+      subcategory_id: "",
       condition: "used",
+      registration_year: new Date().getFullYear(),
+      price_eur: 0,
       is_published: false,
       is_featured: false,
     },
@@ -70,8 +76,28 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
 
   const onSubmit = async (data: VehicleFormData) => {
     try {
+      // Ensure all required fields are present with proper typing
       const vehicleData = {
-        ...data,
+        title: data.title,
+        description: data.description,
+        brand_id: data.brand_id,
+        subcategory_id: data.subcategory_id,
+        condition: data.condition,
+        registration_year: data.registration_year,
+        price_eur: data.price_eur,
+        mileage_km: data.mileage_km,
+        operating_hours: data.operating_hours,
+        fuel_type: data.fuel_type,
+        gearbox: data.gearbox,
+        power_ps: data.power_ps,
+        drivetrain: data.drivetrain,
+        axles: data.axles,
+        weight_kg: data.weight_kg,
+        body_color: data.body_color,
+        location: data.location,
+        contact_info: data.contact_info,
+        is_published: data.is_published,
+        is_featured: data.is_featured,
         is_active: true,
       };
       
