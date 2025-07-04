@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useCategories } from "@/hooks/useCategories";
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
-import MainImageUpload from "./MainImageUpload";
-import SecondaryImagesUpload from "./SecondaryImagesUpload";
-import CategoryFieldMapper from "./CategoryFieldMapper";
+import { MainImageUpload } from "./MainImageUpload";
+import { SecondaryImagesUpload } from "./SecondaryImagesUpload";
 
 export const AddVehicleForm = () => {
   // State declarations
@@ -368,12 +368,115 @@ export const AddVehicleForm = () => {
             </TabsContent>
 
             <TabsContent value="specs" className="space-y-4">
-              <CategoryFieldMapper
-                formData={formData}
-                handleInputChange={handleInputChange}
-                selectedBrand={brands.find(b => b.id === formData.brand_id)}
-                availableSubcategories={availableSubcategories}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="fuel_type">Combustível</Label>
+                  <Select value={formData.fuel_type} onValueChange={(value) => handleInputChange('fuel_type', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o combustível" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="diesel">Diesel</SelectItem>
+                      <SelectItem value="gasoline">Gasolina</SelectItem>
+                      <SelectItem value="electric">Elétrico</SelectItem>
+                      <SelectItem value="hybrid">Híbrido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="gearbox">Transmissão</Label>
+                  <Select value={formData.gearbox} onValueChange={(value) => handleInputChange('gearbox', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a transmissão" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="automatic">Automática</SelectItem>
+                      <SelectItem value="semi-automatic">Semi-automática</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="mileage_km">Quilómetros</Label>
+                  <Input
+                    id="mileage_km"
+                    type="number"
+                    value={formData.mileage_km}
+                    onChange={(e) => handleInputChange('mileage_km', e.target.value)}
+                    placeholder="Ex: 150000"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="operating_hours">Horas de Funcionamento</Label>
+                  <Input
+                    id="operating_hours"
+                    type="number"
+                    value={formData.operating_hours}
+                    onChange={(e) => handleInputChange('operating_hours', e.target.value)}
+                    placeholder="Ex: 5000"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="power_ps">Potência (PS)</Label>
+                  <Input
+                    id="power_ps"
+                    type="number"
+                    value={formData.power_ps}
+                    onChange={(e) => handleInputChange('power_ps', e.target.value)}
+                    placeholder="Ex: 500"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="drivetrain">Tração</Label>
+                  <Select value={formData.drivetrain} onValueChange={(value) => handleInputChange('drivetrain', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a tração" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2wd">2WD</SelectItem>
+                      <SelectItem value="4wd">4WD</SelectItem>
+                      <SelectItem value="awd">AWD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="axles">Número de Eixos</Label>
+                  <Input
+                    id="axles"
+                    type="number"
+                    value={formData.axles}
+                    onChange={(e) => handleInputChange('axles', e.target.value)}
+                    placeholder="Ex: 2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="weight_kg">Peso (kg)</Label>
+                  <Input
+                    id="weight_kg"
+                    type="number"
+                    value={formData.weight_kg}
+                    onChange={(e) => handleInputChange('weight_kg', e.target.value)}
+                    placeholder="Ex: 40000"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="body_color">Cor</Label>
+                  <Input
+                    id="body_color"
+                    value={formData.body_color}
+                    onChange={(e) => handleInputChange('body_color', e.target.value)}
+                    placeholder="Ex: Azul"
+                  />
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="images" className="space-y-4">
