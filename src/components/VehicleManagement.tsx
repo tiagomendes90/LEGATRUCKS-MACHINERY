@@ -10,7 +10,7 @@ import { useVehicles, useDeleteVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
 
 export const VehicleManagement = () => {
-  const { data: vehicles = [], isLoading } = useVehicles({}, 50); // Get more vehicles for admin
+  const { data: vehicles = [], isLoading } = useVehicles({}, 50);
   const deleteVehicleMutation = useDeleteVehicle();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
