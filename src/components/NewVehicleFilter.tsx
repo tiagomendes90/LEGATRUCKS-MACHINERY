@@ -19,7 +19,7 @@ interface NewVehicleFilterProps {
 const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [filters, setFilters] = useState<VehicleFilters>({
-    category: category || '',
+    category: category || undefined,
   });
 
   const { data: categories = [] } = useCategories();
@@ -29,7 +29,7 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
   // Update category when prop changes
   useEffect(() => {
     if (category && category !== filters.category) {
-      setFilters(prev => ({ ...prev, category, subcategory: '' }));
+      setFilters(prev => ({ ...prev, category, subcategory: undefined }));
     }
   }, [category, filters.category]);
 
@@ -56,7 +56,7 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
   };
 
   const clearAllFilters = () => {
-    setFilters({ category: category || '' });
+    setFilters({ category: category || undefined });
   };
 
   const getActiveFiltersCount = () => {
@@ -149,14 +149,14 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
           <div>
             <Label htmlFor="category">Categoria</Label>
             <Select 
-              value={filters.category || ''} 
-              onValueChange={(value) => handleFilterChange('category', value)}
+              value={filters.category || 'all'} 
+              onValueChange={(value) => handleFilterChange('category', value === 'all' ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Todas as categorias" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.slug}>
                     {cat.name}
@@ -169,15 +169,15 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
           <div>
             <Label htmlFor="subcategory">Subcategoria</Label>
             <Select 
-              value={filters.subcategory || ''} 
-              onValueChange={(value) => handleFilterChange('subcategory', value)}
+              value={filters.subcategory || 'all'} 
+              onValueChange={(value) => handleFilterChange('subcategory', value === 'all' ? undefined : value)}
               disabled={!filters.category}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Todas as subcategorias" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as subcategorias</SelectItem>
+                <SelectItem value="all">Todas as subcategorias</SelectItem>
                 {subcategories.map((sub) => (
                   <SelectItem key={sub.id} value={sub.slug}>
                     {sub.name}
@@ -190,14 +190,14 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
           <div>
             <Label htmlFor="brand">Marca</Label>
             <Select 
-              value={filters.brand || ''} 
-              onValueChange={(value) => handleFilterChange('brand', value)}
+              value={filters.brand || 'all'} 
+              onValueChange={(value) => handleFilterChange('brand', value === 'all' ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Todas as marcas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as marcas</SelectItem>
+                <SelectItem value="all">Todas as marcas</SelectItem>
                 {brands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.slug}>
                     {brand.name}
@@ -210,13 +210,14 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
           <div>
             <Label htmlFor="sortBy">Ordenar por</Label>
             <Select 
-              value={filters.sortBy || ''} 
-              onValueChange={(value) => handleFilterChange('sortBy', value)}
+              value={filters.sortBy || 'default'} 
+              onValueChange={(value) => handleFilterChange('sortBy', value === 'default' ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="default">Padrão</SelectItem>
                 {sortOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -279,14 +280,14 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
               <div>
                 <Label htmlFor="condition">Condição</Label>
                 <Select 
-                  value={filters.condition || ''} 
-                  onValueChange={(value) => handleFilterChange('condition', value)}
+                  value={filters.condition || 'all'} 
+                  onValueChange={(value) => handleFilterChange('condition', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as condições" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as condições</SelectItem>
+                    <SelectItem value="all">Todas as condições</SelectItem>
                     {conditionOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -299,14 +300,14 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
               <div>
                 <Label htmlFor="fuelType">Combustível</Label>
                 <Select 
-                  value={filters.fuelType || ''} 
-                  onValueChange={(value) => handleFilterChange('fuelType', value)}
+                  value={filters.fuelType || 'all'} 
+                  onValueChange={(value) => handleFilterChange('fuelType', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todos os combustíveis" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os combustíveis</SelectItem>
+                    <SelectItem value="all">Todos os combustíveis</SelectItem>
                     {fuelTypeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -319,14 +320,14 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
               <div>
                 <Label htmlFor="gearbox">Caixa de Velocidades</Label>
                 <Select 
-                  value={filters.gearbox || ''} 
-                  onValueChange={(value) => handleFilterChange('gearbox', value)}
+                  value={filters.gearbox || 'all'} 
+                  onValueChange={(value) => handleFilterChange('gearbox', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as caixas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as caixas</SelectItem>
+                    <SelectItem value="all">Todas as caixas</SelectItem>
                     {gearboxOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -475,14 +476,14 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
               <div>
                 <Label htmlFor="drivetrain">Tração</Label>
                 <Select 
-                  value={filters.drivetrain || ''} 
-                  onValueChange={(value) => handleFilterChange('drivetrain', value)}
+                  value={filters.drivetrain || 'all'} 
+                  onValueChange={(value) => handleFilterChange('drivetrain', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as trações" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as trações</SelectItem>
+                    <SelectItem value="all">Todas as trações</SelectItem>
                     {drivetrainOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
