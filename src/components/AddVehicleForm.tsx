@@ -1,129 +1,227 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useVehicleForm } from "@/hooks/useVehicleForm";
-import { VehicleBasicInfoForm } from "./vehicle-form/VehicleBasicInfoForm";
-import { VehicleSpecsForm } from "./vehicle-form/VehicleSpecsForm";
-import { VehicleImagesForm } from "./vehicle-form/VehicleImagesForm";
-import { VehicleSettingsForm } from "./vehicle-form/VehicleSettingsForm";
-import { VehicleFormNavigation } from "./vehicle-form/VehicleFormNavigation";
-import { validateVehicleFormTab } from "./vehicle-form/VehicleFormValidation";
+import { useAddVehicle, useUpdateVehicle } from "@/hooks/useVehicles";
+import { VehicleBasicInfoForm } from "@/components/vehicle-form/VehicleBasicInfoForm";
+import { VehicleSpecsForm } from "@/components/vehicle-form/VehicleSpecsForm";
+import { VehicleImagesForm } from "@/components/vehicle-form/VehicleImagesForm";
+import { VehicleSettingsForm } from "@/components/vehicle-form/VehicleSettingsForm";
+import { VehicleFormNavigation } from "@/components/vehicle-form/VehicleFormNavigation";
+import { validateVehicleFormTab } from "@/components/vehicle-form/VehicleFormValidation";
+import { useCategories } from "@/hooks/useCategories";
+import { CategoryFieldMapper } from "@/components/CategoryFieldMapper";
+import { useImageKitUpload } from "@/hooks/useImageKitUpload";
 
-export const AddVehicleForm = () => {
+interface AddVehicleFormProps {
+  editingVehicle?: any;
+  onSuccess?: () => void;  
+  onCancel?: () => void;
+}
+
+const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormProps) => {
   const { toast } = useToast();
+  const { data: categories = [] } = useCategories();
+  
   const {
     formData,
-    selectedCategoryId,
-    mainImage,
-    secondaryImages,
+    setFormData,
     currentTab,
-    isSubmitting,
-    isUploading,
-    categoriesLoading,
-    brandsLoading,
-    brandsError,
-    categories,
-    availableSubcategories,
-    availableBrands,
-    handleInputChange,
-    setSelectedCategoryId,
-    setMainImage,
-    setSecondaryImages,
     setCurrentTab,
-    getDistanceFieldInfo,
-    submitVehicle,
+    mainImage,
+    setMainImage,
+    secondaryImages,
+    setSecondaryImages,
     resetForm
   } = useVehicleForm();
 
-  const distanceField = getDistanceFieldInfo();
+  const addVehicleMutation = useAddVehicle();
+  const updateVehicleMutation = useUpdateVehicle();
+  const { uploadImages, isUploading } = useImageKitUpload();
 
-  // Tab navigation logic
-  const tabs = ["basic", "specs", "images", "settings"];
-  const getCurrentTabIndex = () => tabs.indexOf(currentTab);
-  const isLastTab = () => getCurrentTabIndex() === tabs.length - 1;
-  const isFirstTab = () => getCurrentTabIndex() === 0;
+  const isEditMode = !!editingVehicle;
 
-  const goToNextTab = () => {
-    const currentIndex = getCurrentTabIndex();
-    if (currentIndex < tabs.length - 1) {
-      setCurrentTab(tabs[currentIndex + 1]);
+  // Load editing vehicle data
+  useEffect(() => {
+    if (editingVehicle) {
+      setFormData({
+        title: editingVehicle.title || '',
+        description: editingVehicle.description || '',
+        brand_id: editingVehicle.brand_id || '',
+        subcategory_id: editingVehicle.subcategory_id || '',
+        condition: editingVehicle.condition || 'used',
+        registration_year: editingVehicle.registration_year || new Date().getFullYear(),
+        mileage_km: editingVehicle.mileage_km || undefined,
+        operating_hours: editingVehicle.operating_hours || undefined,
+        price_eur: editingVehicle.price_eur?.toString() || '',
+        fuel_type: editingVehicle.fuel_type || '',
+        gearbox: editingVehicle.gearbox || '',
+        power_ps: editingVehicle.power_ps || undefined,
+        drivetrain: editingVehicle.drivetrain || '',
+        axles: editingVehicle.axles || undefined,
+        weight_kg: editingVehicle.weight_kg || undefined,
+        body_color: editingVehicle.body_color || '',
+        location: editingVehicle.location || '',
+        contact_info: editingVehicle.contact_info || '',
+        is_active: editingVehicle.is_active ?? true,
+        is_featured: editingVehicle.is_featured ?? false,
+        is_published: editingVehicle.is_published ?? false,
+      });
     }
-  };
+  }, [editingVehicle, setFormData]);
 
-  const goToPreviousTab = () => {
-    const currentIndex = getCurrentTabIndex();
-    if (currentIndex > 0) {
-      setCurrentTab(tabs[currentIndex - 1]);
-    }
-  };
+  const tabs = [
+    { id: "basic", label: "Informações Básicas" },
+    { id: "specs", label: "Especificações" },
+    { id: "images", label: "Imagens" },
+    { id: "settings", label: "Configurações" }
+  ];
 
-  const handleNextOrSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const currentTabIndex = tabs.findIndex(tab => tab.id === currentTab);
+  const isFirstTab = currentTabIndex === 0;
+  const isLastTab = currentTabIndex === tabs.length - 1;
+
+  const subcategory = categories
+    .flatMap(cat => cat.subcategories || [])
+    .find(sub => sub.id === formData.subcategory_id);
+
+  const distanceField = subcategory ? CategoryFieldMapper.getDistanceField(subcategory.slug) : null;
+
+  const handleNext = () => {
     if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage, toast)) {
       return;
     }
-    
-    if (isLastTab()) {
-      await submitVehicle();
+
+    const nextIndex = Math.min(currentTabIndex + 1, tabs.length - 1);
+    setCurrentTab(tabs[nextIndex].id);
+  };
+
+  const handlePrevious = () => {
+    const prevIndex = Math.max(currentTabIndex - 1, 0);
+    setCurrentTab(tabs[prevIndex].id);
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
     } else {
-      goToNextTab();
+      resetForm();
     }
   };
 
-  if (categoriesLoading || brandsLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-lg">A carregar formulário...</div>
-      </div>
-    );
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (brandsError) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="text-lg text-red-600 mb-2">Erro ao carregar marcas</div>
-          <p className="text-gray-600">Tente recarregar a página</p>
-        </div>
-      </div>
-    );
-  }
+    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage, toast)) {
+      return;
+    }
+
+    try {
+      const cleanPrice = formData.price_eur.replace(/,/g, '');
+      let mainImageUrl = editingVehicle?.main_image_url || '';
+      let secondaryImageUrls: string[] = [];
+
+      // Handle image uploads
+      if (mainImage || secondaryImages.length > 0) {
+        const allImages = [];
+        if (mainImage) allImages.push(mainImage);
+        allImages.push(...secondaryImages);
+
+        const uploadedUrls = await uploadImages(allImages);
+        
+        if (mainImage) {
+          mainImageUrl = uploadedUrls[0];
+          secondaryImageUrls = uploadedUrls.slice(1);
+        } else {
+          secondaryImageUrls = uploadedUrls;
+        }
+      }
+
+      const vehicleData = {
+        title: formData.title,
+        description: formData.description,
+        brand_id: formData.brand_id,  
+        subcategory_id: formData.subcategory_id,
+        condition: formData.condition as 'new' | 'used' | 'restored' | 'modified',
+        registration_year: formData.registration_year,
+        mileage_km: formData.mileage_km,
+        operating_hours: formData.operating_hours,
+        price_eur: parseFloat(cleanPrice),
+        fuel_type: formData.fuel_type as 'diesel' | 'electric' | 'hybrid' | 'petrol' | 'gas',
+        gearbox: formData.gearbox as 'manual' | 'automatic' | 'semi-automatic',
+        power_ps: formData.power_ps,
+        drivetrain: formData.drivetrain as '4x2' | '4x4' | '6x2' | '6x4' | '8x4' | '8x6',
+        axles: formData.axles,
+        weight_kg: formData.weight_kg,
+        body_color: formData.body_color,
+        main_image_url: mainImageUrl,
+        location: formData.location,
+        contact_info: formData.contact_info,
+        is_active: formData.is_active,
+        is_featured: formData.is_featured,
+        is_published: formData.is_published,
+      };
+
+      if (isEditMode) {
+        await updateVehicleMutation.mutateAsync({
+          id: editingVehicle.id,
+          ...vehicleData
+        });
+        toast({
+          title: "Sucesso",
+          description: "Veículo atualizado com sucesso!",
+        });
+      } else {
+        await addVehicleMutation.mutateAsync(vehicleData);
+        toast({
+          title: "Sucesso", 
+          description: "Veículo adicionado com sucesso!",
+        });
+        resetForm();
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Error submitting vehicle:', error);
+      toast({
+        title: "Erro",
+        description: isEditMode ? "Erro ao atualizar veículo." : "Erro ao adicionar veículo.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Adicionar Novo Veículo</CardTitle>
-        <CardDescription>
-          Preencha os detalhes do veículo - as imagens serão otimizadas automaticamente via ImageKit
-        </CardDescription>
+        <CardTitle>
+          {isEditMode ? "Editar Veículo" : "Adicionar Novo Veículo"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleNextOrSubmit} className="space-y-6">
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+        <form onSubmit={handleSubmit}>
+          <Tabs value={currentTab} onValueChange={setCurrentTab}>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="basic">Básico</TabsTrigger>
-              <TabsTrigger value="specs">Especificações</TabsTrigger>
-              <TabsTrigger value="images">Imagens</TabsTrigger>
-              <TabsTrigger value="settings">Configurações</TabsTrigger>
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id}>
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <VehicleBasicInfoForm
+            <VehicleBasicInfoForm 
               formData={formData}
-              selectedCategoryId={selectedCategoryId}
-              categories={categories}
-              availableSubcategories={availableSubcategories}
-              availableBrands={availableBrands}
+              setFormData={setFormData}
               distanceField={distanceField}
-              onInputChange={handleInputChange}
-              onCategoryChange={setSelectedCategoryId}
             />
 
-            <VehicleSpecsForm
+            <VehicleSpecsForm 
               formData={formData}
-              onInputChange={handleInputChange}
+              setFormData={setFormData}
             />
 
             <VehicleImagesForm
@@ -135,21 +233,23 @@ export const AddVehicleForm = () => {
 
             <VehicleSettingsForm
               formData={formData}
-              onInputChange={handleInputChange}
+              setFormData={setFormData}
             />
           </Tabs>
 
           <VehicleFormNavigation
             currentTab={currentTab}
-            isFirstTab={isFirstTab()}
-            isLastTab={isLastTab()}
-            isSubmitting={isSubmitting}
+            isFirstTab={isFirstTab}
+            isLastTab={isLastTab}
+            isSubmitting={addVehicleMutation.isPending || updateVehicleMutation.isPending}
             isUploading={isUploading}
-            onPrevious={goToPreviousTab}
-            onCancel={() => window.location.reload()}
+            onPrevious={handlePrevious}
+            onCancel={handleCancel}
           />
         </form>
       </CardContent>
     </Card>
   );
 };
+
+export default AddVehicleForm;

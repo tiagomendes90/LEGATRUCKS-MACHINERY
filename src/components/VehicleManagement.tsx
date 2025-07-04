@@ -1,24 +1,48 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Eye, Edit, Trash2, Filter } from "lucide-react";
 import { useVehicles, useDeleteVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import AddVehicleForm from "@/components/AddVehicleForm";
 
 export const VehicleManagement = () => {
   // Use includeUnpublished=true to show all vehicles in admin panel
   const { data: vehicles = [], isLoading } = useVehicles({}, 50, true);
   const deleteVehicleMutation = useDeleteVehicle();
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [editingVehicle, setEditingVehicle] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleDeleteVehicle = (vehicleId: string) => {
     if (confirm('Tem a certeza de que deseja eliminar este veículo?')) {
       deleteVehicleMutation.mutate(vehicleId);
     }
+  };
+
+  const handleViewVehicle = (vehicleId: string) => {
+    // Navigate to vehicle details page
+    navigate(`/vehicle/${vehicleId}`);
+  };
+
+  const handleEditVehicle = (vehicle: any) => {
+    setEditingVehicle(vehicle);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditComplete = () => {
+    setIsEditDialogOpen(false);
+    setEditingVehicle(null);
+    // Refresh the vehicles list
+    window.location.reload();
   };
 
   const getStatusBadge = (vehicle: any) => {
@@ -165,10 +189,20 @@ export const VehicleManagement = () => {
                   <TableCell>{getStatusBadge(vehicle)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm" title="Ver">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        title="Ver"
+                        onClick={() => handleViewVehicle(vehicle.id)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" title="Editar">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        title="Editar"
+                        onClick={() => handleEditVehicle(vehicle)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -194,6 +228,22 @@ export const VehicleManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Vehicle Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Veículo</DialogTitle>
+          </DialogHeader>
+          {editingVehicle && (
+            <AddVehicleForm 
+              editingVehicle={editingVehicle}
+              onSuccess={handleEditComplete}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
