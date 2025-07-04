@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export const AddVehicleForm = () => {
     body_color: "",
     location: "",
     contact_info: "",
+    motor_description: "", // Novo campo Motor
     is_published: false,
     is_featured: false,
     is_active: true,
@@ -54,8 +56,9 @@ export const AddVehicleForm = () => {
   const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
   const { uploadImages, isUploading } = useImageKitUpload();
 
-  // Get selected category
+  // Get selected category info
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+  const selectedCategoryName = selectedCategory?.name?.toLowerCase();
 
   // Filter subcategories based on selected category
   const availableSubcategories = selectedCategory?.subcategories || [];
@@ -78,10 +81,38 @@ export const AddVehicleForm = () => {
       setFormData(prev => ({ 
         ...prev, 
         subcategory_id: "",
-        brand_id: ""
+        brand_id: "",
+        // Reset distance fields when category changes
+        mileage_km: "",
+        operating_hours: ""
       }));
     }
   }, [selectedCategoryId]);
+
+  // Determine which distance field to show based on category
+  const getDistanceFieldInfo = () => {
+    if (!selectedCategoryName) return null;
+    
+    switch (selectedCategoryName) {
+      case 'trucks':
+        return {
+          field: 'mileage_km',
+          label: 'Quilómetros (km)',
+          placeholder: 'Ex: 150000'
+        };
+      case 'machinery':
+      case 'agriculture':
+        return {
+          field: 'operating_hours',
+          label: 'Horas de Funcionamento (h)',
+          placeholder: 'Ex: 5000'
+        };
+      default:
+        return null;
+    }
+  };
+
+  const distanceField = getDistanceFieldInfo();
 
   // handleInputChange function
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -98,17 +129,27 @@ export const AddVehicleForm = () => {
 
     try {
       // Validate required fields
-      if (!formData.title || !formData.description || !formData.price_eur || 
+      if (!formData.title || !formData.price_eur || 
           !formData.registration_year || !formData.brand_id || !formData.subcategory_id) {
         toast({
           title: "Erro de validação",
-          description: "Por favor preencha todos os campos obrigatórios.",
+          description: "Por favor preencha todos os campos obrigatórios (Nome/Modelo, Categoria, Subcategoria, Marca, Ano, Preço).",
           variant: "destructive",
         });
         return;
       }
 
-      // Validate price format (remove commas and ensure it's a valid number)
+      // Validate distance field based on category
+      if (distanceField && !formData[distanceField.field as keyof typeof formData]) {
+        toast({
+          title: "Erro de validação",
+          description: `Por favor preencha o campo ${distanceField.label}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate price format
       const cleanPrice = formData.price_eur.replace(/,/g, '');
       if (isNaN(parseFloat(cleanPrice)) || parseFloat(cleanPrice) <= 0) {
         toast({
@@ -121,9 +162,13 @@ export const AddVehicleForm = () => {
 
       // Create vehicle record first
       const vehicleData = {
-        ...formData,
+        title: formData.title,
+        description: formData.description || null,
         price_eur: parseFloat(cleanPrice),
         registration_year: parseInt(formData.registration_year),
+        condition: formData.condition,
+        brand_id: formData.brand_id,
+        subcategory_id: formData.subcategory_id,
         mileage_km: formData.mileage_km ? parseInt(formData.mileage_km) : null,
         operating_hours: formData.operating_hours ? parseInt(formData.operating_hours) : null,
         axles: formData.axles ? parseInt(formData.axles) : null,
@@ -136,6 +181,10 @@ export const AddVehicleForm = () => {
         body_color: formData.body_color || null,
         location: formData.location || null,
         contact_info: formData.contact_info || null,
+        // Settings
+        is_published: formData.is_published,
+        is_featured: formData.is_featured,
+        is_active: formData.is_active,
       };
 
       console.log('🚀 Creating vehicle with data:', vehicleData);
@@ -193,6 +242,7 @@ export const AddVehicleForm = () => {
         body_color: "",
         location: "",
         contact_info: "",
+        motor_description: "",
         is_published: false,
         is_featured: false,
         is_active: true,
@@ -253,7 +303,7 @@ export const AddVehicleForm = () => {
             <TabsContent value="basic" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <Label htmlFor="title">Título *</Label>
+                  <Label htmlFor="title">Nome/Modelo *</Label>
                   <Input
                     id="title"
                     value={formData.title}
@@ -329,24 +379,23 @@ export const AddVehicleForm = () => {
                   )}
                 </div>
 
-                <div>
-                  <Label htmlFor="price_eur">Preço (EUR) *</Label>
-                  <Input
-                    id="price_eur"
-                    type="text"
-                    value={formData.price_eur}
-                    onChange={(e) => {
-                      // Allow numbers, commas, and dots
-                      const value = e.target.value.replace(/[^0-9.,]/g, '');
-                      handleInputChange('price_eur', value);
-                    }}
-                    placeholder="Ex: 45000 ou 45.000"
-                    required
-                  />
-                </div>
+                {/* Campo dinâmico para Quilómetros/Horas baseado na categoria */}
+                {distanceField && (
+                  <div>
+                    <Label htmlFor={distanceField.field}>{distanceField.label} *</Label>
+                    <Input
+                      id={distanceField.field}
+                      type="number"
+                      value={formData[distanceField.field as keyof typeof formData] as string}
+                      onChange={(e) => handleInputChange(distanceField.field, e.target.value)}
+                      placeholder={distanceField.placeholder}
+                      required
+                    />
+                  </div>
+                )}
 
                 <div>
-                  <Label htmlFor="registration_year">Ano de Registo *</Label>
+                  <Label htmlFor="registration_year">Ano *</Label>
                   <Input
                     id="registration_year"
                     type="number"
@@ -373,17 +422,31 @@ export const AddVehicleForm = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <Label htmlFor="price_eur">Preço (EUR) *</Label>
+                  <Input
+                    id="price_eur"
+                    type="text"
+                    value={formData.price_eur}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9.,]/g, '');
+                      handleInputChange('price_eur', value);
+                    }}
+                    placeholder="Ex: 45000 ou 45.000"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
-                <Label htmlFor="description">Descrição *</Label>
+                <Label htmlFor="description">Descrição</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Descreva as características e estado do veículo..."
                   rows={4}
-                  required
                 />
               </div>
             </TabsContent>
@@ -421,24 +484,12 @@ export const AddVehicleForm = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="mileage_km">Quilómetros</Label>
+                  <Label htmlFor="motor_description">Motor</Label>
                   <Input
-                    id="mileage_km"
-                    type="number"
-                    value={formData.mileage_km}
-                    onChange={(e) => handleInputChange('mileage_km', e.target.value)}
-                    placeholder="Ex: 150000"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="operating_hours">Horas de Funcionamento</Label>
-                  <Input
-                    id="operating_hours"
-                    type="number"
-                    value={formData.operating_hours}
-                    onChange={(e) => handleInputChange('operating_hours', e.target.value)}
-                    placeholder="Ex: 5000"
+                    id="motor_description"
+                    value={formData.motor_description}
+                    onChange={(e) => handleInputChange('motor_description', e.target.value)}
+                    placeholder="Ex: D13K 500cv Euro 6"
                   />
                 </div>
 
@@ -460,9 +511,12 @@ export const AddVehicleForm = () => {
                       <SelectValue placeholder="Selecione a tração" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="2wd">2WD</SelectItem>
-                      <SelectItem value="4wd">4WD</SelectItem>
-                      <SelectItem value="awd">AWD</SelectItem>
+                      <SelectItem value="4x2">4x2</SelectItem>
+                      <SelectItem value="4x4">4x4</SelectItem>
+                      <SelectItem value="6x2">6x2</SelectItem>
+                      <SelectItem value="6x4">6x4</SelectItem>
+                      <SelectItem value="8x4">8x4</SelectItem>
+                      <SelectItem value="8x6">8x6</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -503,9 +557,9 @@ export const AddVehicleForm = () => {
 
             <TabsContent value="images" className="space-y-4">
               <div>
-                <Label>Imagem Principal</Label>
+                <Label>Imagem Principal *</Label>
                 <p className="text-sm text-gray-500 mb-2">
-                  Otimizada automaticamente via ImageKit (WebP, CDN)
+                  Esta será a imagem de destaque na listagem e página do veículo. Otimizada automaticamente via ImageKit (WebP, CDN)
                 </p>
                 <MainImageUpload
                   image={mainImage}
@@ -514,9 +568,9 @@ export const AddVehicleForm = () => {
               </div>
 
               <div>
-                <Label>Imagens Secundárias</Label>
+                <Label>Imagens de Detalhe</Label>
                 <p className="text-sm text-gray-500 mb-2">
-                  Todas as imagens são otimizadas via ImageKit
+                  Galeria de imagens do veículo (máx. 20). Otimizadas automaticamente via ImageKit
                 </p>
                 <SecondaryImagesUpload
                   images={secondaryImages}
@@ -529,11 +583,22 @@ export const AddVehicleForm = () => {
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <Switch
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => handleInputChange('is_active', checked)}
+                  />
+                  <Label htmlFor="is_active">Ativo *</Label>
+                  <p className="text-sm text-gray-500 ml-2">(Visível no frontend)</p>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
                     id="is_published"
                     checked={formData.is_published}
                     onCheckedChange={(checked) => handleInputChange('is_published', checked)}
                   />
                   <Label htmlFor="is_published">Publicado</Label>
+                  <p className="text-sm text-gray-500 ml-2">(Aparece na listagem pública)</p>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -543,15 +608,7 @@ export const AddVehicleForm = () => {
                     onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
                   />
                   <Label htmlFor="is_featured">Em Destaque</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="is_active"
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => handleInputChange('is_active', checked)}
-                  />
-                  <Label htmlFor="is_active">Ativo</Label>
+                  <p className="text-sm text-gray-500 ml-2">(Aparece na secção de destaques)</p>
                 </div>
 
                 <div>
