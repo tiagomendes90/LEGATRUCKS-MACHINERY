@@ -68,13 +68,13 @@ const NewVehicleFilter = ({ category, onFilterChange, vehicleCount = 0 }: NewVeh
   const getCategoryIcon = (categorySlug?: string) => {
     switch (categorySlug) {
       case 'trucks':
-        return <Truck className="h-5 w-5" />;
+        return <Truck className="h-4 w-4 text-blue-600" />;
       case 'machinery':
-        return <Cog className="h-5 w-5" />;
+        return <Cog className="h-4 w-4 text-blue-600" />;
       case 'agriculture':
-        return <Tractor className="h-5 w-5" />;
+        return <Tractor className="h-4 w-4 text-blue-600" />;
       default:
-        return <Filter className="h-5 w-5" />;
+        return <Filter className="h-4 w-4 text-blue-600" />;
     }
   };
 
@@ -146,7 +146,7 @@ const NewVehicleFilter = ({ category, onFilterChange, vehicleCount = 0 }: NewVeh
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             {getCategoryIcon(category)}
-            Filtros de {getCategoryName(category)}
+            <span>Filtros de {getCategoryName(category)}</span>
             {getActiveFiltersCount() > 0 && (
               <Badge variant="secondary">
                 {getActiveFiltersCount()} filtro{getActiveFiltersCount() > 1 ? 's' : ''} ativo{getActiveFiltersCount() > 1 ? 's' : ''}
@@ -182,7 +182,7 @@ const NewVehicleFilter = ({ category, onFilterChange, vehicleCount = 0 }: NewVeh
           <div>
             <Label htmlFor="subcategory" className="flex items-center gap-2">
               {getCategoryIcon(category)}
-              Subcategoria
+              <span>Subcategoria</span>
             </Label>
             <Select 
               value={filters.subcategory || 'all'} 
