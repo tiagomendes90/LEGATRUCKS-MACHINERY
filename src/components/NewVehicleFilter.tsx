@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Search, RotateCcw, ChevronDown, ChevronUp, Truck, Cog, Tractor } from "lucide-react";
+import { Search, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCategories } from "@/hooks/useCategories";
 
@@ -44,13 +44,13 @@ interface NewVehicleFilterProps {
 const getCategoryIcon = (categorySlug?: string) => {
   switch (categorySlug) {
     case 'trucks':
-      return <Truck className="h-6 w-6 text-blue-600" />;
+      return '🚛';
     case 'machinery':
-      return <Cog className="h-6 w-6 text-blue-600" />;
+      return '🏗️';
     case 'agriculture':
-      return <Tractor className="h-6 w-6 text-blue-600" />;
+      return '🚜';
     default:
-      return <Truck className="h-6 w-6 text-blue-600" />;
+      return '🚛';
   }
 };
 
@@ -136,8 +136,8 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
       {/* Category Header with improved icon styling */}
       <div className="bg-blue-50 rounded-lg p-6 mb-6">
         <div className="flex items-center gap-4 mb-2">
-          <div className="bg-blue-100 rounded-lg p-3 flex items-center justify-center">
-            {getCategoryIcon(category)}
+          <div className="bg-blue-100 rounded-lg p-3 flex items-center justify-center w-16 h-16">
+            <span className="text-3xl">{getCategoryIcon(category)}</span>
           </div>
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-gray-900">{getCategoryName(category)}</h2>
