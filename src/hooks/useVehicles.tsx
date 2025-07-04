@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -80,17 +79,47 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12) => {
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
-      // Apply filters
+      // Apply category filter correctly
       if (filters?.category) {
-        query = query.eq('subcategory.category.slug', filters.category);
+        // We need to filter by the category slug through the subcategory relationship
+        const { data: categorySubcategories } = await supabase
+          .from('subcategories')
+          .select('id')
+          .eq('category.slug', filters.category);
+        
+        if (categorySubcategories && categorySubcategories.length > 0) {
+          const subcategoryIds = categorySubcategories.map(sub => sub.id);
+          query = query.in('subcategory_id', subcategoryIds);
+        } else {
+          // If no subcategories found for this category, return empty result
+          return [];
+        }
       }
 
       if (filters?.subcategory) {
-        query = query.eq('subcategory.slug', filters.subcategory);
+        // Get subcategory ID from slug
+        const { data: subcategoryData } = await supabase
+          .from('subcategories')
+          .select('id')
+          .eq('slug', filters.subcategory)
+          .single();
+        
+        if (subcategoryData) {
+          query = query.eq('subcategory_id', subcategoryData.id);
+        }
       }
 
       if (filters?.brand) {
-        query = query.eq('brand.slug', filters.brand);
+        // Get brand ID from slug
+        const { data: brandData } = await supabase
+          .from('vehicle_brands')
+          .select('id')
+          .eq('slug', filters.brand)
+          .single();
+        
+        if (brandData) {
+          query = query.eq('brand_id', brandData.id);
+        }
       }
 
       if (filters?.condition) {

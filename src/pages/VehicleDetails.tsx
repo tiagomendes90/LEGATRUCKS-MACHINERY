@@ -185,7 +185,10 @@ const VehicleDetails = () => {
                   <VehicleActions 
                     vehicle={{
                       ...vehicle,
-                      condition: vehicle.condition as "new" | "used" | "restored" | "modified"
+                      condition: vehicle.condition as "new" | "used" | "restored" | "modified",
+                      fuel_type: vehicle.fuel_type as "diesel" | "electric" | "hybrid" | "petrol" | "gas" | undefined,
+                      gearbox: vehicle.gearbox as "manual" | "automatic" | "semi-automatic" | undefined,
+                      drivetrain: vehicle.drivetrain as "4x2" | "4x4" | "6x2" | "6x4" | "8x4" | "8x6" | undefined
                     }} 
                   />
                 </CardContent>

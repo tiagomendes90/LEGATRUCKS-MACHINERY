@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Filter, Search } from "lucide-react";
-import { useCategories, useSubcategories } from "@/hooks/useCategories";
+import { useSubcategories } from "@/hooks/useCategories";
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
 import { VehicleFilters } from "@/hooks/useVehicles";
 
@@ -22,8 +22,8 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
     category: category || undefined,
   });
 
-  const { data: categories = [] } = useCategories();
-  const { data: subcategories = [] } = useSubcategories(filters.category);
+  // Only fetch subcategories for the current category
+  const { data: subcategories = [] } = useSubcategories(category);
   const { data: brands = [] } = useNewVehicleBrands();
 
   // Update category when prop changes
@@ -145,33 +145,12 @@ const NewVehicleFilter = ({ category, onFilterChange }: NewVehicleFilterProps) =
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Quick Filters - Always Visible */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <Label htmlFor="category">Categoria</Label>
-            <Select 
-              value={filters.category || 'all'} 
-              onValueChange={(value) => handleFilterChange('category', value === 'all' ? undefined : value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Todas as categorias" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as categorias</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.slug}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="subcategory">Subcategoria</Label>
             <Select 
               value={filters.subcategory || 'all'} 
               onValueChange={(value) => handleFilterChange('subcategory', value === 'all' ? undefined : value)}
-              disabled={!filters.category}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Todas as subcategorias" />
