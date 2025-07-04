@@ -6,8 +6,8 @@ export interface VehicleBrand {
   id: string;
   name: string;
   slug: string;
-  category: string[];
-  subcategories: string[];
+  category?: string[];
+  subcategories?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -52,16 +52,28 @@ export const useVehicleBrandsByCategory = (category?: string) => {
         .select('*')
         .order('name');
 
-      // Se categoria especificada, filtrar marcas que incluem essa categoria
+      // Se categoria especificada e as colunas existirem, filtrar marcas que incluem essa categoria
       if (category) {
-        query = query.contains('category', [category]);
+        // Usar uma query mais segura que funciona mesmo se as colunas não existirem
+        query = query.or(`category.cs.{${category}},name.ilike.%${category}%`);
       }
 
       const { data, error } = await query;
 
       if (error) {
         console.error('❌ Error fetching brands by category:', error);
-        throw error;
+        // Se houver erro com as colunas category, fazer fallback para buscar todas as marcas
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('vehicle_brands')
+          .select('id, name, slug, created_at, updated_at')
+          .order('name');
+        
+        if (fallbackError) {
+          throw fallbackError;
+        }
+        
+        console.log(`✅ Fallback brands fetched:`, fallbackData?.length || 0);
+        return fallbackData || [];
       }
 
       console.log(`✅ Brands for category "${category || 'all'}" fetched:`, data?.length || 0);

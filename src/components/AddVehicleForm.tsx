@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,11 +51,18 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
-  const { data: brands = [] } = useNewVehicleBrands();
+  
+  // Usar o hook básico primeiro para garantir que as marcas aparecem
+  const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
   const { data: categories = [] } = useCategories();
   const addVehicleMutation = useAddVehicle();
   const { uploadImages, isUploading } = useImageUpload();
   const { toast } = useToast();
+
+  // Log para debug
+  console.log('🔍 Brands in AddVehicleForm:', brands);
+  console.log('🔍 Brands loading:', brandsLoading);
+  console.log('🔍 Brands error:', brandsError);
 
   const form = useForm<VehicleFormData>({
     resolver: zodResolver(vehicleSchema),
@@ -184,6 +190,34 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
 
   const isSubmitting = addVehicleMutation.isPending || isUploading;
 
+  // Mostrar estado de carregamento se as marcas estão a carregar
+  if (brandsLoading) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">A carregar marcas...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Mostrar erro se houver problema a carregar marcas
+  if (brandsError) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="text-center text-red-600">
+            <p>Erro ao carregar marcas: {brandsError.message}</p>
+            <p className="text-sm mt-2">Por favor, recarregue a página.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -225,14 +259,25 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {brands.map((brand) => (
-                            <SelectItem key={brand.id} value={brand.id}>
-                              {brand.name}
+                          {brands.length > 0 ? (
+                            brands.map((brand) => (
+                              <SelectItem key={brand.id} value={brand.id}>
+                                {brand.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="" disabled>
+                              Nenhuma marca disponível
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                      {brands.length === 0 && (
+                        <p className="text-sm text-red-500">
+                          Não foram encontradas marcas. Verifique a base de dados.
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />
