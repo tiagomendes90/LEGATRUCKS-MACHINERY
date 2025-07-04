@@ -23,13 +23,34 @@ const NewVehicleCategory = () => {
   // Extract category from pathname
   const category = location.pathname.substring(1);
   
-  const [filters, setFilters] = useState<VehicleFilters>({
-    category: category || undefined,
+  const [filters, setFilters] = useState({
+    brand: '',
+    subcategory: '',
+    yearFrom: '',
+    yearTo: '',
+    priceFrom: '',
+    priceTo: '',
+    condition: '',
+    fuelType: '',
+    search: ''
   });
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch vehicles with filters
-  const { data: vehicles, isLoading, error } = useVehicles(filters);
+  // Convert string filters to the format expected by useVehicles hook
+  const vehicleFilters = React.useMemo(() => ({
+    category: category || undefined,
+    subcategory: filters.subcategory || undefined,
+    brand: filters.brand || undefined,
+    condition: filters.condition || undefined,
+    yearFrom: filters.yearFrom ? parseInt(filters.yearFrom) : undefined,
+    yearTo: filters.yearTo ? parseInt(filters.yearTo) : undefined,
+    priceFrom: filters.priceFrom ? parseFloat(filters.priceFrom) : undefined,
+    priceTo: filters.priceTo ? parseFloat(filters.priceTo) : undefined,
+    fuelType: filters.fuelType || undefined,
+  }), [category, filters]);
+
+  // Fetch vehicles with converted filters
+  const { data: vehicles, isLoading, error } = useVehicles(vehicleFilters);
 
   // Category data for headers
   const categoryData = useMemo(() => ({
@@ -55,16 +76,8 @@ const NewVehicleCategory = () => {
 
   const data = categoryData[category as keyof typeof categoryData];
 
-  // Update filters when category changes
-  useEffect(() => {
-    if (category !== filters.category) {
-      setFilters(prev => ({ ...prev, category: category || undefined }));
-      setCurrentPage(1);
-    }
-  }, [category, filters.category]);
-
   // Handle filter changes
-  const handleFilterChange = (newFilters: VehicleFilters) => {
+  const handleFilterChange = (newFilters: typeof filters) => {
     setFilters(newFilters);
     setCurrentPage(1);
   };

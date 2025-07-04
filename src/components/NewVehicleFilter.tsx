@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -82,6 +83,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
 }) => {
   const { data: categories = [] } = useCategories();
   
+  // Filter subcategories by the current category
   const subcategories = React.useMemo(() => {
     if (!category) return [];
     
