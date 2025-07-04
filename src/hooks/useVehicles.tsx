@@ -30,7 +30,7 @@ export interface Vehicle {
   created_at: string;
   updated_at: string;
   // Joined data
-  brand?: { name: string; slug: string };
+  brand?: { name: string; slug: string; category: string[] };
   subcategory?: { name: string; slug: string; category: { name: string; slug: string } };
   images?: { image_url: string; sort_order: number }[];
 }
@@ -57,9 +57,9 @@ export interface VehicleFilters {
   sortBy?: string;
 }
 
-export const useVehicles = (filters?: VehicleFilters, limit = 12) => {
+export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpublished = false) => {
   return useQuery({
-    queryKey: ['vehicles', filters, limit],
+    queryKey: ['vehicles', filters, limit, includeUnpublished],
     queryFn: async () => {
       console.log('Fetching vehicles with filters:', filters);
       
@@ -67,7 +67,7 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12) => {
         .from('vehicles')
         .select(`
           *,
-          brand:vehicle_brands(name, slug),
+          brand:vehicle_brands(name, slug, category),
           subcategory:subcategories(
             name, 
             slug,
@@ -76,8 +76,12 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12) => {
           images:vehicle_images(image_url, sort_order)
         `)
         .eq('is_active', true)
-        .eq('is_published', true)
         .order('created_at', { ascending: false });
+
+      // Only filter by published if not including unpublished vehicles
+      if (!includeUnpublished) {
+        query = query.eq('is_published', true);
+      }
 
       // Apply category filter correctly
       if (filters?.category) {
@@ -234,10 +238,10 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12) => {
       console.log('Vehicles fetched successfully:', data?.length || 0);
       return data || [];
     },
-    staleTime: 1000 * 60 * 15,
-    gcTime: 1000 * 60 * 30,
+    staleTime: 1000 * 60 * 5, // Reduce stale time to 5 minutes
+    gcTime: 1000 * 60 * 10, // Reduce garbage collection time
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true, // Always refetch on mount
     retry: 1,
     retryDelay: 2000,
   });
@@ -251,7 +255,7 @@ export const useVehicle = (id: string) => {
         .from('vehicles')
         .select(`
           *,
-          brand:vehicle_brands(name, slug),
+          brand:vehicle_brands(name, slug, category),
           subcategory:subcategories(
             name, 
             slug,

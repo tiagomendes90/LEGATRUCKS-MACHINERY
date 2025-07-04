@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCategories } from "@/hooks/useCategories";
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
 import { useImageKitUpload } from "@/hooks/useImageKitUpload";
+import { useQueryClient } from "@tanstack/react-query";
 import { MainImageUpload } from "./MainImageUpload";
 import { SecondaryImagesUpload } from "./SecondaryImagesUpload";
 
@@ -49,6 +49,7 @@ export const AddVehicleForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
   const { uploadImages, isUploading } = useImageKitUpload();
@@ -90,7 +91,7 @@ export const AddVehicleForm = () => {
     }));
   };
 
-  // handleSubmit function with ImageKit integration
+  // handleSubmit function with proper cache invalidation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -164,9 +165,12 @@ export const AddVehicleForm = () => {
         await uploadImages(allImages, vehicle.id);
       }
 
+      // Invalidate all vehicle-related queries to refresh the data
+      await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      
       toast({
         title: "Sucesso!",
-        description: "Veículo adicionado com sucesso com imagens otimizadas!",
+        description: `Veículo "${vehicle.title}" adicionado com sucesso!`,
       });
 
       // Reset form

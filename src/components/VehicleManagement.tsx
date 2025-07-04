@@ -10,7 +10,8 @@ import { useVehicles, useDeleteVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
 
 export const VehicleManagement = () => {
-  const { data: vehicles = [], isLoading } = useVehicles({}, 50);
+  // Use includeUnpublished=true to show all vehicles in admin panel
+  const { data: vehicles = [], isLoading } = useVehicles({}, 50, true);
   const deleteVehicleMutation = useDeleteVehicle();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
