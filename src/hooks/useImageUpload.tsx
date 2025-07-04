@@ -22,7 +22,8 @@ export const useImageUpload = () => {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const fileExt = file.name.split('.').pop();
-        const fileName = `${vehicleId}/${Date.now()}-${i}.${fileExt}`;
+        const isMainImage = i === 0; // First image is considered the main image
+        const fileName = `${vehicleId}/${isMainImage ? 'main' : `secondary-${i}`}-${Date.now()}.${fileExt}`;
         
         // Upload file to Supabase Storage
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -54,6 +55,19 @@ export const useImageUpload = () => {
         if (dbError) {
           console.error('Error inserting image record:', dbError);
           throw dbError;
+        }
+
+        // Update main_image_url in vehicles table if this is the main image
+        if (isMainImage) {
+          const { error: vehicleUpdateError } = await supabase
+            .from('vehicles')
+            .update({ main_image_url: publicUrl })
+            .eq('id', vehicleId);
+
+          if (vehicleUpdateError) {
+            console.error('Error updating vehicle main image:', vehicleUpdateError);
+            // Don't throw here as the image was still uploaded successfully
+          }
         }
 
         uploadedImages.push({

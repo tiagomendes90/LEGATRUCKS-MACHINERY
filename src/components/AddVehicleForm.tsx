@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +14,8 @@ import { useCategories } from "@/hooks/useCategories";
 import { useAddVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { ImageUpload } from "./ImageUpload";
+import { MainImageUpload } from "./MainImageUpload";
+import { SecondaryImagesUpload } from "./SecondaryImagesUpload";
 import { useImageUpload } from "@/hooks/useImageUpload";
 
 const vehicleSchema = z.object({
@@ -49,7 +49,8 @@ interface AddVehicleFormProps {
 
 export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
   const { data: brands = [] } = useNewVehicleBrands();
   const { data: categories = [] } = useCategories();
   const addVehicleMutation = useAddVehicle();
@@ -107,8 +108,16 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
       const newVehicle = await addVehicleMutation.mutateAsync(vehicleData);
       
       // Upload images if any were selected
-      if (selectedImages.length > 0) {
-        await uploadImages(selectedImages, newVehicle.id);
+      const allImages = [];
+      if (mainImage) {
+        allImages.push(mainImage);
+      }
+      if (secondaryImages.length > 0) {
+        allImages.push(...secondaryImages);
+      }
+      
+      if (allImages.length > 0) {
+        await uploadImages(allImages, newVehicle.id);
       }
       
       toast({
@@ -118,7 +127,8 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
       
       form.reset();
       setSelectedCategoryId("");
-      setSelectedImages([]);
+      setMainImage(null);
+      setSecondaryImages([]);
       onSuccess?.();
     } catch (error) {
       console.error('Erro ao adicionar veículo:', error);
@@ -548,13 +558,27 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
             </div>
 
             {/* 3. Imagens do Veículo */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h3 className="text-lg font-semibold">Imagens do Veículo</h3>
-              <ImageUpload
-                images={selectedImages}
-                onImagesChange={setSelectedImages}
-                maxImages={10}
-              />
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="text-base font-medium mb-4 text-gray-700">Imagem Principal</h4>
+                  <MainImageUpload
+                    image={mainImage}
+                    onImageChange={setMainImage}
+                  />
+                </div>
+                
+                <div>
+                  <h4 className="text-base font-medium mb-4 text-gray-700">Imagens Secundárias</h4>
+                  <SecondaryImagesUpload
+                    images={secondaryImages}
+                    onImagesChange={setSecondaryImages}
+                    maxImages={9}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* 4. Estado e Visibilidade */}
@@ -662,7 +686,8 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                 onClick={() => {
                   form.reset();
                   setSelectedCategoryId("");
-                  setSelectedImages([]);
+                  setMainImage(null);
+                  setSecondaryImages([]);
                 }}
                 disabled={isSubmitting}
               >
