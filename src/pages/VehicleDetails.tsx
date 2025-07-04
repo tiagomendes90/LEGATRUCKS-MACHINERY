@@ -182,7 +182,12 @@ const VehicleDetails = () => {
                   <CardTitle>{t('vehicleDetails.contactInfo')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <VehicleActions vehicle={vehicle} />
+                  <VehicleActions 
+                    vehicle={{
+                      ...vehicle,
+                      condition: vehicle.condition as "new" | "used" | "restored" | "modified"
+                    }} 
+                  />
                 </CardContent>
               </Card>
             </div>
