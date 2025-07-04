@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -329,18 +328,7 @@ export const AddVehicleForm = () => {
                     <SelectContent>
                       {availableBrands.map((brand) => (
                         <SelectItem key={brand.id} value={brand.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{brand.name}</span>
-                            {brand.category && (
-                              <div className="flex gap-1">
-                                {brand.category.map((cat) => (
-                                  <Badge key={cat} variant="secondary" className="text-xs">
-                                    {cat}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                          {brand.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
