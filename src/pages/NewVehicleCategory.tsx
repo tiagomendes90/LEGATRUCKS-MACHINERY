@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,25 +52,22 @@ const NewVehicleCategory = () => {
   // Fetch vehicles with converted filters
   const { data: vehicles, isLoading, error } = useVehicles(vehicleFilters);
 
-  // Category data for headers
+  // Category data for headers - removed icons
   const categoryData = useMemo(() => ({
     "trucks": {
       title: t('category.trucks.title'),
       description: t('category.trucks.description'),
-      backgroundImage: '/lovable-uploads/9a6779b8-e3a5-4439-b3eb-8be68728310f.png',
-      icon: <Truck className="h-8 w-8 text-white" />
+      backgroundImage: '/lovable-uploads/9a6779b8-e3a5-4439-b3eb-8be68728310f.png'
     },
     "machinery": {
       title: t('category.machinery.title'), 
       description: t('category.machinery.description'),
-      backgroundImage: '/lovable-uploads/09c6807f-f3a9-4f65-868e-06d1df1d5af6.png',
-      icon: <Cog className="h-8 w-8 text-white" />
+      backgroundImage: '/lovable-uploads/09c6807f-f3a9-4f65-868e-06d1df1d5af6.png'
     },
     "agriculture": {
       title: t('category.agriculture.title'),
       description: t('category.agriculture.description'),
-      backgroundImage: '/lovable-uploads/81c579e1-9054-4cc1-a76a-6eaea0e135ac.png',
-      icon: <Tractor className="h-8 w-8 text-white" />
+      backgroundImage: '/lovable-uploads/81c579e1-9054-4cc1-a76a-6eaea0e135ac.png'
     }
   }), [t]);
 
@@ -147,10 +144,7 @@ const NewVehicleCategory = () => {
           }}>
             <div className="absolute inset-0 bg-black/60"></div>
             <div className="relative z-10 container mx-auto px-6">
-              <div className="flex items-center gap-4 mb-4">
-                {data.icon}
-                <h1 className="text-4xl md:text-5xl font-bold text-white">{data.title}</h1>
-              </div>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{data.title}</h1>
               <p className="text-xl text-blue-100 max-w-3xl">{data.description}</p>
             </div>
           </section>
@@ -200,16 +194,13 @@ const NewVehicleCategory = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Category Header with Background Image and Icon */}
+      {/* Category Header with Background Image - removed icon */}
       <section className="relative py-[150px] bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url('${data.backgroundImage}')`
       }}>
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative z-10 container mx-auto px-6">
-          <div className="flex items-center gap-4 mb-4">
-            {data.icon}
-            <h1 className="text-4xl md:text-5xl font-bold text-white">{data.title}</h1>
-          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{data.title}</h1>
           <p className="text-xl text-blue-100 max-w-3xl">{data.description}</p>
         </div>
       </section>

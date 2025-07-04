@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -156,10 +155,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
         {/* Subcategory - only show if we have subcategories for this category */}
         {subcategories.length > 0 && (
           <div>
-            <Label htmlFor="subcategory" className="flex items-center gap-2">
-              {getCategoryIcon(category)}
-              <span>Subcategoria</span>
-            </Label>
+            <Label htmlFor="subcategory">Subcategoria</Label>
             <Select 
               value={filters.subcategory || 'all'} 
               onValueChange={(value) => handleFilterChange('subcategory', value === 'all' ? '' : value)}
