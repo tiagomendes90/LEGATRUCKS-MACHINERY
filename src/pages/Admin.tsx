@@ -22,7 +22,7 @@ const Admin = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">A carregar...</div>
       </div>
     );
   }
@@ -53,7 +53,7 @@ const Admin = () => {
   if (vehiclesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Carregando dados...</div>
+        <div className="text-lg">A carregar dados...</div>
       </div>
     );
   }
@@ -69,7 +69,7 @@ const Admin = () => {
           </Button>
           <Button variant="outline" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
-            Sair
+            Terminar Sessão
           </Button>
         </div>
       </div>

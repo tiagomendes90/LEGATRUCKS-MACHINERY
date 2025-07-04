@@ -16,22 +16,22 @@ export const VehicleManagement = () => {
   const { toast } = useToast();
 
   const handleDeleteVehicle = (vehicleId: string) => {
-    if (confirm('Are you sure you want to delete this vehicle?')) {
+    if (confirm('Tem a certeza de que deseja eliminar este veículo?')) {
       deleteVehicleMutation.mutate(vehicleId);
     }
   };
 
   const getStatusBadge = (vehicle: any) => {
     if (!vehicle.is_active) {
-      return <Badge variant="destructive">Inactive</Badge>;
+      return <Badge variant="destructive">Inativo</Badge>;
     }
     if (!vehicle.is_published) {
-      return <Badge variant="secondary">Draft</Badge>;
+      return <Badge variant="secondary">Rascunho</Badge>;
     }
     if (vehicle.is_featured) {
-      return <Badge className="bg-green-600">Featured</Badge>;
+      return <Badge className="bg-green-600">Destaque</Badge>;
     }
-    return <Badge className="bg-blue-600">Published</Badge>;
+    return <Badge className="bg-blue-600">Publicado</Badge>;
   };
 
   const filteredVehicles = statusFilter === "all" 
@@ -54,7 +54,7 @@ export const VehicleManagement = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-lg">Loading vehicles...</div>
+        <div className="text-lg">A carregar veículos...</div>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export const VehicleManagement = () => {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-2xl font-bold">{vehicles.length}</p>
-              <p className="text-sm text-gray-600">Total Vehicles</p>
+              <p className="text-sm text-gray-600">Total de Veículos</p>
             </div>
           </CardContent>
         </Card>
@@ -76,7 +76,7 @@ export const VehicleManagement = () => {
               <p className="text-2xl font-bold text-green-600">
                 {vehicles.filter(v => v.is_published && v.is_active).length}
               </p>
-              <p className="text-sm text-gray-600">Published</p>
+              <p className="text-sm text-gray-600">Publicados</p>
             </div>
           </CardContent>
         </Card>
@@ -86,7 +86,7 @@ export const VehicleManagement = () => {
               <p className="text-2xl font-bold text-blue-600">
                 {vehicles.filter(v => !v.is_published).length}
               </p>
-              <p className="text-sm text-gray-600">Drafts</p>
+              <p className="text-sm text-gray-600">Rascunhos</p>
             </div>
           </CardContent>
         </Card>
@@ -96,7 +96,7 @@ export const VehicleManagement = () => {
               <p className="text-2xl font-bold text-orange-600">
                 {vehicles.filter(v => v.is_featured).length}
               </p>
-              <p className="text-sm text-gray-600">Featured</p>
+              <p className="text-sm text-gray-600">Em Destaque</p>
             </div>
           </CardContent>
         </Card>
@@ -106,8 +106,8 @@ export const VehicleManagement = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Vehicle Management</CardTitle>
-              <CardDescription>Manage your vehicle inventory</CardDescription>
+              <CardTitle>Gestão de Veículos</CardTitle>
+              <CardDescription>Gerir o inventário de veículos</CardDescription>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40">
@@ -115,11 +115,11 @@ export const VehicleManagement = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Vehicles</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="draft">Drafts</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="featured">Featured</SelectItem>
+                <SelectItem value="all">Todos os Veículos</SelectItem>
+                <SelectItem value="published">Publicados</SelectItem>
+                <SelectItem value="draft">Rascunhos</SelectItem>
+                <SelectItem value="inactive">Inativos</SelectItem>
+                <SelectItem value="featured">Em Destaque</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -128,13 +128,13 @@ export const VehicleManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Vehicle</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Brand</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Veículo</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Marca</TableHead>
+                <TableHead>Ano</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -149,7 +149,11 @@ export const VehicleManagement = () => {
                       />
                       <div>
                         <p className="font-medium">{vehicle.title}</p>
-                        <p className="text-sm text-gray-500">{vehicle.condition}</p>
+                        <p className="text-sm text-gray-500">
+                          {vehicle.condition === 'new' ? 'Novo' : 
+                           vehicle.condition === 'used' ? 'Usado' : 
+                           vehicle.condition === 'restored' ? 'Restaurado' : 'Modificado'}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
@@ -160,10 +164,10 @@ export const VehicleManagement = () => {
                   <TableCell>{getStatusBadge(vehicle)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" title="Ver">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" title="Editar">
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -172,6 +176,7 @@ export const VehicleManagement = () => {
                         onClick={() => handleDeleteVehicle(vehicle.id)}
                         className="text-red-600 hover:text-red-700"
                         disabled={deleteVehicleMutation.isPending}
+                        title="Eliminar"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -183,7 +188,7 @@ export const VehicleManagement = () => {
           </Table>
           {filteredVehicles.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              No vehicles found matching your criteria.
+              Nenhum veículo encontrado com os critérios selecionados.
             </div>
           )}
         </CardContent>
