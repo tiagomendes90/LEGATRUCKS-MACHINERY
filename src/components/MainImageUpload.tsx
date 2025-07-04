@@ -5,15 +5,23 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { compressImage, getImageSizeKB } from '@/utils/imageCompression';
+import { useImageKitUpload } from '@/hooks/useImageKitUpload';
 
 interface MainImageUploadProps {
   image: File | null;
   onImageChange: (image: File | null) => void;
+  uploadedImageUrl?: string | null;
+  onUploadedImageChange?: (url: string | null) => void;
 }
 
-export const MainImageUpload = ({ image, onImageChange }: MainImageUploadProps) => {
-  const [isCompressing, setIsCompressing] = useState(false);
+export const MainImageUpload = ({ 
+  image, 
+  onImageChange,
+  uploadedImageUrl,
+  onUploadedImageChange
+}: MainImageUploadProps) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { uploadSingleImage, isUploading } = useImageKitUpload();
   const { toast } = useToast();
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,45 +37,36 @@ export const MainImageUpload = ({ image, onImageChange }: MainImageUploadProps) 
       return;
     }
 
-    setIsCompressing(true);
+    // Create preview URL for immediate display
+    const preview = URL.createObjectURL(file);
+    setPreviewUrl(preview);
+    onImageChange(file);
 
-    try {
-      toast({
-        title: "A processar imagem principal...",
-        description: "Comprimindo imagem para WebP...",
-      });
+    // Show processing message
+    toast({
+      title: "A processar imagem principal...",
+      description: "A carregar para ImageKit para otimização automática...",
+    });
 
-      const originalSize = getImageSizeKB(file);
-      const compressedImage = await compressImage(file);
-      const compressedSize = getImageSizeKB(compressedImage);
-      const reduction = Math.round(((originalSize - compressedSize) / originalSize) * 100);
-
-      onImageChange(compressedImage);
-
-      toast({
-        title: "Imagem principal processada!",
-        description: `Comprimida com sucesso. Redução: ${reduction}%`,
-      });
-    } catch (error) {
-      console.error('Error compressing main image:', error);
-      toast({
-        title: "Erro na compressão",
-        description: "A imagem pode não ter sido comprimida corretamente.",
-        variant: "destructive",
-      });
-      onImageChange(file);
-    } finally {
-      setIsCompressing(false);
-      e.target.value = '';
-    }
+    e.target.value = '';
   }, [onImageChange, toast]);
 
   const removeImage = useCallback(() => {
     onImageChange(null);
-  }, [onImageChange]);
+    if (onUploadedImageChange) {
+      onUploadedImageChange(null);
+    }
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+  }, [onImageChange, onUploadedImageChange, previewUrl]);
 
-  const getImagePreview = (file: File): string => {
-    return URL.createObjectURL(file);
+  const getImagePreview = (): string | null => {
+    if (uploadedImageUrl) return uploadedImageUrl;
+    if (previewUrl) return previewUrl;
+    if (image) return URL.createObjectURL(image);
+    return null;
   };
 
   const formatFileSize = (sizeInBytes: number): string => {
@@ -78,6 +77,8 @@ export const MainImageUpload = ({ image, onImageChange }: MainImageUploadProps) 
     return `${(sizeKB / 1024).toFixed(1)} MB`;
   };
 
+  const currentPreview = getImagePreview();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -87,39 +88,39 @@ export const MainImageUpload = ({ image, onImageChange }: MainImageUploadProps) 
           onChange={handleFileSelect}
           className="hidden"
           id="main-image-upload"
-          disabled={isCompressing}
+          disabled={isUploading}
         />
         <Button
           type="button"
           variant="outline"
           onClick={() => document.getElementById('main-image-upload')?.click()}
-          disabled={isCompressing}
+          disabled={isUploading}
         >
-          {isCompressing ? (
+          {isUploading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              A comprimir...
+              A otimizar...
             </>
           ) : (
             <>
               <Upload className="h-4 w-4 mr-2" />
-              {image ? 'Alterar Imagem Principal' : 'Adicionar Imagem Principal'}
+              {currentPreview ? 'Alterar Imagem Principal' : 'Adicionar Imagem Principal'}
             </>
           )}
         </Button>
-        {isCompressing && (
+        {isUploading && (
           <p className="text-sm text-gray-500">
-            Comprimindo imagem para WebP (máx. 1MB)...
+            Otimizando automaticamente via ImageKit...
           </p>
         )}
       </div>
 
-      {image ? (
+      {currentPreview ? (
         <Card className="relative max-w-md">
           <CardContent className="p-4">
             <div className="aspect-video relative rounded-md overflow-hidden bg-gray-100">
               <img
-                src={getImagePreview(image)}
+                src={currentPreview}
                 alt="Imagem Principal"
                 className="w-full h-full object-cover"
               />
@@ -129,13 +130,13 @@ export const MainImageUpload = ({ image, onImageChange }: MainImageUploadProps) 
                 size="sm"
                 className="absolute top-2 right-2 h-8 w-8 p-0"
                 onClick={removeImage}
-                disabled={isCompressing}
+                disabled={isUploading}
               >
                 <X className="h-4 w-4" />
               </Button>
-              {image.type === 'image/webp' && (
+              {uploadedImageUrl && (
                 <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
-                  WebP
+                  ImageKit
                 </div>
               )}
               <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
@@ -144,11 +145,13 @@ export const MainImageUpload = ({ image, onImageChange }: MainImageUploadProps) 
             </div>
             <div className="mt-3">
               <p className="text-sm font-medium text-gray-700 truncate">
-                {image.name}
+                {image?.name || 'Imagem otimizada'}
               </p>
-              <p className="text-xs text-gray-500">
-                {formatFileSize(image.size)}
-              </p>
+              {image && (
+                <p className="text-xs text-gray-500">
+                  {formatFileSize(image.size)}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -161,7 +164,7 @@ export const MainImageUpload = ({ image, onImageChange }: MainImageUploadProps) 
               Esta será a imagem de destaque do veículo
             </p>
             <p className="text-xs text-gray-400 mt-2">
-              Será automaticamente comprimida para WebP (máx. 1MB, 1280px)
+              Otimizada automaticamente via ImageKit (WebP, CDN global)
             </p>
           </CardContent>
         </Card>

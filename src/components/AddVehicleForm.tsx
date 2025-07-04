@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useCategories } from "@/hooks/useCategories";
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
+import { useImageKitUpload } from "@/hooks/useImageKitUpload";
 import { MainImageUpload } from "./MainImageUpload";
 import { SecondaryImagesUpload } from "./SecondaryImagesUpload";
 
@@ -49,6 +50,7 @@ export const AddVehicleForm = () => {
   const { toast } = useToast();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
+  const { uploadImages, isUploading } = useImageKitUpload();
 
   // Get selected category
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
@@ -79,13 +81,6 @@ export const AddVehicleForm = () => {
     }
   }, [selectedCategoryId]);
 
-  // Reset brand when subcategory changes (if needed for further filtering)
-  useEffect(() => {
-    if (formData.subcategory_id) {
-      // Could add brand filtering by subcategory here if needed
-    }
-  }, [formData.subcategory_id]);
-
   // handleInputChange function
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -94,7 +89,7 @@ export const AddVehicleForm = () => {
     }));
   };
 
-  // handleSubmit function
+  // handleSubmit function with ImageKit integration
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -111,26 +106,7 @@ export const AddVehicleForm = () => {
         return;
       }
 
-      // Upload main image if provided
-      let mainImageUrl = null;
-      if (mainImage) {
-        const fileExt = mainImage.name.split('.').pop();
-        const fileName = `${Date.now()}-main.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('vehicle-images')
-          .upload(fileName, mainImage);
-
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('vehicle-images')
-          .getPublicUrl(fileName);
-        
-        mainImageUrl = publicUrl;
-      }
-
-      // Create vehicle record
+      // Create vehicle record first
       const vehicleData = {
         ...formData,
         price_eur: parseFloat(formData.price_eur),
@@ -140,7 +116,6 @@ export const AddVehicleForm = () => {
         axles: formData.axles ? parseInt(formData.axles) : null,
         power_ps: formData.power_ps ? parseInt(formData.power_ps) : null,
         weight_kg: formData.weight_kg ? parseInt(formData.weight_kg) : null,
-        main_image_url: mainImageUrl,
       };
 
       const { data: vehicle, error: vehicleError } = await supabase
@@ -151,37 +126,23 @@ export const AddVehicleForm = () => {
 
       if (vehicleError) throw vehicleError;
 
-      // Upload secondary images
-      if (secondaryImages.length > 0 && vehicle) {
-        const imagePromises = secondaryImages.map(async (image, index) => {
-          const fileExt = image.name.split('.').pop();
-          const fileName = `${Date.now()}-${index}.${fileExt}`;
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('vehicle-images')
-            .upload(fileName, image);
+      console.log('✅ Vehicle created:', vehicle.id);
 
-          if (uploadError) throw uploadError;
-          
-          const { data: { publicUrl } } = supabase.storage
-            .from('vehicle-images')
-            .getPublicUrl(fileName);
-
-          return supabase
-            .from('vehicle_images')
-            .insert([{
-              vehicle_id: vehicle.id,
-              image_url: publicUrl,
-              sort_order: index + 1
-            }]);
+      // Upload images via ImageKit if any are selected
+      const allImages = mainImage ? [mainImage, ...secondaryImages] : secondaryImages;
+      
+      if (allImages.length > 0) {
+        toast({
+          title: "A carregar imagens...",
+          description: "Otimizando imagens via ImageKit...",
         });
 
-        await Promise.all(imagePromises);
+        await uploadImages(allImages, vehicle.id);
       }
 
       toast({
         title: "Sucesso!",
-        description: "Veículo adicionado com sucesso.",
+        description: "Veículo adicionado com sucesso com imagens otimizadas!",
       });
 
       // Reset form
@@ -248,7 +209,7 @@ export const AddVehicleForm = () => {
       <CardHeader>
         <CardTitle>Adicionar Novo Veículo</CardTitle>
         <CardDescription>
-          Preencha os detalhes do veículo para adicionar ao inventário
+          Preencha os detalhes do veículo - as imagens serão otimizadas automaticamente via ImageKit
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -510,6 +471,9 @@ export const AddVehicleForm = () => {
             <TabsContent value="images" className="space-y-4">
               <div>
                 <Label>Imagem Principal</Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Otimizada automaticamente via ImageKit (WebP, CDN)
+                </p>
                 <MainImageUpload
                   image={mainImage}
                   onImageChange={setMainImage}
@@ -518,6 +482,9 @@ export const AddVehicleForm = () => {
 
               <div>
                 <Label>Imagens Secundárias</Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Todas as imagens são otimizadas via ImageKit
+                </p>
                 <SecondaryImagesUpload
                   images={secondaryImages}
                   onImagesChange={setSecondaryImages}
@@ -582,8 +549,8 @@ export const AddVehicleForm = () => {
             <Button type="button" variant="outline" onClick={() => window.location.reload()}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "A adicionar..." : "Adicionar Veículo"}
+            <Button type="submit" disabled={isSubmitting || isUploading}>
+              {isSubmitting || isUploading ? "A processar..." : "Adicionar Veículo"}
             </Button>
           </div>
         </form>
