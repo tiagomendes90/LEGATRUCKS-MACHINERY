@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Search, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCategories } from "@/hooks/useCategories";
-import { useVehicleBrandsByCategory } from "@/hooks/useNewVehicleBrands";
+import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
 
 interface VehicleFilters {
   brand: string;
@@ -94,12 +94,9 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
   category
 }) => {
   const { data: categories = [] } = useCategories();
-  const { data: categoryBrands = [] } = useVehicleBrandsByCategory(category);
+  const { data: brands = [], isLoading: brandsLoading } = useNewVehicleBrands();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [priceRange, setPriceRange] = useState([filters.priceTo ? parseInt(filters.priceTo) : 500000]);
-  
-  // Use the new brands from the category-filtered hook
-  const brands = categoryBrands.length > 0 ? categoryBrands : legacyBrands;
   
   // Filter subcategories by the current category
   const subcategories = React.useMemo(() => {
@@ -108,6 +105,26 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
     const categoryData = categories.find(cat => cat.slug === category);
     return categoryData?.subcategories || [];
   }, [categories, category]);
+
+  // Filter brands based on selected category - using the same logic as AddVehicleForm
+  const availableBrands = React.useMemo(() => {
+    if (!category || !brands.length || !categories.length) return [];
+    
+    const categoryName = categories.find(cat => cat.slug === category)?.name;
+    if (!categoryName) return [];
+    
+    console.log('🔍 Filtering brands for category:', categoryName);
+    console.log('📋 Available brands:', brands.length);
+    
+    const filteredBrands = brands.filter(brand => 
+      brand.category?.includes(categoryName)
+    );
+    
+    console.log('✅ Filtered brands:', filteredBrands.length);
+    console.log('📝 Brand names:', filteredBrands.map(b => b.name));
+    
+    return filteredBrands;
+  }, [category, brands, categories]);
 
   const handleFilterChange = (key: keyof VehicleFilters, value: string) => {
     onFiltersChange({
@@ -197,7 +214,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
               </div>
             )}
 
-            {/* Brand - Now uses category-filtered brands */}
+            {/* Brand - Now uses the same filtering logic as AddVehicleForm */}
             <div>
               <Label htmlFor="brand" className="text-sm font-medium text-gray-700 mb-2 block">
                 Marca
@@ -205,19 +222,25 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
               <Select 
                 value={filters.brand || 'all'} 
                 onValueChange={(value) => handleFilterChange('brand', value === 'all' ? '' : value)}
+                disabled={brandsLoading || availableBrands.length === 0}
               >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Todas as marcas" />
+                  <SelectValue placeholder={brandsLoading ? "A carregar..." : "Todas as marcas"} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as marcas</SelectItem>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.slug || brand.name.toLowerCase()}>
+                  {availableBrands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id}>
                       {brand.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {!brandsLoading && availableBrands.length === 0 && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Nenhuma marca disponível para esta categoria
+                </p>
+              )}
             </div>
 
             {/* Price Range Slider */}
