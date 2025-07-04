@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Edit, Trash2, Plus, Filter } from "lucide-react";
+import { Eye, Edit, Trash2, Filter } from "lucide-react";
 import { useVehicles, useDeleteVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
 
@@ -109,25 +109,19 @@ export const VehicleManagement = () => {
               <CardTitle>Vehicle Management</CardTitle>
               <CardDescription>Manage your vehicle inventory</CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Vehicles</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="draft">Drafts</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="featured">Featured</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Vehicle
-              </Button>
-            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Vehicles</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="draft">Drafts</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="featured">Featured</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
