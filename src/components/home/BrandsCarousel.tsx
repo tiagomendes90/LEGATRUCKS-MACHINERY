@@ -53,6 +53,8 @@ const BrandsCarousel = () => {
             plugins={[
               Autoplay({
                 delay: 2000,
+                stopOnInteraction: false,
+                stopOnMouseEnter: false,
               }),
             ]}
             className="w-full"
