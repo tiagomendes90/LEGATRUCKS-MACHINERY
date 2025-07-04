@@ -483,16 +483,16 @@ export const AddVehicleForm = () => {
               <div>
                 <Label>Imagem Principal</Label>
                 <MainImageUpload
-                  onImageSelect={setMainImage}
-                  currentImage={mainImage}
+                  image={mainImage}
+                  onImageChange={setMainImage}
                 />
               </div>
 
               <div>
                 <Label>Imagens Secundárias</Label>
                 <SecondaryImagesUpload
-                  onImagesSelect={setSecondaryImages}
-                  currentImages={secondaryImages}
+                  images={secondaryImages}
+                  onImagesChange={setSecondaryImages}
                 />
               </div>
             </TabsContent>
