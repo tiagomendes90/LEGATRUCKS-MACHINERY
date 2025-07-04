@@ -15,6 +15,8 @@ import { useCategories } from "@/hooks/useCategories";
 import { useAddVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { ImageUpload } from "./ImageUpload";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 const vehicleSchema = z.object({
   title: z.string().min(1, "Nome do veículo é obrigatório"),
@@ -47,9 +49,11 @@ interface AddVehicleFormProps {
 
 export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const { data: brands = [] } = useNewVehicleBrands();
   const { data: categories = [] } = useCategories();
   const addVehicleMutation = useAddVehicle();
+  const { uploadImages, isUploading } = useImageUpload();
   const { toast } = useToast();
 
   const form = useForm<VehicleFormData>({
@@ -76,7 +80,6 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
 
   const onSubmit = async (data: VehicleFormData) => {
     try {
-      // Ensure all required fields are present with proper typing
       const vehicleData = {
         title: data.title,
         description: data.description,
@@ -101,7 +104,12 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
         is_active: true,
       };
       
-      await addVehicleMutation.mutateAsync(vehicleData);
+      const newVehicle = await addVehicleMutation.mutateAsync(vehicleData);
+      
+      // Upload images if any were selected
+      if (selectedImages.length > 0) {
+        await uploadImages(selectedImages, newVehicle.id);
+      }
       
       toast({
         title: "Sucesso",
@@ -110,6 +118,7 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
       
       form.reset();
       setSelectedCategoryId("");
+      setSelectedImages([]);
       onSuccess?.();
     } catch (error) {
       console.error('Erro ao adicionar veículo:', error);
@@ -130,6 +139,8 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
     form.setValue("is_published", true);
     form.handleSubmit(onSubmit)();
   };
+
+  const isSubmitting = addVehicleMutation.isPending || isUploading;
 
   return (
     <Card>
@@ -513,9 +524,40 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                   )}
                 />
               </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="weight_kg"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peso (kg)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="12000"
+                          {...field} 
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            {/* 3. Estado e Visibilidade */}
+            {/* 3. Imagens do Veículo */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Imagens do Veículo</h3>
+              <ImageUpload
+                images={selectedImages}
+                onImagesChange={setSelectedImages}
+                maxImages={10}
+              />
+            </div>
+
+            {/* 4. Estado e Visibilidade */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Estado e Visibilidade</h3>
               
@@ -593,10 +635,10 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                 type="button"
                 variant="outline"
                 onClick={handleSaveAsDraft}
-                disabled={addVehicleMutation.isPending}
+                disabled={isSubmitting}
                 className="flex-1"
               >
-                {addVehicleMutation.isPending && (
+                {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 Guardar como Rascunho
@@ -605,10 +647,10 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
               <Button
                 type="button"
                 onClick={handlePublish}
-                disabled={addVehicleMutation.isPending}
+                disabled={isSubmitting}
                 className="flex-1"
               >
-                {addVehicleMutation.isPending && (
+                {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 Publicar Veículo
@@ -620,8 +662,9 @@ export const AddVehicleForm = ({ onSuccess }: AddVehicleFormProps) => {
                 onClick={() => {
                   form.reset();
                   setSelectedCategoryId("");
+                  setSelectedImages([]);
                 }}
-                disabled={addVehicleMutation.isPending}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
