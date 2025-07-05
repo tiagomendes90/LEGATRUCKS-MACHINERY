@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useVehicleForm } from "@/hooks/useVehicleForm";
-import { useAddVehicle, useUpdateVehicle } from "@/hooks/useVehicles";
+import { useUpdateVehicle } from "@/hooks/useVehicles";
 import { VehicleBasicInfoForm } from "@/components/vehicle-form/VehicleBasicInfoForm";
 import { VehicleSpecsForm } from "@/components/vehicle-form/VehicleSpecsForm";
 import { VehicleImagesForm } from "@/components/vehicle-form/VehicleImagesForm";
@@ -130,6 +130,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     
     console.log('🎯 Form submitted, current tab:', currentTab);
     console.log('📝 Form data at submit:', formData);
+    console.log('🏷️ Available brands:', availableBrands);
 
     if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage, toast)) {
       console.log('❌ Validation failed for tab:', currentTab);

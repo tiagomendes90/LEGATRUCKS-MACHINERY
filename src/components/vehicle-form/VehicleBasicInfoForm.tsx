@@ -32,8 +32,9 @@ export const VehicleBasicInfoForm = ({
   console.log('🔍 VehicleBasicInfoForm Debug:');
   console.log('📂 Selected Category ID:', selectedCategoryId);
   console.log('📂 Categories:', categories?.length || 0);
-  console.log('🏷️ Available Brands:', availableBrands?.length || 0);
-  console.log('🏷️ Available Brands:', availableBrands);
+  console.log('🏷️ Available Brands Count:', availableBrands?.length || 0);
+  console.log('🏷️ Available Brands:', availableBrands?.map(b => b.name) || []);
+  console.log('🔧 Distance Field:', distanceField);
 
   return (
     <TabsContent value="basic" className="space-y-4">
@@ -95,7 +96,7 @@ export const VehicleBasicInfoForm = ({
           <Select 
             value={formData.brand_id} 
             onValueChange={(value) => onInputChange('brand_id', value)}
-            disabled={!selectedCategoryId}
+            disabled={!selectedCategoryId || availableBrands.length === 0}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione a marca" />
@@ -108,15 +109,15 @@ export const VehicleBasicInfoForm = ({
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="loading" disabled>
+                <SelectItem value="" disabled>
                   {selectedCategoryId ? "A carregar marcas..." : "Selecione uma categoria primeiro"}
                 </SelectItem>
               )}
             </SelectContent>
           </Select>
-          {selectedCategoryId && (!availableBrands || availableBrands.length === 0) && (
+          {selectedCategoryId && availableBrands.length === 0 && (
             <p className="text-sm text-gray-500 mt-1">
-              Nenhuma marca disponível para esta categoria
+              Nenhuma marca disponível para esta categoria. Verifique se as marcas têm a categoria "{categories.find(c => c.id === selectedCategoryId)?.name}" configurada.
             </p>
           )}
         </div>

@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCategories } from '@/hooks/useCategories';
-import { useVehicleBrandsByCategory } from '@/hooks/useNewVehicleBrands';
+import { useNewVehicleBrands } from '@/hooks/useNewVehicleBrands';
 import { useImageKitUpload } from '@/hooks/useImageKitUpload';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -66,28 +66,55 @@ export const useVehicleForm = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: allBrands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
   const { uploadImages, isUploading } = useImageKitUpload();
+
+  console.log('🏗️ useVehicleForm Debug:');
+  console.log('📂 Selected Category ID:', selectedCategoryId);
+  console.log('📂 All Categories:', categories);
+  console.log('🏷️ All Brands:', allBrands);
 
   // Get selected category info
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
   const selectedCategoryName = selectedCategory?.name;
 
-  console.log('🏗️ useVehicleForm Debug:');
-  console.log('📂 Selected Category ID:', selectedCategoryId);
   console.log('📂 Selected Category Name:', selectedCategoryName);
 
-  // Use the category-filtered brands hook
-  const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useVehicleBrandsByCategory(selectedCategoryName);
+  // Filter brands based on selected category
+  const availableBrands = useMemo(() => {
+    if (!selectedCategoryName || !allBrands.length) {
+      console.log('🚫 No category selected or no brands available');
+      return [];
+    }
+
+    const filteredBrands = allBrands.filter(brand => {
+      if (!brand.category || !Array.isArray(brand.category)) {
+        console.log(`🔍 Brand "${brand.name}" has no category array:`, brand.category);
+        return false;
+      }
+      
+      // Check if any category in the brand matches the selected category (case insensitive)
+      const hasMatchingCategory = brand.category.some(cat => 
+        cat.toLowerCase().trim() === selectedCategoryName.toLowerCase().trim()
+      );
+      
+      console.log(`🔍 Brand "${brand.name}" categories:`, brand.category);
+      console.log(`🔍 Does "${brand.name}" match "${selectedCategoryName}"?`, hasMatchingCategory);
+      
+      return hasMatchingCategory;
+    });
+
+    console.log('✅ Filtered brands:', filteredBrands.map(b => b.name));
+    return filteredBrands;
+  }, [selectedCategoryName, allBrands]);
 
   // Filter subcategories based on selected category
   const availableSubcategories = selectedCategory?.subcategories || [];
 
-  // Available brands are now directly from the filtered hook
-  const availableBrands = brands;
-
-  // Reset subcategory and brand when category changes
+  // Reset dependent fields when category changes
   useEffect(() => {
     if (selectedCategoryId) {
+      console.log('🔄 Category changed, resetting dependent fields');
       setFormData(prev => ({ 
         ...prev, 
         subcategory_id: "",
@@ -97,29 +124,6 @@ export const useVehicleForm = () => {
       }));
     }
   }, [selectedCategoryId]);
-
-  // Determine which distance field to show based on category
-  const getDistanceFieldInfo = () => {
-    if (!selectedCategoryName) return null;
-    
-    switch (selectedCategoryName.toLowerCase()) {
-      case 'trucks':
-        return {
-          field: 'mileage_km' as keyof VehicleFormData,
-          label: 'Quilómetros (km)',
-          placeholder: 'Ex: 150000'
-        };
-      case 'machinery':
-      case 'agriculture':
-        return {
-          field: 'operating_hours' as keyof VehicleFormData,
-          label: 'Horas de Funcionamento (h)',
-          placeholder: 'Ex: 5000'
-        };
-      default:
-        return null;
-    }
-  };
 
   const handleInputChange = (field: keyof VehicleFormData, value: string | boolean) => {
     console.log(`🔄 Field changed: ${field} = ${value}`);
@@ -157,32 +161,13 @@ export const useVehicleForm = () => {
     try {
       console.log('🚀 Starting vehicle submission...');
       console.log('📝 Raw form data:', formData);
+      console.log('🖼️ Main image:', mainImage);
 
       // Validate required fields
       const requiredFields = ['title', 'brand_id', 'subcategory_id', 'registration_year', 'price_eur'];
       for (const field of requiredFields) {
         if (!formData[field as keyof VehicleFormData]) {
           throw new Error(`Campo obrigatório em falta: ${field}`);
-        }
-      }
-
-      // Upload main image first if exists
-      let mainImageUrl = null;
-      if (mainImage) {
-        console.log('📤 Uploading main image...');
-        try {
-          const uploadedImages = await uploadImages([mainImage], 'temp');
-          if (uploadedImages && uploadedImages.length > 0) {
-            mainImageUrl = uploadedImages[0].url;
-            console.log('✅ Main image uploaded:', mainImageUrl);
-          }
-        } catch (imageError) {
-          console.error('❌ Image upload failed:', imageError);
-          toast({
-            title: "Aviso",
-            description: "Falha no upload da imagem, mas o veículo será criado sem imagem.",
-            variant: "destructive",
-          });
         }
       }
 
@@ -211,7 +196,7 @@ export const useVehicleForm = () => {
         throw new Error('Preço deve ser um valor válido maior que zero');
       }
 
-      // Prepare vehicle data with correct types and null handling
+      // First create the vehicle record without image
       const vehicleData = {
         title: formData.title.trim(),
         description: formData.description.trim() || '',
@@ -231,7 +216,7 @@ export const useVehicleForm = () => {
         body_color: formData.body_color || null,
         location: formData.location || null,
         contact_info: formData.contact_info || null,
-        main_image_url: mainImageUrl,
+        main_image_url: null, // Will be updated after image upload
         is_published: formData.is_published,
         is_featured: formData.is_featured,
         is_active: formData.is_active,
@@ -251,6 +236,43 @@ export const useVehicleForm = () => {
       }
 
       console.log('✅ Vehicle created successfully:', vehicle);
+
+      // Now upload main image if exists and update the vehicle
+      if (mainImage && vehicle?.id) {
+        console.log('📤 Uploading main image for vehicle:', vehicle.id);
+        try {
+          const uploadedImages = await uploadImages([mainImage], vehicle.id);
+          if (uploadedImages && uploadedImages.length > 0) {
+            const mainImageUrl = uploadedImages[0].url;
+            console.log('✅ Main image uploaded:', mainImageUrl);
+            
+            // Update vehicle with main image URL
+            const { error: updateError } = await supabase
+              .from('vehicles')
+              .update({ main_image_url: mainImageUrl })
+              .eq('id', vehicle.id);
+
+            if (updateError) {
+              console.error('❌ Error updating vehicle with image:', updateError);
+              // Don't fail the whole operation, just warn
+              toast({
+                title: "Aviso",
+                description: "Veículo criado mas falha ao associar imagem principal.",
+                variant: "destructive",
+              });
+            } else {
+              console.log('✅ Vehicle updated with main image URL');
+            }
+          }
+        } catch (imageError) {
+          console.error('❌ Image upload failed:', imageError);
+          toast({
+            title: "Aviso",
+            description: "Veículo criado mas falha no upload da imagem.",
+            variant: "destructive",
+          });
+        }
+      }
 
       await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       
@@ -295,7 +317,6 @@ export const useVehicleForm = () => {
     setMainImage,
     setSecondaryImages,
     setCurrentTab,
-    getDistanceFieldInfo,
     submitVehicle,
     resetForm
   };
