@@ -29,12 +29,11 @@ export const VehicleBasicInfoForm = ({
   onCategoryChange
 }: VehicleBasicInfoFormProps) => {
   
-  // Debug logs
   console.log('🔍 VehicleBasicInfoForm Debug:');
   console.log('📂 Selected Category ID:', selectedCategoryId);
-  console.log('📂 Categories:', categories);
+  console.log('📂 Categories:', categories?.length || 0);
+  console.log('🏷️ Available Brands:', availableBrands?.length || 0);
   console.log('🏷️ Available Brands:', availableBrands);
-  console.log('🏷️ Available Brands length:', availableBrands?.length);
 
   return (
     <TabsContent value="basic" className="space-y-4">
@@ -109,8 +108,8 @@ export const VehicleBasicInfoForm = ({
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="" disabled>
-                  A carregar marcas...
+                <SelectItem value="loading" disabled>
+                  {selectedCategoryId ? "A carregar marcas..." : "Selecione uma categoria primeiro"}
                 </SelectItem>
               )}
             </SelectContent>
@@ -172,7 +171,7 @@ export const VehicleBasicInfoForm = ({
             type="text"
             value={formData.price_eur}
             onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9.,]/g, '');
+              const value = e.target.value.replace(/[^\d.,]/g, '');
               onInputChange('price_eur', value);
             }}
             placeholder="Ex: 45000 ou 45.000"
