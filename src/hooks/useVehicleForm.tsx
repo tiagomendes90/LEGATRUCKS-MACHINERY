@@ -66,7 +66,7 @@ export const useVehicleForm = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Add error handling for hooks
+  // Get data with proper error handling
   const categoriesQuery = useCategories();
   const brandsQuery = useNewVehicleBrands();
   const imageUploadHook = useImageKitUpload();
@@ -78,33 +78,48 @@ export const useVehicleForm = () => {
 
   console.log('🏗️ useVehicleForm Debug:');
   console.log('📂 Selected Category ID:', selectedCategoryId);
-  console.log('📂 All Categories:', categories);
-  console.log('🏷️ All Brands:', allBrands);
+  console.log('📂 All Categories:', categories.length, 'categories loaded');
+  console.log('🏷️ All Brands:', allBrands.length, 'brands loaded');
 
-  // Get selected category info
-  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
-  const selectedCategoryName = selectedCategory?.name;
+  // Get selected category info with better error handling
+  const selectedCategory = useMemo(() => {
+    if (!selectedCategoryId || !categories.length) return null;
+    return categories.find(cat => cat.id === selectedCategoryId) || null;
+  }, [selectedCategoryId, categories]);
 
+  const selectedCategoryName = selectedCategory?.name || null;
+
+  console.log('📂 Selected Category:', selectedCategory);
   console.log('📂 Selected Category Name:', selectedCategoryName);
 
-  // Filter brands based on selected category - with error handling
+  // Filter brands based on selected category with improved logic
   const availableBrands = useMemo(() => {
-    try {
-      if (!selectedCategoryName || !allBrands.length) {
-        console.log('🚫 No category selected or no brands available');
-        return [];
-      }
+    console.log('🔍 Filtering brands...');
+    console.log('🔍 Selected category name:', selectedCategoryName);
+    console.log('🔍 All brands available:', allBrands.length);
 
+    if (!selectedCategoryName || !allBrands.length) {
+      console.log('🚫 No category selected or no brands available');
+      return [];
+    }
+
+    try {
       const filteredBrands = allBrands.filter(brand => {
-        if (!brand.category || !Array.isArray(brand.category)) {
-          console.log(`🔍 Brand "${brand.name}" has no category array:`, brand.category);
+        if (!brand || !brand.category) {
+          console.log(`🔍 Brand has no category:`, brand?.name || 'unnamed');
+          return false;
+        }
+        
+        if (!Array.isArray(brand.category)) {
+          console.log(`🔍 Brand "${brand.name}" category is not an array:`, brand.category);
           return false;
         }
         
         // Check if any category in the brand matches the selected category (case insensitive)
-        const hasMatchingCategory = brand.category.some(cat => 
-          cat.toLowerCase().trim() === selectedCategoryName.toLowerCase().trim()
-        );
+        const hasMatchingCategory = brand.category.some(cat => {
+          if (typeof cat !== 'string') return false;
+          return cat.toLowerCase().trim() === selectedCategoryName.toLowerCase().trim();
+        });
         
         console.log(`🔍 Brand "${brand.name}" categories:`, brand.category);
         console.log(`🔍 Does "${brand.name}" match "${selectedCategoryName}"?`, hasMatchingCategory);
@@ -112,7 +127,8 @@ export const useVehicleForm = () => {
         return hasMatchingCategory;
       });
 
-      console.log('✅ Filtered brands:', filteredBrands.map(b => b.name));
+      console.log('✅ Filtered brands:', filteredBrands.length, 'brands match');
+      console.log('✅ Brand names:', filteredBrands.map(b => b.name));
       return filteredBrands;
     } catch (error) {
       console.error('❌ Error filtering brands:', error);
@@ -121,7 +137,9 @@ export const useVehicleForm = () => {
   }, [selectedCategoryName, allBrands]);
 
   // Filter subcategories based on selected category
-  const availableSubcategories = selectedCategory?.subcategories || [];
+  const availableSubcategories = useMemo(() => {
+    return selectedCategory?.subcategories || [];
+  }, [selectedCategory]);
 
   // Reset dependent fields when category changes
   useEffect(() => {
@@ -146,6 +164,7 @@ export const useVehicleForm = () => {
   };
 
   const resetForm = () => {
+    console.log('🔄 Resetting form');
     setFormData(initialFormData);
     setSelectedCategoryId("");
     setMainImage(null);
@@ -320,32 +339,36 @@ export const useVehicleForm = () => {
     }
   };
 
-  // Return hook data with error handling
-  try {
-    return {
-      formData,
-      selectedCategoryId,
-      mainImage,
-      secondaryImages,
-      currentTab,
-      isSubmitting,
-      isUploading,
-      categoriesLoading: categoriesQuery?.isLoading || false,
-      brandsLoading: brandsQuery?.isLoading || false,
-      brandsError: brandsQuery?.error || null,
-      categories,
-      availableSubcategories,
-      availableBrands,
-      handleInputChange,
-      setSelectedCategoryId,
-      setMainImage,
-      setSecondaryImages,
-      setCurrentTab,
-      submitVehicle,
-      resetForm
-    };
-  } catch (error) {
-    console.error('❌ Error in useVehicleForm return:', error);
-    return null;
-  }
+  // Return hook data with comprehensive error handling
+  const hookData = {
+    formData,
+    selectedCategoryId,
+    mainImage,
+    secondaryImages,
+    currentTab,
+    isSubmitting,
+    isUploading,
+    categoriesLoading: categoriesQuery?.isLoading || false,
+    brandsLoading: brandsQuery?.isLoading || false,
+    brandsError: brandsQuery?.error || null,
+    categories,
+    availableSubcategories,
+    availableBrands,
+    handleInputChange,
+    setSelectedCategoryId,
+    setMainImage,
+    setSecondaryImages,
+    setCurrentTab,
+    submitVehicle,
+    resetForm
+  };
+
+  console.log('🎯 Hook returning data:', {
+    categoriesCount: categories.length,
+    brandsCount: availableBrands.length,
+    selectedCategoryId,
+    selectedCategoryName
+  });
+
+  return hookData;
 };

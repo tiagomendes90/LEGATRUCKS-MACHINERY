@@ -29,12 +29,10 @@ export const VehicleBasicInfoForm = ({
   onCategoryChange
 }: VehicleBasicInfoFormProps) => {
   
-  console.log('🔍 VehicleBasicInfoForm Debug:');
-  console.log('📂 Selected Category ID:', selectedCategoryId);
-  console.log('📂 Categories:', categories?.length || 0);
-  console.log('🏷️ Available Brands Count:', availableBrands?.length || 0);
-  console.log('🏷️ Available Brands:', availableBrands?.map(b => b.name) || []);
-  console.log('🔧 Distance Field:', distanceField);
+  console.log('🔍 VehicleBasicInfoForm Render:');
+  console.log('📂 Categories available:', categories?.length || 0);
+  console.log('🏷️ Brands available:', availableBrands?.length || 0);
+  console.log('🔧 Selected category ID:', selectedCategoryId);
 
   return (
     <TabsContent value="basic" className="space-y-4">
@@ -64,8 +62,8 @@ export const VehicleBasicInfoForm = ({
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="no-categories" disabled>
-                  Nenhuma categoria disponível
+                <SelectItem value="loading" disabled>
+                  A carregar categorias...
                 </SelectItem>
               )}
             </SelectContent>
@@ -77,21 +75,27 @@ export const VehicleBasicInfoForm = ({
           <Select 
             value={formData.subcategory_id} 
             onValueChange={(value) => onInputChange('subcategory_id', value)}
-            disabled={!selectedCategoryId || availableSubcategories.length === 0}
+            disabled={!selectedCategoryId}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione a subcategoria" />
             </SelectTrigger>
             <SelectContent>
-              {availableSubcategories && availableSubcategories.length > 0 ? (
-                availableSubcategories.map((subcategory) => (
-                  <SelectItem key={subcategory.id} value={subcategory.id}>
-                    {subcategory.name}
+              {selectedCategoryId ? (
+                availableSubcategories && availableSubcategories.length > 0 ? (
+                  availableSubcategories.map((subcategory) => (
+                    <SelectItem key={subcategory.id} value={subcategory.id}>
+                      {subcategory.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="none" disabled>
+                    Nenhuma subcategoria disponível
                   </SelectItem>
-                ))
+                )
               ) : (
-                <SelectItem value="no-subcategories" disabled>
-                  {selectedCategoryId ? "Nenhuma subcategoria disponível" : "Selecione uma categoria primeiro"}
+                <SelectItem value="select-category" disabled>
+                  Selecione uma categoria primeiro
                 </SelectItem>
               )}
             </SelectContent>
@@ -103,28 +107,34 @@ export const VehicleBasicInfoForm = ({
           <Select 
             value={formData.brand_id} 
             onValueChange={(value) => onInputChange('brand_id', value)}
-            disabled={!selectedCategoryId || availableBrands.length === 0}
+            disabled={!selectedCategoryId}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione a marca" />
             </SelectTrigger>
             <SelectContent>
-              {availableBrands && availableBrands.length > 0 ? (
-                availableBrands.map((brand) => (
-                  <SelectItem key={brand.id} value={brand.id}>
-                    {brand.name}
+              {selectedCategoryId ? (
+                availableBrands && availableBrands.length > 0 ? (
+                  availableBrands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="loading-brands" disabled>
+                    A carregar marcas...
                   </SelectItem>
-                ))
+                )
               ) : (
-                <SelectItem value="no-brands" disabled>
-                  {selectedCategoryId ? "A carregar marcas..." : "Selecione uma categoria primeiro"}
+                <SelectItem value="select-category-first" disabled>
+                  Selecione uma categoria primeiro
                 </SelectItem>
               )}
             </SelectContent>
           </Select>
           {selectedCategoryId && availableBrands.length === 0 && (
-            <p className="text-sm text-gray-500 mt-1">
-              Nenhuma marca disponível para esta categoria. Verifique se as marcas têm a categoria "{categories.find(c => c.id === selectedCategoryId)?.name}" configurada.
+            <p className="text-sm text-red-500 mt-1">
+              Nenhuma marca disponível para esta categoria.
             </p>
           )}
         </div>

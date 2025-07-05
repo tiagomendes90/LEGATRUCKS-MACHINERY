@@ -24,6 +24,9 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
   const { toast } = useToast();
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
   
+  console.log('🏗️ AddVehicleForm mounted');
+  console.log('📂 Categories loaded:', categories.length);
+  
   const vehicleFormHook = useVehicleForm();
   
   // Add error boundary for the hook
@@ -55,14 +58,24 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     availableBrands,
     submitVehicle,
     isSubmitting,
-    isUploading
+    isUploading,
+    categoriesLoading: formCategoriesLoading,
+    brandsLoading
   } = vehicleFormHook;
 
   const updateVehicleMutation = useUpdateVehicle();
   const isEditMode = !!editingVehicle;
 
+  console.log('🎯 Form state:', {
+    selectedCategoryId,
+    availableBrandsCount: availableBrands?.length || 0,
+    formData: formData ? 'loaded' : 'not loaded',
+    categoriesLoading: categoriesLoading || formCategoriesLoading,
+    brandsLoading
+  });
+
   // Show loading state
-  if (categoriesLoading) {
+  if (categoriesLoading || formCategoriesLoading) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="p-6">
@@ -88,8 +101,8 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
 
   // Load editing vehicle data - Fixed to prevent infinite loop
   useEffect(() => {
-    if (editingVehicle && editingVehicle.id && handleInputChange) {
-      console.log('Loading vehicle data for editing:', editingVehicle.id);
+    if (editingVehicle && editingVehicle.id && handleInputChange && !formData.title) {
+      console.log('📝 Loading vehicle data for editing:', editingVehicle.id);
       
       // Set form data for editing
       handleInputChange('title', editingVehicle.title || '');
@@ -124,7 +137,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
         }
       }
     }
-  }, [editingVehicle?.id, categories.length]); // Only depend on the vehicle ID and categories loading
+  }, [editingVehicle?.id, categories.length, handleInputChange, formData.title]); // Added formData.title to prevent re-runs
 
   const tabs = [
     { id: "basic", label: "Informações Básicas" },
@@ -170,7 +183,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     
     console.log('🎯 Form submitted, current tab:', currentTab);
     console.log('📝 Form data at submit:', formData);
-    console.log('🏷️ Available brands:', availableBrands);
+    console.log('🏷️ Available brands:', availableBrands?.length || 0);
 
     if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage, toast)) {
       console.log('❌ Validation failed for tab:', currentTab);
@@ -221,7 +234,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
               selectedCategoryId={selectedCategoryId}
               categories={categories}
               availableSubcategories={categories.find(cat => cat.id === selectedCategoryId)?.subcategories || []}
-              availableBrands={availableBrands}
+              availableBrands={availableBrands || []}
               distanceField={distanceField}
               onInputChange={handleInputChange}
               onCategoryChange={setSelectedCategoryId}
