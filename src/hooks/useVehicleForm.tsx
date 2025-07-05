@@ -74,6 +74,12 @@ export const useVehicleForm = () => {
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
   const selectedCategoryName = selectedCategory?.name;
 
+  // Debug logs for category selection
+  console.log('🏗️ useVehicleForm Debug:');
+  console.log('📂 Selected Category ID:', selectedCategoryId);
+  console.log('📂 Selected Category Name:', selectedCategoryName);
+  console.log('🏷️ Categories available:', categories.length);
+
   // Use the category-filtered brands hook
   const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useVehicleBrandsByCategory(selectedCategoryName);
 
@@ -134,37 +140,108 @@ export const useVehicleForm = () => {
     setCurrentTab("basic");
   };
 
+  // Helper function to safely convert string to number
+  const safeParseInt = (value: string): number | null => {
+    if (!value || value.trim() === '') return null;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? null : parsed;
+  };
+
+  const safeParseFloat = (value: string): number | null => {
+    if (!value || value.trim() === '') return null;
+    // Remove commas and parse
+    const cleanValue = value.replace(/,/g, '');
+    const parsed = parseFloat(cleanValue);
+    return isNaN(parsed) ? null : parsed;
+  };
+
   const submitVehicle = async () => {
     setIsSubmitting(true);
 
     try {
-      const cleanPrice = formData.price_eur.replace(/,/g, '');
+      console.log('🚀 Starting vehicle submission...');
+      console.log('📝 Form data before processing:', formData);
+
+      // Validate required fields
+      if (!formData.title.trim()) {
+        throw new Error('Título é obrigatório');
+      }
+      if (!formData.brand_id) {
+        throw new Error('Marca é obrigatória');
+      }
+      if (!formData.subcategory_id) {
+        throw new Error('Subcategoria é obrigatória');
+      }
+      if (!formData.registration_year) {
+        throw new Error('Ano é obrigatório');
+      }
+      if (!formData.price_eur) {
+        throw new Error('Preço é obrigatório');
+      }
+
+      // Upload images first if they exist
+      let mainImageUrl = '';
+      const allImages = mainImage ? [mainImage, ...secondaryImages] : secondaryImages;
       
+      if (allImages.length > 0) {
+        console.log('📤 Uploading images...');
+        toast({
+          title: "A carregar imagens...",
+          description: "Otimizando imagens via ImageKit...",
+        });
+
+        try {
+          const uploadedImages = await uploadImages(allImages, 'temp');
+          if (mainImage && uploadedImages.length > 0) {
+            mainImageUrl = uploadedImages[0].url;
+            console.log('✅ Main image uploaded:', mainImageUrl);
+          }
+        } catch (imageError) {
+          console.error('❌ Image upload failed:', imageError);
+          // Continue without images if upload fails
+          toast({
+            title: "Aviso",
+            description: "Falha no upload de imagens, mas o veículo será criado sem imagens.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      // Prepare vehicle data with correct types
       const vehicleData = {
-        title: formData.title,
-        description: formData.description || null,
-        price_eur: parseFloat(cleanPrice),
-        registration_year: parseInt(formData.registration_year),
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        price_eur: safeParseFloat(formData.price_eur),
+        registration_year: safeParseInt(formData.registration_year),
         condition: formData.condition,
         brand_id: formData.brand_id,
         subcategory_id: formData.subcategory_id,
-        mileage_km: formData.mileage_km ? parseInt(formData.mileage_km) : null,
-        operating_hours: formData.operating_hours ? parseInt(formData.operating_hours) : null,
-        axles: formData.axles ? parseInt(formData.axles) : null,
-        power_ps: formData.power_ps ? parseInt(formData.power_ps) : null,
-        weight_kg: formData.weight_kg ? parseInt(formData.weight_kg) : null,
+        mileage_km: safeParseInt(formData.mileage_km),
+        operating_hours: safeParseInt(formData.operating_hours),
+        axles: safeParseInt(formData.axles),
+        power_ps: safeParseInt(formData.power_ps),
+        weight_kg: safeParseInt(formData.weight_kg),
         fuel_type: formData.fuel_type || null,
         gearbox: formData.gearbox || null,
         drivetrain: formData.drivetrain || null,
         body_color: formData.body_color || null,
         location: formData.location || null,
         contact_info: formData.contact_info || null,
+        main_image_url: mainImageUrl || null,
         is_published: formData.is_published,
         is_featured: formData.is_featured,
         is_active: formData.is_active,
       };
 
-      console.log('🚀 Creating vehicle with data:', vehicleData);
+      console.log('📋 Prepared vehicle data:', vehicleData);
+
+      // Validate numeric fields
+      if (!vehicleData.price_eur || vehicleData.price_eur <= 0) {
+        throw new Error('Preço deve ser um valor válido maior que zero');
+      }
+      if (!vehicleData.registration_year || vehicleData.registration_year < 1900 || vehicleData.registration_year > new Date().getFullYear() + 1) {
+        throw new Error('Ano deve ser um valor válido');
+      }
 
       const { data: vehicle, error: vehicleError } = await supabase
         .from('vehicles')
@@ -173,22 +250,11 @@ export const useVehicleForm = () => {
         .single();
 
       if (vehicleError) {
-        console.error('Vehicle creation error:', vehicleError);
+        console.error('❌ Vehicle creation error:', vehicleError);
         throw vehicleError;
       }
 
-      console.log('✅ Vehicle created:', vehicle.id);
-
-      const allImages = mainImage ? [mainImage, ...secondaryImages] : secondaryImages;
-      
-      if (allImages.length > 0) {
-        toast({
-          title: "A carregar imagens...",
-          description: "Otimizando imagens via ImageKit...",
-        });
-
-        await uploadImages(allImages, vehicle.id);
-      }
+      console.log('✅ Vehicle created successfully:', vehicle.id);
 
       await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       
@@ -199,10 +265,11 @@ export const useVehicleForm = () => {
 
       resetForm();
     } catch (error) {
-      console.error('Error adding vehicle:', error);
+      console.error('❌ Error adding vehicle:', error);
+      const errorMessage = error.message || 'Erro desconhecido ao adicionar veículo';
       toast({
         title: "Erro",
-        description: "Erro ao adicionar veículo. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
