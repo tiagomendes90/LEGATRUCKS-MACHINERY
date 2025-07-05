@@ -46,16 +46,6 @@ export const VehicleSpecsForm = ({ formData, onInputChange }: VehicleSpecsFormPr
         </div>
 
         <div>
-          <Label htmlFor="motor_description">Motor</Label>
-          <Input
-            id="motor_description"
-            value={formData.motor_description}
-            onChange={(e) => onInputChange('motor_description', e.target.value)}
-            placeholder="Ex: D13K 500cv Euro 6"
-          />
-        </div>
-
-        <div>
           <Label htmlFor="power_ps">Potência (PS)</Label>
           <Input
             id="power_ps"
