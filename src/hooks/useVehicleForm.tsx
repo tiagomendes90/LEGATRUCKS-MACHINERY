@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCategories } from '@/hooks/useCategories';
 import { useNewVehicleBrands } from '@/hooks/useNewVehicleBrands';
@@ -65,9 +65,16 @@ export const useVehicleForm = () => {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-  const { data: allBrands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
-  const { uploadImages, isUploading } = useImageKitUpload();
+  
+  // Add error handling for hooks
+  const categoriesQuery = useCategories();
+  const brandsQuery = useNewVehicleBrands();
+  const imageUploadHook = useImageKitUpload();
+
+  // Safely extract data with fallbacks
+  const categories = categoriesQuery?.data || [];
+  const allBrands = brandsQuery?.data || [];
+  const { uploadImages, isUploading } = imageUploadHook || { uploadImages: null, isUploading: false };
 
   console.log('🏗️ useVehicleForm Debug:');
   console.log('📂 Selected Category ID:', selectedCategoryId);
@@ -80,32 +87,37 @@ export const useVehicleForm = () => {
 
   console.log('📂 Selected Category Name:', selectedCategoryName);
 
-  // Filter brands based on selected category
+  // Filter brands based on selected category - with error handling
   const availableBrands = useMemo(() => {
-    if (!selectedCategoryName || !allBrands.length) {
-      console.log('🚫 No category selected or no brands available');
+    try {
+      if (!selectedCategoryName || !allBrands.length) {
+        console.log('🚫 No category selected or no brands available');
+        return [];
+      }
+
+      const filteredBrands = allBrands.filter(brand => {
+        if (!brand.category || !Array.isArray(brand.category)) {
+          console.log(`🔍 Brand "${brand.name}" has no category array:`, brand.category);
+          return false;
+        }
+        
+        // Check if any category in the brand matches the selected category (case insensitive)
+        const hasMatchingCategory = brand.category.some(cat => 
+          cat.toLowerCase().trim() === selectedCategoryName.toLowerCase().trim()
+        );
+        
+        console.log(`🔍 Brand "${brand.name}" categories:`, brand.category);
+        console.log(`🔍 Does "${brand.name}" match "${selectedCategoryName}"?`, hasMatchingCategory);
+        
+        return hasMatchingCategory;
+      });
+
+      console.log('✅ Filtered brands:', filteredBrands.map(b => b.name));
+      return filteredBrands;
+    } catch (error) {
+      console.error('❌ Error filtering brands:', error);
       return [];
     }
-
-    const filteredBrands = allBrands.filter(brand => {
-      if (!brand.category || !Array.isArray(brand.category)) {
-        console.log(`🔍 Brand "${brand.name}" has no category array:`, brand.category);
-        return false;
-      }
-      
-      // Check if any category in the brand matches the selected category (case insensitive)
-      const hasMatchingCategory = brand.category.some(cat => 
-        cat.toLowerCase().trim() === selectedCategoryName.toLowerCase().trim()
-      );
-      
-      console.log(`🔍 Brand "${brand.name}" categories:`, brand.category);
-      console.log(`🔍 Does "${brand.name}" match "${selectedCategoryName}"?`, hasMatchingCategory);
-      
-      return hasMatchingCategory;
-    });
-
-    console.log('✅ Filtered brands:', filteredBrands.map(b => b.name));
-    return filteredBrands;
   }, [selectedCategoryName, allBrands]);
 
   // Filter subcategories based on selected category
@@ -156,6 +168,16 @@ export const useVehicleForm = () => {
   };
 
   const submitVehicle = async () => {
+    if (!uploadImages) {
+      console.error('❌ Upload function not available');
+      toast({
+        title: "Erro",
+        description: "Função de upload não disponível",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -298,26 +320,32 @@ export const useVehicleForm = () => {
     }
   };
 
-  return {
-    formData,
-    selectedCategoryId,
-    mainImage,
-    secondaryImages,
-    currentTab,
-    isSubmitting,
-    isUploading,
-    categoriesLoading,
-    brandsLoading,
-    brandsError,
-    categories,
-    availableSubcategories,
-    availableBrands,
-    handleInputChange,
-    setSelectedCategoryId,
-    setMainImage,
-    setSecondaryImages,
-    setCurrentTab,
-    submitVehicle,
-    resetForm
-  };
+  // Return hook data with error handling
+  try {
+    return {
+      formData,
+      selectedCategoryId,
+      mainImage,
+      secondaryImages,
+      currentTab,
+      isSubmitting,
+      isUploading,
+      categoriesLoading: categoriesQuery?.isLoading || false,
+      brandsLoading: brandsQuery?.isLoading || false,
+      brandsError: brandsQuery?.error || null,
+      categories,
+      availableSubcategories,
+      availableBrands,
+      handleInputChange,
+      setSelectedCategoryId,
+      setMainImage,
+      setSecondaryImages,
+      setCurrentTab,
+      submitVehicle,
+      resetForm
+    };
+  } catch (error) {
+    console.error('❌ Error in useVehicleForm return:', error);
+    return null;
+  }
 };

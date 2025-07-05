@@ -22,8 +22,24 @@ interface AddVehicleFormProps {
 
 const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormProps) => {
   const { toast } = useToast();
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
   
+  const vehicleFormHook = useVehicleForm();
+  
+  // Add error boundary for the hook
+  if (!vehicleFormHook) {
+    console.error('❌ useVehicleForm hook failed to initialize');
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">
+            Erro ao carregar o formulário. Por favor, recarregue a página.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const {
     formData,
     selectedCategoryId,
@@ -40,15 +56,39 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     submitVehicle,
     isSubmitting,
     isUploading
-  } = useVehicleForm();
+  } = vehicleFormHook;
 
   const updateVehicleMutation = useUpdateVehicle();
-
   const isEditMode = !!editingVehicle;
+
+  // Show loading state
+  if (categoriesLoading) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center">A carregar formulário...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show error state
+  if (categoriesError) {
+    console.error('❌ Categories loading error:', categoriesError);
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">
+            Erro ao carregar categorias. Por favor, recarregue a página.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Load editing vehicle data - Fixed to prevent infinite loop
   useEffect(() => {
-    if (editingVehicle && editingVehicle.id) {
+    if (editingVehicle && editingVehicle.id && handleInputChange) {
       console.log('Loading vehicle data for editing:', editingVehicle.id);
       
       // Set form data for editing
@@ -75,16 +115,16 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
       handleInputChange('is_published', editingVehicle.is_published ?? false);
 
       // Find and set category ID
-      if (editingVehicle.subcategory_id) {
+      if (editingVehicle.subcategory_id && categories.length > 0) {
         const category = categories.find(cat => 
           cat.subcategories?.some(sub => sub.id === editingVehicle.subcategory_id)
         );
-        if (category) {
+        if (category && setSelectedCategoryId) {
           setSelectedCategoryId(category.id);
         }
       }
     }
-  }, [editingVehicle?.id]); // Only depend on the vehicle ID to prevent infinite loops
+  }, [editingVehicle?.id, categories.length]); // Only depend on the vehicle ID and categories loading
 
   const tabs = [
     { id: "basic", label: "Informações Básicas" },
@@ -120,7 +160,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
   const handleCancel = () => {
     if (onCancel) {
       onCancel();
-    } else {
+    } else if (resetForm) {
       resetForm();
     }
   };
@@ -144,10 +184,12 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
         // For now, focus on the creation issue
       } else {
         console.log('➕ Adding new vehicle...');
-        const result = await submitVehicle();
-        
-        if (result && onSuccess) {
-          onSuccess();
+        if (submitVehicle) {
+          const result = await submitVehicle();
+          
+          if (result && onSuccess) {
+            onSuccess();
+          }
         }
       }
     } catch (error) {

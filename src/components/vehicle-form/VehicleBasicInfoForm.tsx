@@ -57,11 +57,17 @@ export const VehicleBasicInfoForm = ({
               <SelectValue placeholder="Selecione a categoria" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+              {categories && categories.length > 0 ? (
+                categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-categories" disabled>
+                  Nenhuma categoria disponível
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -77,18 +83,19 @@ export const VehicleBasicInfoForm = ({
               <SelectValue placeholder="Selecione a subcategoria" />
             </SelectTrigger>
             <SelectContent>
-              {availableSubcategories.map((subcategory) => (
-                <SelectItem key={subcategory.id} value={subcategory.id}>
-                  {subcategory.name}
+              {availableSubcategories && availableSubcategories.length > 0 ? (
+                availableSubcategories.map((subcategory) => (
+                  <SelectItem key={subcategory.id} value={subcategory.id}>
+                    {subcategory.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-subcategories" disabled>
+                  {selectedCategoryId ? "Nenhuma subcategoria disponível" : "Selecione uma categoria primeiro"}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
-          {selectedCategoryId && availableSubcategories.length === 0 && (
-            <p className="text-sm text-gray-500 mt-1">
-              Nenhuma subcategoria disponível para esta categoria
-            </p>
-          )}
         </div>
 
         <div>
@@ -109,7 +116,7 @@ export const VehicleBasicInfoForm = ({
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="" disabled>
+                <SelectItem value="no-brands" disabled>
                   {selectedCategoryId ? "A carregar marcas..." : "Selecione uma categoria primeiro"}
                 </SelectItem>
               )}
