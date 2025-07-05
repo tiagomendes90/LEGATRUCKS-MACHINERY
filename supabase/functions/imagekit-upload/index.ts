@@ -69,9 +69,19 @@ serve(async (req) => {
 
     console.log(`📤 Processing ${file.name} (${file.size} bytes)`)
 
-    // Convert file to base64
+    // Convert file to base64 using a more efficient method
     const arrayBuffer = await file.arrayBuffer()
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    const uint8Array = new Uint8Array(arrayBuffer)
+    
+    // Convert to base64 using btoa with chunking to avoid stack overflow
+    const chunkSize = 8192
+    let base64 = ''
+    
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize)
+      const binaryString = Array.from(chunk, byte => String.fromCharCode(byte)).join('')
+      base64 += btoa(binaryString)
+    }
 
     // Generate unique filename
     const timestamp = Date.now()
