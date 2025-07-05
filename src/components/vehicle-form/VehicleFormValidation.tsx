@@ -5,7 +5,7 @@ export const validateVehicleFormTab = (
   currentTab: string,
   formData: VehicleFormData,
   distanceField: any,
-  mainImage: File | null,
+  mainImageSource: File | string | null,
   toast: any
 ): boolean => {
   switch (currentTab) {
@@ -41,7 +41,7 @@ export const validateVehicleFormTab = (
       return true;
       
     case "images":
-      if (!mainImage) {
+      if (!mainImageSource) {
         toast({
           title: "Erro de validação",
           description: "Por favor selecione uma imagem principal.",

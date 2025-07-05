@@ -161,7 +161,8 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
   const distanceField = subcategory ? getDistanceField(subcategory.slug) : null;
 
   const handleNext = () => {
-    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage || mainImageUrl, toast)) {
+    const mainImageSource = mainImage || mainImageUrl;
+    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImageSource, toast)) {
       return;
     }
 
@@ -189,7 +190,8 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     console.log('📝 Form data at submit:', formData);
     console.log('🖼️ Image state at submit:', { file: mainImage?.name, url: mainImageUrl });
 
-    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage || mainImageUrl, toast)) {
+    const mainImageSource = mainImage || mainImageUrl;
+    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImageSource, toast)) {
       console.log('❌ Validation failed for tab:', currentTab);
       return;
     }
