@@ -7,17 +7,27 @@ import { SecondaryImagesUpload } from '@/components/SecondaryImagesUpload';
 
 interface VehicleImagesFormProps {
   mainImage: File | null;
+  mainImageUrl: string | null;
   secondaryImages: File[];
   onMainImageChange: (image: File | null) => void;
+  onMainImageUrlChange: (url: string | null) => void;
   onSecondaryImagesChange: (images: File[]) => void;
 }
 
 export const VehicleImagesForm = ({
   mainImage,
+  mainImageUrl,
   secondaryImages,
   onMainImageChange,
+  onMainImageUrlChange,
   onSecondaryImagesChange
 }: VehicleImagesFormProps) => {
+  console.log('🖼️ VehicleImagesForm props:', {
+    hasMainImage: !!mainImage,
+    hasMainImageUrl: !!mainImageUrl,
+    secondaryImagesCount: secondaryImages.length
+  });
+
   return (
     <TabsContent value="images" className="space-y-4">
       <div>
@@ -28,6 +38,8 @@ export const VehicleImagesForm = ({
         <MainImageUpload
           image={mainImage}
           onImageChange={onMainImageChange}
+          uploadedImageUrl={mainImageUrl}
+          onUploadedImageChange={onMainImageUrlChange}
         />
       </div>
 

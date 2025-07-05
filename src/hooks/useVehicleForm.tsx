@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,6 +58,7 @@ export const useVehicleForm = () => {
   const [formData, setFormData] = useState<VehicleFormData>(initialFormData);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [mainImage, setMainImage] = useState<File | null>(null);
+  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTab, setCurrentTab] = useState("basic");
@@ -80,6 +80,7 @@ export const useVehicleForm = () => {
   console.log('📂 Selected Category ID:', selectedCategoryId);
   console.log('📂 All Categories:', categories.length, 'categories loaded');
   console.log('🏷️ All Brands:', allBrands.length, 'brands loaded');
+  console.log('🖼️ Main Image State:', { hasFile: !!mainImage, hasUrl: !!mainImageUrl });
 
   // Get selected category info with better error handling
   const selectedCategory = useMemo(() => {
@@ -168,6 +169,7 @@ export const useVehicleForm = () => {
     setFormData(initialFormData);
     setSelectedCategoryId("");
     setMainImage(null);
+    setMainImageUrl(null);
     setSecondaryImages([]);
     setCurrentTab("basic");
   };
@@ -202,7 +204,7 @@ export const useVehicleForm = () => {
     try {
       console.log('🚀 Starting vehicle submission...');
       console.log('📝 Raw form data:', formData);
-      console.log('🖼️ Main image:', mainImage);
+      console.log('🖼️ Main image state:', { file: mainImage?.name, url: mainImageUrl });
 
       // Validate required fields
       const requiredFields = ['title', 'brand_id', 'subcategory_id', 'registration_year', 'price_eur'];
@@ -237,7 +239,7 @@ export const useVehicleForm = () => {
         throw new Error('Preço deve ser um valor válido maior que zero');
       }
 
-      // First create the vehicle record without image
+      // Create vehicle with main image URL if available
       const vehicleData = {
         title: formData.title.trim(),
         description: formData.description.trim() || '',
@@ -257,7 +259,7 @@ export const useVehicleForm = () => {
         body_color: formData.body_color || null,
         location: formData.location || null,
         contact_info: formData.contact_info || null,
-        main_image_url: null, // Will be updated after image upload
+        main_image_url: mainImageUrl, // Use the uploaded image URL
         is_published: formData.is_published,
         is_featured: formData.is_featured,
         is_active: formData.is_active,
@@ -278,38 +280,17 @@ export const useVehicleForm = () => {
 
       console.log('✅ Vehicle created successfully:', vehicle);
 
-      // Now upload main image if exists and update the vehicle
-      if (mainImage && vehicle?.id) {
-        console.log('📤 Uploading main image for vehicle:', vehicle.id);
+      // If we have secondary images, upload them
+      if (secondaryImages.length > 0 && vehicle?.id) {
+        console.log('📤 Uploading secondary images...');
         try {
-          const uploadedImages = await uploadImages([mainImage], vehicle.id);
-          if (uploadedImages && uploadedImages.length > 0) {
-            const mainImageUrl = uploadedImages[0].url;
-            console.log('✅ Main image uploaded:', mainImageUrl);
-            
-            // Update vehicle with main image URL
-            const { error: updateError } = await supabase
-              .from('vehicles')
-              .update({ main_image_url: mainImageUrl })
-              .eq('id', vehicle.id);
-
-            if (updateError) {
-              console.error('❌ Error updating vehicle with image:', updateError);
-              // Don't fail the whole operation, just warn
-              toast({
-                title: "Aviso",
-                description: "Veículo criado mas falha ao associar imagem principal.",
-                variant: "destructive",
-              });
-            } else {
-              console.log('✅ Vehicle updated with main image URL');
-            }
-          }
+          await uploadImages(secondaryImages, vehicle.id);
+          console.log('✅ Secondary images uploaded');
         } catch (imageError) {
-          console.error('❌ Image upload failed:', imageError);
+          console.error('❌ Secondary images upload failed:', imageError);
           toast({
             title: "Aviso",
-            description: "Veículo criado mas falha no upload da imagem.",
+            description: "Veículo criado mas falha no upload de imagens secundárias.",
             variant: "destructive",
           });
         }
@@ -344,6 +325,7 @@ export const useVehicleForm = () => {
     formData,
     selectedCategoryId,
     mainImage,
+    mainImageUrl,
     secondaryImages,
     currentTab,
     isSubmitting,
@@ -357,6 +339,7 @@ export const useVehicleForm = () => {
     handleInputChange,
     setSelectedCategoryId,
     setMainImage,
+    setMainImageUrl,
     setSecondaryImages,
     setCurrentTab,
     submitVehicle,

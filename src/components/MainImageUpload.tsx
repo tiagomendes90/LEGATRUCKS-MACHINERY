@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,12 +20,37 @@ export const MainImageUpload = ({
   onUploadedImageChange
 }: MainImageUploadProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { uploadSingleImage, isUploading } = useImageKitUpload();
   const { toast } = useToast();
+
+  console.log('🖼️ MainImageUpload state:', {
+    hasImage: !!image,
+    uploadedImageUrl,
+    previewUrl,
+    isProcessing,
+    isUploading
+  });
+
+  // Create preview URL when image changes
+  useEffect(() => {
+    if (image && !uploadedImageUrl) {
+      const preview = URL.createObjectURL(image);
+      setPreviewUrl(preview);
+      
+      return () => {
+        URL.revokeObjectURL(preview);
+      };
+    } else if (uploadedImageUrl) {
+      setPreviewUrl(null);
+    }
+  }, [image, uploadedImageUrl]);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    console.log('📁 File selected:', file.name, file.size);
 
     if (!file.type.startsWith('image/')) {
       toast({
@@ -37,19 +61,49 @@ export const MainImageUpload = ({
       return;
     }
 
-    // Create preview URL for immediate display
-    const preview = URL.createObjectURL(file);
-    setPreviewUrl(preview);
+    // Set the file immediately for preview
     onImageChange(file);
-
+    
     // Show processing message
     toast({
-      title: "A processar imagem principal...",
-      description: "A carregar para ImageKit para otimização automática...",
+      title: "A processar imagem...",
+      description: "A carregar e otimizar via ImageKit...",
     });
 
+    setIsProcessing(true);
+
+    try {
+      // Upload to ImageKit
+      const result = await uploadSingleImage(file, 'temp', true);
+      
+      console.log('✅ ImageKit upload result:', result);
+
+      if (result && result.url) {
+        // Update with uploaded URL
+        if (onUploadedImageChange) {
+          onUploadedImageChange(result.url);
+        }
+        
+        toast({
+          title: "Sucesso!",
+          description: "Imagem carregada e otimizada com sucesso!",
+        });
+      }
+    } catch (error) {
+      console.error('❌ Upload error:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar imagem. Tente novamente.",
+        variant: "destructive",
+      });
+      
+      // Keep the local file for fallback
+    } finally {
+      setIsProcessing(false);
+    }
+
     e.target.value = '';
-  }, [onImageChange, toast]);
+  }, [onImageChange, onUploadedImageChange, uploadSingleImage, toast]);
 
   const removeImage = useCallback(() => {
     onImageChange(null);
@@ -78,6 +132,7 @@ export const MainImageUpload = ({
   };
 
   const currentPreview = getImagePreview();
+  const isLoading = isUploading || isProcessing;
 
   return (
     <div className="space-y-4">
@@ -88,18 +143,18 @@ export const MainImageUpload = ({
           onChange={handleFileSelect}
           className="hidden"
           id="main-image-upload"
-          disabled={isUploading}
+          disabled={isLoading}
         />
         <Button
           type="button"
           variant="outline"
           onClick={() => document.getElementById('main-image-upload')?.click()}
-          disabled={isUploading}
+          disabled={isLoading}
         >
-          {isUploading ? (
+          {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              A otimizar...
+              {isProcessing ? 'A otimizar...' : 'A carregar...'}
             </>
           ) : (
             <>
@@ -108,9 +163,9 @@ export const MainImageUpload = ({
             </>
           )}
         </Button>
-        {isUploading && (
+        {isLoading && (
           <p className="text-sm text-gray-500">
-            Otimizando automaticamente via ImageKit...
+            {isProcessing ? 'Otimizando via ImageKit...' : 'A carregar...'}
           </p>
         )}
       </div>
@@ -123,6 +178,10 @@ export const MainImageUpload = ({
                 src={currentPreview}
                 alt="Imagem Principal"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('❌ Image load error:', currentPreview);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
               <Button
                 type="button"
@@ -130,13 +189,13 @@ export const MainImageUpload = ({
                 size="sm"
                 className="absolute top-2 right-2 h-8 w-8 p-0"
                 onClick={removeImage}
-                disabled={isUploading}
+                disabled={isLoading}
               >
                 <X className="h-4 w-4" />
               </Button>
               {uploadedImageUrl && (
                 <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
-                  ImageKit
+                  ImageKit ✓
                 </div>
               )}
               <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
@@ -150,6 +209,11 @@ export const MainImageUpload = ({
               {image && (
                 <p className="text-xs text-gray-500">
                   {formatFileSize(image.size)}
+                </p>
+              )}
+              {uploadedImageUrl && (
+                <p className="text-xs text-green-600">
+                  ✓ Otimizada via ImageKit
                 </p>
               )}
             </div>

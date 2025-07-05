@@ -47,7 +47,9 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     formData,
     selectedCategoryId,
     mainImage,
+    mainImageUrl,
     setMainImage,
+    setMainImageUrl,
     secondaryImages,
     setSecondaryImages,
     currentTab,
@@ -71,7 +73,9 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     availableBrandsCount: availableBrands?.length || 0,
     formData: formData ? 'loaded' : 'not loaded',
     categoriesLoading: categoriesLoading || formCategoriesLoading,
-    brandsLoading
+    brandsLoading,
+    hasMainImage: !!mainImage,
+    hasMainImageUrl: !!mainImageUrl
   });
 
   // Show loading state
@@ -157,7 +161,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
   const distanceField = subcategory ? getDistanceField(subcategory.slug) : null;
 
   const handleNext = () => {
-    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage, toast)) {
+    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage || mainImageUrl, toast)) {
       return;
     }
 
@@ -183,9 +187,9 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     
     console.log('🎯 Form submitted, current tab:', currentTab);
     console.log('📝 Form data at submit:', formData);
-    console.log('🏷️ Available brands:', availableBrands?.length || 0);
+    console.log('🖼️ Image state at submit:', { file: mainImage?.name, url: mainImageUrl });
 
-    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage, toast)) {
+    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage || mainImageUrl, toast)) {
       console.log('❌ Validation failed for tab:', currentTab);
       return;
     }
@@ -247,8 +251,10 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
 
             <VehicleImagesForm
               mainImage={mainImage}
+              mainImageUrl={mainImageUrl}
               secondaryImages={secondaryImages}
               onMainImageChange={setMainImage}
+              onMainImageUrlChange={setMainImageUrl}
               onSecondaryImagesChange={setSecondaryImages}
             />
 
