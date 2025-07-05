@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +11,7 @@ import { VehicleSettingsForm } from "@/components/vehicle-form/VehicleSettingsFo
 import { VehicleFormNavigation } from "@/components/vehicle-form/VehicleFormNavigation";
 import { validateVehicleFormTab } from "@/components/vehicle-form/VehicleFormValidation";
 import { useCategories } from "@/hooks/useCategories";
-import CategoryFieldMapper from "@/components/CategoryFieldMapper";
+import { getDistanceField } from "@/utils/categoryFieldHelpers";
 import { useImageKitUpload } from "@/hooks/useImageKitUpload";
 
 interface AddVehicleFormProps {
@@ -88,7 +87,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     .flatMap(cat => cat.subcategories || [])
     .find(sub => sub.id === formData.subcategory_id);
 
-  const distanceField = subcategory ? CategoryFieldMapper.getDistanceField(subcategory.slug) : null;
+  const distanceField = subcategory ? getDistanceField(subcategory.slug) : null;
 
   const handleNext = () => {
     if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImage, toast)) {
