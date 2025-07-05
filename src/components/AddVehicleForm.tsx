@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,9 +45,11 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
 
   const isEditMode = !!editingVehicle;
 
-  // Load editing vehicle data
+  // Load editing vehicle data - Fixed to prevent infinite loop
   useEffect(() => {
-    if (editingVehicle) {
+    if (editingVehicle && editingVehicle.id) {
+      console.log('Loading vehicle data for editing:', editingVehicle.id);
+      
       // Set form data for editing
       handleInputChange('title', editingVehicle.title || '');
       handleInputChange('description', editingVehicle.description || '');
@@ -69,8 +72,18 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
       handleInputChange('is_active', editingVehicle.is_active ?? true);
       handleInputChange('is_featured', editingVehicle.is_featured ?? false);
       handleInputChange('is_published', editingVehicle.is_published ?? false);
+
+      // Find and set category ID
+      if (editingVehicle.subcategory_id) {
+        const category = categories.find(cat => 
+          cat.subcategories?.some(sub => sub.id === editingVehicle.subcategory_id)
+        );
+        if (category) {
+          setSelectedCategoryId(category.id);
+        }
+      }
     }
-  }, [editingVehicle, handleInputChange]);
+  }, [editingVehicle?.id]); // Only depend on the vehicle ID to prevent infinite loops
 
   const tabs = [
     { id: "basic", label: "Informações Básicas" },
@@ -119,11 +132,13 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     }
 
     try {
+      console.log('🚀 Starting vehicle submission...');
       const cleanPrice = formData.price_eur.replace(/,/g, '');
       let mainImageUrl = editingVehicle?.main_image_url || '';
 
       // Handle image uploads
       if (mainImage || secondaryImages.length > 0) {
+        console.log('📤 Uploading images...');
         const allImages = [];
         if (mainImage) allImages.push(mainImage);
         allImages.push(...secondaryImages);
@@ -132,6 +147,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
         
         if (mainImage && uploadedImages.length > 0) {
           mainImageUrl = uploadedImages[0].url;
+          console.log('✅ Main image uploaded:', mainImageUrl);
         }
       }
 
@@ -160,6 +176,8 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
         is_published: formData.is_published,
       };
 
+      console.log('📝 Vehicle data prepared:', vehicleData);
+
       if (isEditMode) {
         await updateVehicleMutation.mutateAsync({
           id: editingVehicle.id,
@@ -182,7 +200,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
         onSuccess();
       }
     } catch (error) {
-      console.error('Error submitting vehicle:', error);
+      console.error('❌ Error submitting vehicle:', error);
       toast({
         title: "Erro",
         description: isEditMode ? "Erro ao atualizar veículo." : "Erro ao adicionar veículo.",
