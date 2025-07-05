@@ -36,7 +36,8 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
     setCurrentTab,
     handleInputChange,
     setSelectedCategoryId,
-    resetForm
+    resetForm,
+    availableBrands
   } = useVehicleForm();
 
   const addVehicleMutation = useAddVehicle();
@@ -232,7 +233,7 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
               selectedCategoryId={selectedCategoryId}
               categories={categories}
               availableSubcategories={categories.find(cat => cat.id === selectedCategoryId)?.subcategories || []}
-              availableBrands={[]}
+              availableBrands={availableBrands}
               distanceField={distanceField}
               onInputChange={handleInputChange}
               onCategoryChange={setSelectedCategoryId}

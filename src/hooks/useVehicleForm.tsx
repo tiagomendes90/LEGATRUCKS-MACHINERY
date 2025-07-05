@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCategories } from '@/hooks/useCategories';
-import { useNewVehicleBrands } from '@/hooks/useNewVehicleBrands';
+import { useVehicleBrandsByCategory } from '@/hooks/useNewVehicleBrands';
 import { useImageKitUpload } from '@/hooks/useImageKitUpload';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -68,27 +68,20 @@ export const useVehicleForm = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-  const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useNewVehicleBrands();
   const { uploadImages, isUploading } = useImageKitUpload();
 
   // Get selected category info
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
-  const selectedCategoryName = selectedCategory?.name?.toLowerCase();
+  const selectedCategoryName = selectedCategory?.name;
+
+  // Use the category-filtered brands hook
+  const { data: brands = [], isLoading: brandsLoading, error: brandsError } = useVehicleBrandsByCategory(selectedCategoryName);
 
   // Filter subcategories based on selected category
   const availableSubcategories = selectedCategory?.subcategories || [];
 
-  // Filter brands based on selected category
-  const availableBrands = useMemo(() => {
-    if (!selectedCategoryId || !brands.length || !categories.length) return [];
-    
-    const categoryName = categories.find(cat => cat.id === selectedCategoryId)?.name;
-    if (!categoryName) return [];
-    
-    return brands.filter(brand => 
-      brand.category?.includes(categoryName)
-    );
-  }, [selectedCategoryId, brands, categories]);
+  // Available brands are now directly from the filtered hook
+  const availableBrands = brands;
 
   // Reset subcategory and brand when category changes
   useEffect(() => {
@@ -107,7 +100,7 @@ export const useVehicleForm = () => {
   const getDistanceFieldInfo = () => {
     if (!selectedCategoryName) return null;
     
-    switch (selectedCategoryName) {
+    switch (selectedCategoryName.toLowerCase()) {
       case 'trucks':
         return {
           field: 'mileage_km' as keyof VehicleFormData,
