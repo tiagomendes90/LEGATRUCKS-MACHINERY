@@ -44,11 +44,16 @@ export const useImageKitUpload = () => {
 
         if (error) {
           console.error('ImageKit upload error:', error);
-          throw error;
+          throw new Error(`Upload failed: ${error.message}`);
+        }
+
+        if (!data) {
+          throw new Error('No response data from upload function');
         }
 
         if (!data.success) {
-          throw new Error(data.error || 'Upload failed');
+          console.error('ImageKit upload failed:', data.error);
+          throw new Error(data.error || 'Upload failed without specific error');
         }
 
         console.log(`✅ ${file.name} uploaded successfully`);
@@ -72,11 +77,21 @@ export const useImageKitUpload = () => {
       return uploadedImages;
     } catch (error) {
       console.error('ImageKit upload error:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar imagens via ImageKit. Tente novamente.",
-        variant: "destructive",
-      });
+      
+      // Check if it's a configuration error
+      if (error.message?.includes('ImageKit not configured')) {
+        toast({
+          title: "Configuração Necessária",
+          description: "ImageKit não está configurado. Configure as chaves API nas definições do projeto.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: `Falha ao carregar imagens: ${error.message}`,
+          variant: "destructive",
+        });
+      }
       throw error;
     } finally {
       setIsUploading(false);
