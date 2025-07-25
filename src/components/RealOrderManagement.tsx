@@ -18,10 +18,10 @@ const RealOrderManagement = () => {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      pending: "bg-yellow-100 text-yellow-800",
-      confirmed: "bg-blue-100 text-blue-800",
-      delivered: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800"
+      pending: "bg-muted text-muted-foreground",
+      confirmed: "bg-primary text-primary-foreground",
+      delivered: "bg-accent text-accent-foreground",
+      cancelled: "bg-destructive text-destructive-foreground"
     };
 
     const statusLabels = {
@@ -40,9 +40,9 @@ const RealOrderManagement = () => {
 
   const getPaymentBadge = (status: string) => {
     const colors = {
-      pending: "bg-orange-100 text-orange-800",
-      paid: "bg-green-100 text-green-800",
-      refunded: "bg-gray-100 text-gray-800"
+      pending: "bg-secondary text-secondary-foreground",
+      paid: "bg-accent text-accent-foreground",
+      refunded: "bg-muted text-muted-foreground"
     };
 
     const paymentLabels = {
@@ -100,38 +100,38 @@ const RealOrderManagement = () => {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold">{orders.length}</p>
-              <p className="text-sm text-gray-600">Total de Pedidos</p>
+              <p className="text-2xl font-bold text-foreground">{orders.length}</p>
+              <p className="text-sm text-muted-foreground">Total de Pedidos</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-primary">
                 €{(totalRevenue / 1000000).toFixed(1)}M
               </p>
-              <p className="text-sm text-gray-600">Receita Total</p>
+              <p className="text-sm text-muted-foreground">Receita Total</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-accent-foreground">
                 {orders.filter(o => o.status === "pending").length}
               </p>
-              <p className="text-sm text-gray-600">Pedidos Pendentes</p>
+              <p className="text-sm text-muted-foreground">Pedidos Pendentes</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-2xl font-bold text-secondary-foreground">
                 {orders.filter(o => o.status === "delivered").length}
               </p>
-              <p className="text-sm text-gray-600">Entregues</p>
+              <p className="text-sm text-muted-foreground">Entregues</p>
             </div>
           </CardContent>
         </Card>
@@ -186,7 +186,7 @@ const RealOrderManagement = () => {
                   <TableCell>
                     <div>
                       <p className="font-medium">{order.name}</p>
-                      <p className="text-sm text-gray-500">{order.customer_email}</p>
+                      <p className="text-sm text-muted-foreground">{order.customer_email}</p>
                     </div>
                   </TableCell>
                   <TableCell>{order.truck_model}</TableCell>
@@ -232,7 +232,7 @@ const RealOrderManagement = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleDeleteOrder(order.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-destructive hover:text-destructive/80"
                         disabled={deleteOrderMutation.isPending}
                         title="Eliminar"
                       >
@@ -245,7 +245,7 @@ const RealOrderManagement = () => {
             </TableBody>
           </Table>
           {filteredOrders.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               Nenhum pedido encontrado com os critérios selecionados.
             </div>
           )}

@@ -53,9 +53,9 @@ export const VehicleManagement = () => {
       return <Badge variant="secondary">Rascunho</Badge>;
     }
     if (vehicle.is_featured) {
-      return <Badge className="bg-green-600">Destaque</Badge>;
+      return <Badge className="bg-primary text-primary-foreground">Destaque</Badge>;
     }
-    return <Badge className="bg-blue-600">Publicado</Badge>;
+    return <Badge className="bg-accent text-accent-foreground">Publicado</Badge>;
   };
 
   const filteredVehicles = statusFilter === "all" 
@@ -90,38 +90,38 @@ export const VehicleManagement = () => {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold">{vehicles.length}</p>
-              <p className="text-sm text-gray-600">Total de Veículos</p>
+              <p className="text-2xl font-bold text-foreground">{vehicles.length}</p>
+              <p className="text-sm text-muted-foreground">Total de Veículos</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-primary">
                 {vehicles.filter(v => v.is_published && v.is_active).length}
               </p>
-              <p className="text-sm text-gray-600">Publicados</p>
+              <p className="text-sm text-muted-foreground">Publicados</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-accent-foreground">
                 {vehicles.filter(v => !v.is_published).length}
               </p>
-              <p className="text-sm text-gray-600">Rascunhos</p>
+              <p className="text-sm text-muted-foreground">Rascunhos</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-2xl font-bold text-secondary-foreground">
                 {vehicles.filter(v => v.is_featured).length}
               </p>
-              <p className="text-sm text-gray-600">Em Destaque</p>
+              <p className="text-sm text-muted-foreground">Em Destaque</p>
             </div>
           </CardContent>
         </Card>
@@ -174,7 +174,7 @@ export const VehicleManagement = () => {
                       />
                       <div>
                         <p className="font-medium">{vehicle.title}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {vehicle.condition === 'new' ? 'Novo' : 
                            vehicle.condition === 'used' ? 'Usado' : 
                            vehicle.condition === 'restored' ? 'Restaurado' : 'Modificado'}
@@ -209,7 +209,7 @@ export const VehicleManagement = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleDeleteVehicle(vehicle.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-destructive hover:text-destructive/80"
                         disabled={deleteVehicleMutation.isPending}
                         title="Eliminar"
                       >
@@ -222,7 +222,7 @@ export const VehicleManagement = () => {
             </TableBody>
           </Table>
           {filteredVehicles.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               Nenhum veículo encontrado com os critérios selecionados.
             </div>
           )}

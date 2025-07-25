@@ -79,14 +79,14 @@ const Admin = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Inventário Total</p>
-                <p className="text-3xl font-bold">{totalInventory}</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mb-1">Inventário Total</p>
+                <p className="text-3xl font-bold text-foreground">{totalInventory}</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   {publishedVehicles} publicados | {draftVehicles} rascunhos
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Package className="h-6 w-6 text-blue-600" />
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Package className="h-6 w-6 text-primary" />
               </div>
             </div>
           </CardContent>
@@ -96,14 +96,14 @@ const Admin = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Valor Total</p>
-                <p className="text-3xl font-bold">€{(totalValue / 1000000).toFixed(1)}M</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
+                <p className="text-3xl font-bold text-foreground">€{(totalValue / 1000000).toFixed(1)}M</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   Total do inventário
                 </p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-accent-foreground" />
               </div>
             </div>
           </CardContent>
@@ -113,14 +113,14 @@ const Admin = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Preço Médio</p>
-                <p className="text-3xl font-bold">€{(averagePrice / 1000).toFixed(0)}K</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mb-1">Preço Médio</p>
+                <p className="text-3xl font-bold text-foreground">€{(averagePrice / 1000).toFixed(0)}K</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   Por veículo
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
+              <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-secondary-foreground" />
               </div>
             </div>
           </CardContent>
@@ -130,14 +130,14 @@ const Admin = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Veículos Novos</p>
-                <p className="text-3xl font-bold">{newVehicles}</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mb-1">Veículos Novos</p>
+                <p className="text-3xl font-bold text-foreground">{newVehicles}</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   {featuredVehicles} em destaque
                 </p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Star className="h-6 w-6 text-orange-600" />
+              <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                <Star className="h-6 w-6 text-muted-foreground" />
               </div>
             </div>
           </CardContent>
