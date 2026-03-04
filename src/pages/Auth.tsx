@@ -21,7 +21,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/admin');
     }
   }, [user, navigate]);
 
@@ -42,7 +42,7 @@ const Auth = () => {
         title: t('auth.welcomeBack'),
         description: t('auth.signedInSuccessfully'),
       });
-      navigate('/');
+      navigate('/admin');
     }
 
     setLoading(false);

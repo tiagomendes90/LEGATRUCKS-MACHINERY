@@ -60,7 +60,7 @@ const Admin = () => {
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="mb-8 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Bem-vindo, geral@lega.pt</h1>
+        <h1 className="text-3xl font-bold">Bem-vindo, {user?.email}</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleGoToWebsite}>
             <ExternalLink className="h-4 w-4 mr-2" />
