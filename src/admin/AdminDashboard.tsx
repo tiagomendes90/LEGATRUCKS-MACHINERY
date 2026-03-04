@@ -1,19 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/admin/supabaseClient';
+import ProductList from '@/admin/ProductList';
+import ProductForm from '@/admin/ProductForm';
+import { useAuth } from '@/hooks/useAuth';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/hooks/useAuth';
-import { Navigate, useNavigate } from 'react-router-dom';
-import ProductList from '@/admin/ProductList';
-import ProductForm from '@/admin/ProductForm';
 import RealOrderManagement from '@/components/RealOrderManagement';
-import { useVehicles } from '@/hooks/useVehicles';
-import { Package, Star, TrendingUp, BarChart3, ExternalLink, LogOut } from 'lucide-react';
+import { Package, TrendingUp, ExternalLink, LogOut } from 'lucide-react';
 
-const AdminDashboard = () => {
+export default function AdminDashboard() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [editing, setEditing] = useState<any>(null);
   const { user, isAdmin, loading, signOut } = useAuth();
-  const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles({}, 1000);
   const navigate = useNavigate();
+
+  const loadProducts = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*, brand:brands(name, slug), images:product_images(image_url, sort_order)');
+    setProducts(data || []);
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
   if (loading) {
     return (
@@ -32,22 +44,6 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
-  const totalInventory = vehicles.length;
-  const totalValue = vehicles.reduce((sum, v) => sum + (v as any).price_eur || 0, 0);
-  const averagePrice = totalInventory > 0 ? totalValue / totalInventory : 0;
-  const newVehicles = vehicles.filter(v => v.condition === 'new').length;
-  const publishedVehicles = vehicles.filter(v => (v as any).is_published && v.is_active).length;
-  const draftVehicles = vehicles.filter(v => !(v as any).is_published).length;
-  const featuredVehicles = vehicles.filter(v => (v as any).is_featured).length;
-
-  if (vehiclesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">A carregar dados...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="mb-8 flex justify-between items-center">
@@ -55,26 +51,23 @@ const AdminDashboard = () => {
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate('/')}>
             <ExternalLink className="h-4 w-4 mr-2" />
-            Ir para Website
+            Website
           </Button>
           <Button variant="outline" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
-            Terminar Sessão
+            Sair
           </Button>
         </div>
       </div>
 
-      {/* Statistics */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      {/* Stats */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Inventário Total</p>
-                <p className="text-3xl font-bold text-foreground">{totalInventory}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {publishedVehicles} publicados | {draftVehicles} rascunhos
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Total Produtos</p>
+                <p className="text-3xl font-bold text-foreground">{products.length}</p>
               </div>
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Package className="h-6 w-6 text-primary" />
@@ -87,39 +80,12 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
-                <p className="text-3xl font-bold text-foreground">€{(totalValue / 1000000).toFixed(1)}M</p>
-                <p className="text-xs text-muted-foreground mt-1">Total do inventário</p>
+                <p className="text-3xl font-bold text-foreground">
+                  €{products.reduce((sum, p) => sum + (p.price || 0), 0).toLocaleString()}
+                </p>
               </div>
               <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-accent-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Preço Médio</p>
-                <p className="text-3xl font-bold text-foreground">€{(averagePrice / 1000).toFixed(0)}K</p>
-                <p className="text-xs text-muted-foreground mt-1">Por veículo</p>
-              </div>
-              <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-secondary-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Veículos Novos</p>
-                <p className="text-3xl font-bold text-foreground">{newVehicles}</p>
-                <p className="text-xs text-muted-foreground mt-1">{featuredVehicles} em destaque</p>
-              </div>
-              <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                <Star className="h-6 w-6 text-muted-foreground" />
               </div>
             </div>
           </CardContent>
@@ -130,7 +96,9 @@ const AdminDashboard = () => {
       <Tabs defaultValue="inventory" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
-          <TabsTrigger value="add-product">Adicionar Produto</TabsTrigger>
+          <TabsTrigger value="add-product">
+            {editing ? 'Editar Produto' : 'Adicionar Produto'}
+          </TabsTrigger>
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
         </TabsList>
 
@@ -139,7 +107,14 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="add-product">
-          <ProductForm />
+          <ProductForm
+            editingProduct={editing}
+            onSuccess={() => {
+              setEditing(null);
+              loadProducts();
+            }}
+            onCancel={() => setEditing(null)}
+          />
         </TabsContent>
 
         <TabsContent value="orders">
@@ -148,6 +123,4 @@ const AdminDashboard = () => {
       </Tabs>
     </div>
   );
-};
-
-export default AdminDashboard;
+}
