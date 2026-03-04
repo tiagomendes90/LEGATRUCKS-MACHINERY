@@ -47,7 +47,7 @@ export const useFeaturedVehicles = () => {
         `)
         .eq('vehicle.is_active', true)
         .eq('vehicle.is_published', true)
-        .order('position', { ascending: true });
+        .order('display_order', { ascending: true });
 
       if (error) {
         console.error('Error fetching featured vehicles:', error);
@@ -75,7 +75,7 @@ export const useAddFeaturedVehicle = () => {
 
       const { data, error } = await supabase
         .from('featured_vehicles')
-        .insert([{ vehicle_id, position }])
+        .insert([{ vehicle_id, display_order: position }])
         .select()
         .single();
 
