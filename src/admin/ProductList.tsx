@@ -1,7 +1,141 @@
-import { VehicleManagement } from '@/components/VehicleManagement';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/admin/supabaseClient';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Eye, Edit, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import ProductForm from '@/admin/ProductForm';
 
-const ProductList = () => {
-  return <VehicleManagement />;
-};
+export default function ProductList() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<any>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-export default ProductList;
+  const loadProducts = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('products')
+      .select('*, brand:brands(name), images:product_images(image_url, is_primary, sort_order)')
+      .order('created_at', { ascending: false });
+    setProducts(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem a certeza que deseja eliminar este produto?')) return;
+
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Produto eliminado' });
+      loadProducts();
+    }
+  };
+
+  const handleEdit = (product: any) => {
+    setEditing(product);
+    setIsEditOpen(true);
+  };
+
+  const getPrimaryImage = (product: any) => {
+    const primary = product.images?.find((img: any) => img.is_primary);
+    return primary?.image_url || product.images?.[0]?.image_url;
+  };
+
+  if (loading) {
+    return <div className="text-center py-8 text-muted-foreground">A carregar produtos...</div>;
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Produtos</CardTitle>
+          <CardDescription>{products.length} produtos no inventário</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Produto</TableHead>
+                <TableHead>Marca</TableHead>
+                <TableHead>Ano</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {getPrimaryImage(p) && (
+                        <img src={getPrimaryImage(p)} alt={p.title} className="w-12 h-12 object-cover rounded" />
+                      )}
+                      <div>
+                        <p className="font-medium">{p.title}</p>
+                        {p.model && <p className="text-sm text-muted-foreground">{p.model}</p>}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{p.brand?.name || '—'}</TableCell>
+                  <TableCell>{p.year || '—'}</TableCell>
+                  <TableCell>{p.price ? `€${Number(p.price).toLocaleString()}` : '—'}</TableCell>
+                  <TableCell>
+                    <Badge variant={p.is_active ? 'default' : 'secondary'}>
+                      {p.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/vehicle/${p.id}`)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(p)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDelete(p.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {products.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">Nenhum produto encontrado.</div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Produto</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <ProductForm
+              editingProduct={editing}
+              onSuccess={() => { setIsEditOpen(false); setEditing(null); loadProducts(); }}
+              onCancel={() => { setIsEditOpen(false); setEditing(null); }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
