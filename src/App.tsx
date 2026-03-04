@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,8 +11,8 @@ import NewVehicleCategory from "./pages/NewVehicleCategory";
 import VehicleDetails from "./pages/VehicleDetails";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
-import Admin from "./pages/Admin";
-import Auth from "./pages/Auth";
+import AdminLogin from "./admin/AdminLogin";
+import AdminDashboard from "./admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 
@@ -38,12 +37,12 @@ const App = () => (
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={<AdminLogin />} />
             <Route 
               path="/admin" 
               element={
                 <ProtectedRoute requireAdmin={true}>
-                  <Admin />
+                  <AdminDashboard />
                 </ProtectedRoute>
               } 
             />
