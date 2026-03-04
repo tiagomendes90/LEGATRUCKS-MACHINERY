@@ -56,6 +56,36 @@ export type Database = {
         }
         Relationships: []
       }
+      category_brands: {
+        Row: {
+          brand_id: string
+          category_id: string
+        }
+        Insert: {
+          brand_id: string
+          category_id: string
+        }
+        Update: {
+          brand_id?: string
+          category_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_brands_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_brands_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       featured_vehicles: {
         Row: {
           created_at: string
