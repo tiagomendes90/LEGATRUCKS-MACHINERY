@@ -25,6 +25,8 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [file, setFile] = useState<File | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [specs, setSpecs] = useState<any[]>([]);
+  const [specValues, setSpecValues] = useState<Record<string, any>>({});
 
   const [form, setForm] = useState({
     title: '',
@@ -85,6 +87,28 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       .order('name')
       .then(({ data }) => setBrands(data || []));
   }, []);
+
+  // Load specs when subcategory changes
+  useEffect(() => {
+    if (!form.subcategory_id) { setSpecs([]); setSpecValues({}); return; }
+    const loadSpecs = async () => {
+      const { data } = await supabase.from('spec_definitions').select('*').eq('subcategory_id', form.subcategory_id);
+      setSpecs(data || []);
+      if (editingProduct) {
+        const { data: ev } = await supabase.from('spec_values').select('*').eq('product_id', editingProduct.id);
+        if (ev) {
+          const m: Record<string, any> = {};
+          ev.forEach((sv: any) => { m[sv.spec_definition_id] = sv.value_number ?? sv.value_text ?? sv.value_boolean ?? ''; });
+          setSpecValues(m);
+        }
+      }
+    };
+    loadSpecs();
+  }, [form.subcategory_id, editingProduct]);
+
+  const handleSpecChange = (specId: string, value: any) => {
+    setSpecValues((prev) => ({ ...prev, [specId]: value }));
+  };
 
   const uploadImage = async (): Promise<string | null> => {
     if (!file) return null;
@@ -182,6 +206,30 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       const { error: imgError } = await supabase.from('product_images').insert(imageRows);
       if (imgError) {
         console.error('Error saving images:', imgError);
+      }
+    }
+
+    // Save spec values
+    if (productId && Object.keys(specValues).length > 0) {
+      if (editingProduct) {
+        await supabase.from('spec_values').delete().eq('product_id', productId);
+      }
+      const specInserts = Object.entries(specValues)
+        .filter(([_, val]) => val !== '' && val != null)
+        .map(([specDefId, val]) => {
+          const spec = specs.find((s) => s.id === specDefId);
+          const isNum = spec?.data_type === 'number';
+          const isBool = spec?.data_type === 'boolean';
+          return {
+            product_id: productId,
+            spec_definition_id: specDefId,
+            value_number: isNum ? parseFloat(val) : null,
+            value_text: !isNum && !isBool ? String(val) : null,
+            value_boolean: isBool ? Boolean(val) : null,
+          };
+        });
+      if (specInserts.length > 0) {
+        await supabase.from('spec_values').insert(specInserts);
       }
     }
 
@@ -292,6 +340,39 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
           <Label>Descrição</Label>
           <Textarea placeholder="Descrição do produto..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} />
         </div>
+
+        {/* Dynamic Specs */}
+        {specs.length > 0 && (
+          <div>
+            <Label className="text-base font-semibold">Especificações</Label>
+            <div className="grid md:grid-cols-2 gap-4 mt-2">
+              {specs.map((spec) => (
+                <div key={spec.id}>
+                  <Label>{spec.label} {spec.unit ? `(${spec.unit})` : ''}</Label>
+                  {spec.data_type === 'boolean' ? (
+                    <Select
+                      value={specValues[spec.id]?.toString() || ''}
+                      onValueChange={(v) => handleSpecChange(spec.id, v === 'true')}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Sim</SelectItem>
+                        <SelectItem value="false">Não</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      type={spec.data_type === 'number' ? 'number' : 'text'}
+                      placeholder={spec.label}
+                      value={specValues[spec.id] ?? ''}
+                      onChange={(e) => handleSpecChange(spec.id, spec.data_type === 'number' ? e.target.value : e.target.value)}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Image Upload */}
         <div>
