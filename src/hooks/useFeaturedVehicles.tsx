@@ -117,7 +117,7 @@ export const useUpdateFeaturedVehiclePosition = () => {
 
       const { data, error } = await supabase
         .from('featured_vehicles')
-        .update({ position })
+        .update({ display_order: position })
         .eq('id', id)
         .select()
         .single();
