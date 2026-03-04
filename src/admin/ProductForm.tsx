@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X } from 'lucide-react';
+import { Save, X, Upload, Trash2, ImageIcon } from 'lucide-react';
 
 interface ProductFormProps {
   editingProduct?: any;
@@ -22,6 +22,9 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -54,10 +57,13 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         location_country: editingProduct.location_country || 'Portugal',
         currency: editingProduct.currency || 'EUR',
       });
+      // Load existing images
+      if (editingProduct.images) {
+        setImages(editingProduct.images.map((img: any) => img.image_url));
+      }
     }
   }, [editingProduct]);
 
-  // Load subcategories when category changes
   useEffect(() => {
     if (form.category_id) {
       supabase
@@ -72,7 +78,6 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     }
   }, [form.category_id]);
 
-  // Load brands
   useEffect(() => {
     supabase
       .from('brands')
@@ -80,6 +85,45 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       .order('name')
       .then(({ data }) => setBrands(data || []));
   }, []);
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!file) return null;
+
+    setUploading(true);
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error(error);
+      toast({ title: 'Erro', description: 'Falha ao carregar imagem.', variant: 'destructive' });
+      setUploading(false);
+      return null;
+    }
+
+    const url = supabase.storage
+      .from('product-images')
+      .getPublicUrl(fileName).data.publicUrl;
+
+    setUploading(false);
+    return url;
+  };
+
+  const handleAddImage = async () => {
+    const url = await uploadImage();
+    if (url) {
+      setImages((prev) => [...prev, url]);
+      setFile(null);
+      // Reset file input
+      const input = document.getElementById('image-upload') as HTMLInputElement;
+      if (input) input.value = '';
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSave = async () => {
     if (!form.title.trim()) {
@@ -104,20 +148,44 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       currency: form.currency,
     };
 
+    let productId = editingProduct?.id;
     let error;
-    if (editingProduct) {
-      ({ error } = await supabase.from('products').update(payload).eq('id', editingProduct.id));
-    } else {
-      ({ error } = await supabase.from('products').insert([payload]));
-    }
 
-    setLoading(false);
+    if (editingProduct) {
+      ({ error } = await supabase.from('products').update(payload).eq('id', productId));
+    } else {
+      const result = await supabase.from('products').insert([payload]).select('id').single();
+      error = result.error;
+      productId = result.data?.id;
+    }
 
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      setLoading(false);
       return;
     }
 
+    // Save images to product_images table
+    if (productId && images.length > 0) {
+      // Delete existing images if editing
+      if (editingProduct) {
+        await supabase.from('product_images').delete().eq('product_id', productId);
+      }
+
+      const imageRows = images.map((url, i) => ({
+        product_id: productId,
+        image_url: url,
+        is_primary: i === 0,
+        sort_order: i,
+      }));
+
+      const { error: imgError } = await supabase.from('product_images').insert(imageRows);
+      if (imgError) {
+        console.error('Error saving images:', imgError);
+      }
+    }
+
+    setLoading(false);
     toast({
       title: editingProduct ? 'Produto atualizado' : 'Produto criado',
       description: 'Operação realizada com sucesso.',
@@ -129,6 +197,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         price: '', year: '', description: '', condition: 'used',
         model: '', location_city: '', location_country: 'Portugal', currency: 'EUR',
       });
+      setImages([]);
     }
 
     onSuccess?.();
@@ -143,19 +212,11 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <Label>Título *</Label>
-            <Input
-              placeholder="Ex: Mercedes Actros 1845"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-            />
+            <Input placeholder="Ex: Mercedes Actros 1845" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           </div>
           <div>
             <Label>Modelo</Label>
-            <Input
-              placeholder="Ex: Actros 1845"
-              value={form.model}
-              onChange={(e) => setForm({ ...form, model: e.target.value })}
-            />
+            <Input placeholder="Ex: Actros 1845" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} />
           </div>
         </div>
 
@@ -198,21 +259,11 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         <div className="grid md:grid-cols-3 gap-4">
           <div>
             <Label>Preço (€)</Label>
-            <Input
-              type="number"
-              placeholder="0"
-              value={form.price}
-              onChange={(e) => setForm({ ...form, price: e.target.value })}
-            />
+            <Input type="number" placeholder="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
           </div>
           <div>
             <Label>Ano</Label>
-            <Input
-              type="number"
-              placeholder="2024"
-              value={form.year}
-              onChange={(e) => setForm({ ...form, year: e.target.value })}
-            />
+            <Input type="number" placeholder="2024" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
           </div>
           <div>
             <Label>Condição</Label>
@@ -229,29 +280,63 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <Label>Cidade</Label>
-            <Input
-              placeholder="Ex: Lisboa"
-              value={form.location_city}
-              onChange={(e) => setForm({ ...form, location_city: e.target.value })}
-            />
+            <Input placeholder="Ex: Lisboa" value={form.location_city} onChange={(e) => setForm({ ...form, location_city: e.target.value })} />
           </div>
           <div>
             <Label>País</Label>
-            <Input
-              value={form.location_country}
-              onChange={(e) => setForm({ ...form, location_country: e.target.value })}
-            />
+            <Input value={form.location_country} onChange={(e) => setForm({ ...form, location_country: e.target.value })} />
           </div>
         </div>
 
         <div>
           <Label>Descrição</Label>
-          <Textarea
-            placeholder="Descrição do produto..."
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={4}
-          />
+          <Textarea placeholder="Descrição do produto..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} />
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <Label>Imagens</Label>
+          <div className="flex gap-2 mt-2">
+            <Input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="flex-1"
+            />
+            <Button variant="outline" onClick={handleAddImage} disabled={!file || uploading}>
+              <Upload className="h-4 w-4 mr-2" />
+              {uploading ? 'A carregar...' : 'Carregar'}
+            </Button>
+          </div>
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-4 gap-3 mt-4">
+              {images.map((url, i) => (
+                <div key={i} className="relative group">
+                  <img src={url} alt={`Imagem ${i + 1}`} className="w-full h-24 object-cover rounded border" />
+                  {i === 0 && (
+                    <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
+                  )}
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveImage(i)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {images.length === 0 && (
+            <div className="mt-3 border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground">
+              <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Nenhuma imagem adicionada</p>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2 pt-4">
