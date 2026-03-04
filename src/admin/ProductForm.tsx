@@ -81,12 +81,17 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   }, [form.category_id]);
 
   useEffect(() => {
-    supabase
-      .from('brands')
-      .select('*')
-      .order('name')
-      .then(({ data }) => setBrands(data || []));
-  }, []);
+    if (!form.category_id) { setBrands([]); return; }
+    const loadBrands = async () => {
+      const { data } = await supabase
+        .from('category_brands')
+        .select('brands(*)')
+        .eq('category_id', form.category_id);
+      const extracted = data?.map((row: any) => row.brands).filter(Boolean) || [];
+      setBrands(extracted);
+    };
+    loadBrands();
+  }, [form.category_id]);
 
   // Load specs when subcategory changes
   useEffect(() => {
