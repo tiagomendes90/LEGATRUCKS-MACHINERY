@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useImageKitUpload } from '@/hooks/useImageKitUpload';
 
 interface MainImageUploadProps {
   image: File | null;
@@ -20,37 +19,21 @@ export const MainImageUpload = ({
   onUploadedImageChange
 }: MainImageUploadProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { uploadSingleImage, isUploading } = useImageKitUpload();
   const { toast } = useToast();
 
-  console.log('🖼️ MainImageUpload state:', {
-    hasImage: !!image,
-    uploadedImageUrl,
-    previewUrl,
-    isProcessing,
-    isUploading
-  });
-
-  // Create preview URL when image changes
   useEffect(() => {
     if (image && !uploadedImageUrl) {
       const preview = URL.createObjectURL(image);
       setPreviewUrl(preview);
-      
-      return () => {
-        URL.revokeObjectURL(preview);
-      };
+      return () => URL.revokeObjectURL(preview);
     } else if (uploadedImageUrl) {
       setPreviewUrl(null);
     }
   }, [image, uploadedImageUrl]);
 
-  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    console.log('📁 File selected:', file.name, file.size);
 
     if (!file.type.startsWith('image/')) {
       toast({
@@ -61,49 +44,14 @@ export const MainImageUpload = ({
       return;
     }
 
-    // Set the file immediately for preview
     onImageChange(file);
-    
-    // Show processing message
-    toast({
-      title: "A processar imagem...",
-      description: "A carregar e otimizar via ImageKit...",
-    });
-
-    setIsProcessing(true);
-
-    try {
-      // Upload to ImageKit
-      const result = await uploadSingleImage(file, 'temp', true);
-      
-      console.log('✅ ImageKit upload result:', result);
-
-      if (result && result.url) {
-        // Update with uploaded URL
-        if (onUploadedImageChange) {
-          onUploadedImageChange(result.url);
-        }
-        
-        toast({
-          title: "Sucesso!",
-          description: "Imagem carregada e otimizada com sucesso!",
-        });
-      }
-    } catch (error) {
-      console.error('❌ Upload error:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar imagem. Tente novamente.",
-        variant: "destructive",
-      });
-      
-      // Keep the local file for fallback
-    } finally {
-      setIsProcessing(false);
+    // Clear any previously uploaded URL since we have a new file
+    if (onUploadedImageChange) {
+      onUploadedImageChange(null);
     }
 
     e.target.value = '';
-  }, [onImageChange, onUploadedImageChange, uploadSingleImage, toast]);
+  }, [onImageChange, onUploadedImageChange, toast]);
 
   const removeImage = useCallback(() => {
     onImageChange(null);
@@ -125,14 +73,11 @@ export const MainImageUpload = ({
 
   const formatFileSize = (sizeInBytes: number): string => {
     const sizeKB = sizeInBytes / 1024;
-    if (sizeKB < 1024) {
-      return `${Math.round(sizeKB)} KB`;
-    }
+    if (sizeKB < 1024) return `${Math.round(sizeKB)} KB`;
     return `${(sizeKB / 1024).toFixed(1)} MB`;
   };
 
   const currentPreview = getImagePreview();
-  const isLoading = isUploading || isProcessing;
 
   return (
     <div className="space-y-4">
@@ -143,45 +88,25 @@ export const MainImageUpload = ({
           onChange={handleFileSelect}
           className="hidden"
           id="main-image-upload"
-          disabled={isLoading}
         />
         <Button
           type="button"
           variant="outline"
           onClick={() => document.getElementById('main-image-upload')?.click()}
-          disabled={isLoading}
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              {isProcessing ? 'A otimizar...' : 'A carregar...'}
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              {currentPreview ? 'Alterar Imagem Principal' : 'Adicionar Imagem Principal'}
-            </>
-          )}
+          <Upload className="h-4 w-4 mr-2" />
+          {currentPreview ? 'Alterar Imagem Principal' : 'Adicionar Imagem Principal'}
         </Button>
-        {isLoading && (
-          <p className="text-sm text-gray-500">
-            {isProcessing ? 'Otimizando via ImageKit...' : 'A carregar...'}
-          </p>
-        )}
       </div>
 
       {currentPreview ? (
         <Card className="relative max-w-md">
           <CardContent className="p-4">
-            <div className="aspect-video relative rounded-md overflow-hidden bg-gray-100">
+            <div className="aspect-video relative rounded-md overflow-hidden bg-muted">
               <img
                 src={currentPreview}
                 alt="Imagem Principal"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  console.error('❌ Image load error:', currentPreview);
-                  e.currentTarget.style.display = 'none';
-                }}
               />
               <Button
                 type="button"
@@ -189,46 +114,32 @@ export const MainImageUpload = ({
                 size="sm"
                 className="absolute top-2 right-2 h-8 w-8 p-0"
                 onClick={removeImage}
-                disabled={isLoading}
               >
                 <X className="h-4 w-4" />
               </Button>
-              {uploadedImageUrl && (
-                <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
-                  ImageKit ✓
-                </div>
-              )}
-              <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+              <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
                 Principal
               </div>
             </div>
             <div className="mt-3">
-              <p className="text-sm font-medium text-gray-700 truncate">
-                {image?.name || 'Imagem otimizada'}
+              <p className="text-sm font-medium truncate">
+                {image?.name || 'Imagem carregada'}
               </p>
               {image && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {formatFileSize(image.size)}
-                </p>
-              )}
-              {uploadedImageUrl && (
-                <p className="text-xs text-green-600">
-                  ✓ Otimizada via ImageKit
                 </p>
               )}
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-dashed border-2 border-gray-300 max-w-md">
+        <Card className="border-dashed border-2 border-muted-foreground/25 max-w-md">
           <CardContent className="p-8 text-center">
-            <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 font-medium">Imagem Principal</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground font-medium">Imagem Principal</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
               Esta será a imagem de destaque do veículo
-            </p>
-            <p className="text-xs text-gray-400 mt-2">
-              Otimizada automaticamente via ImageKit (WebP, CDN global)
             </p>
           </CardContent>
         </Card>

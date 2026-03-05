@@ -3,7 +3,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCategories } from '@/hooks/useCategories';
 import { useNewVehicleBrands } from '@/hooks/useNewVehicleBrands';
-import { useImageKitUpload } from '@/hooks/useImageKitUpload';
 import { useQueryClient } from '@tanstack/react-query';
 
 export interface VehicleFormData {
@@ -45,6 +44,7 @@ export const useVehicleForm = () => {
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [currentTab, setCurrentTab] = useState("basic");
 
   const { toast } = useToast();
@@ -52,11 +52,9 @@ export const useVehicleForm = () => {
   
   const categoriesQuery = useCategories();
   const brandsQuery = useNewVehicleBrands();
-  const imageUploadHook = useImageKitUpload();
 
   const categories = categoriesQuery?.data || [];
   const allBrands = brandsQuery?.data || [];
-  const { uploadImages, isUploading } = imageUploadHook || { uploadImages: null, isUploading: false };
 
   const selectedCategory = useMemo(() => {
     if (!selectedCategoryId || !categories.length) return null;
@@ -65,10 +63,7 @@ export const useVehicleForm = () => {
 
   const selectedCategoryName = selectedCategory?.name || null;
 
-  // All brands available (no category filtering on brands table - use category_brands if needed)
-  const availableBrands = useMemo(() => {
-    return allBrands;
-  }, [allBrands]);
+  const availableBrands = useMemo(() => allBrands, [allBrands]);
 
   const availableSubcategories = useMemo(() => {
     return selectedCategory?.subcategories || [];
@@ -106,12 +101,60 @@ export const useVehicleForm = () => {
     return isNaN(parsed) ? null : parsed;
   };
 
-  const submitVehicle = async () => {
-    if (!uploadImages) {
-      toast({ title: "Erro", description: "Função de upload não disponível", variant: "destructive" });
-      return;
-    }
+  const uploadFileToStorage = async (file: File, productId: string, fileName: string): Promise<string> => {
+    const filePath = `${productId}/${fileName}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
 
+    if (uploadError) throw new Error(`Upload falhou: ${uploadError.message}`);
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const uploadProductImages = async (productId: string) => {
+    setIsUploading(true);
+    try {
+      // Upload main image
+      if (mainImage) {
+        const ext = mainImage.name.split('.').pop();
+        const mainUrl = await uploadFileToStorage(mainImage, productId, `main-${Date.now()}.${ext}`);
+        
+        await supabase.from('product_images').insert({
+          product_id: productId,
+          image_url: mainUrl,
+          is_primary: true,
+          sort_order: 0,
+        });
+      }
+
+      // Upload secondary images
+      for (let i = 0; i < secondaryImages.length; i++) {
+        const file = secondaryImages[i];
+        const ext = file.name.split('.').pop();
+        const url = await uploadFileToStorage(file, productId, `secondary-${i}-${Date.now()}.${ext}`);
+        
+        await supabase.from('product_images').insert({
+          product_id: productId,
+          image_url: url,
+          is_primary: false,
+          sort_order: i + 1,
+        });
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const submitVehicle = async () => {
     setIsSubmitting(true);
 
     try {
@@ -157,10 +200,12 @@ export const useVehicleForm = () => {
 
       if (productError) throw new Error(`Erro na base de dados: ${productError.message}`);
 
-      if (secondaryImages.length > 0 && product?.id) {
+      // Upload images to Supabase Storage + product_images table
+      if ((mainImage || secondaryImages.length > 0) && product?.id) {
         try {
-          await uploadImages(secondaryImages, product.id);
+          await uploadProductImages(product.id);
         } catch (imageError) {
+          console.error('Image upload error:', imageError);
           toast({ title: "Aviso", description: "Produto criado mas falha no upload de imagens.", variant: "destructive" });
         }
       }
