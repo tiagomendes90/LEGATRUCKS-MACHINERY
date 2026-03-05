@@ -17,14 +17,14 @@ const Navbar = () => {
   // Build nav items dynamically from categories
   const categoryItems = (categories as any[]).map((cat) => ({
     name: cat.name,
-    path: `/categoria/${cat.slug}`,
+    path: `/${cat.slug}`,
   }));
 
   const navItems = [
-    { name: t('nav.home'), path: "/" },
+    { name: "Inicio", path: "/" },
     ...categoryItems,
-    { name: t('nav.about'), path: "/about" },
-    { name: t('nav.contact'), path: "/contact" },
+    { name: "Sobre", path: "/sobre" },
+    { name: "Contactos", path: "/contactos" },
   ];
 
   useEffect(() => {
