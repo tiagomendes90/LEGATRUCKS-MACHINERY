@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useCategories } from "@/hooks/useCategories";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
@@ -10,34 +10,21 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
+  const { data: categories = [] } = useCategories();
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Build nav items dynamically from categories
+  const categoryItems = (categories as any[]).map((cat) => ({
+    name: cat.name,
+    path: `/categoria/${cat.slug}`,
+  }));
+
   const navItems = [
-    {
-      name: t('nav.home'),
-      path: "/"
-    },
-    {
-      name: t('nav.trucks'),
-      path: "/trucks"
-    },
-    {
-      name: t('nav.machinery'), 
-      path: "/machinery"
-    },
-    {
-      name: t('nav.agriculture'),
-      path: "/agriculture"
-    },
-    {
-      name: t('nav.about'),
-      path: "/about"
-    },
-    {
-      name: t('nav.contact'),
-      path: "/contact"
-    }
+    { name: t('nav.home'), path: "/" },
+    ...categoryItems,
+    { name: t('nav.about'), path: "/about" },
+    { name: t('nav.contact'), path: "/contact" },
   ];
 
   useEffect(() => {

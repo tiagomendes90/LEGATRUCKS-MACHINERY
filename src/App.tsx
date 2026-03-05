@@ -29,7 +29,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             
-            {/* Vehicle category routes */}
+            {/* Dynamic category route */}
+            <Route path="/categoria/:slug" element={<NewVehicleCategory />} />
+            
+            {/* Legacy routes - redirect to new pattern */}
             <Route path="/trucks" element={<NewVehicleCategory />} />
             <Route path="/machinery" element={<NewVehicleCategory />} />
             <Route path="/agriculture" element={<NewVehicleCategory />} />
