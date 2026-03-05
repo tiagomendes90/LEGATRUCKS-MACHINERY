@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RealOrderManagement from "@/components/RealOrderManagement";
-import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { VehicleManagement } from "@/components/VehicleManagement";
@@ -30,25 +29,15 @@ const Admin = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
+  const handleSignOut = async () => { await signOut(); navigate("/"); };
+  const handleGoToWebsite = () => { navigate("/"); };
 
-  const handleGoToWebsite = () => {
-    navigate("/");
-  };
-
-  // Calculate statistics from real data
   const totalInventory = vehicles.length;
-  const totalValue = vehicles.reduce((sum, vehicle) => sum + vehicle.price_eur, 0);
+  const totalValue = vehicles.reduce((sum: number, vehicle: any) => sum + (vehicle.price || 0), 0);
   const averagePrice = totalInventory > 0 ? totalValue / totalInventory : 0;
-  const newVehicles = vehicles.filter(v => v.condition === 'new').length;
-  const publishedVehicles = vehicles.filter(v => v.is_published && v.is_active).length;
-  const draftVehicles = vehicles.filter(v => !v.is_published).length;
-  const featuredVehicles = vehicles.filter(v => v.is_featured).length;
+  const newVehicles = vehicles.filter((v: any) => v.condition === 'new').length;
+  const activeVehicles = vehicles.filter((v: any) => v.is_active).length;
 
-  // Loading state
   if (vehiclesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -63,17 +52,14 @@ const Admin = () => {
         <h1 className="text-3xl font-bold">Bem-vindo, {user?.email}</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleGoToWebsite}>
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Ir para Website
+            <ExternalLink className="h-4 w-4 mr-2" />Ir para Website
           </Button>
           <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Terminar Sessão
+            <LogOut className="h-4 w-4 mr-2" />Terminar Sessão
           </Button>
         </div>
       </div>
 
-      {/* Main Statistics Cards */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
@@ -81,9 +67,7 @@ const Admin = () => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Inventário Total</p>
                 <p className="text-3xl font-bold text-foreground">{totalInventory}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {publishedVehicles} publicados | {draftVehicles} rascunhos
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{activeVehicles} ativos</p>
               </div>
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Package className="h-6 w-6 text-primary" />
@@ -91,16 +75,12 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
                 <p className="text-3xl font-bold text-foreground">€{(totalValue / 1000000).toFixed(1)}M</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Total do inventário
-                </p>
               </div>
               <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-accent-foreground" />
@@ -108,16 +88,12 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Preço Médio</p>
                 <p className="text-3xl font-bold text-foreground">€{(averagePrice / 1000).toFixed(0)}K</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Por veículo
-                </p>
               </div>
               <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
                 <BarChart3 className="h-6 w-6 text-secondary-foreground" />
@@ -125,16 +101,12 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Veículos Novos</p>
+                <p className="text-sm text-muted-foreground mb-1">Novos</p>
                 <p className="text-3xl font-bold text-foreground">{newVehicles}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {featuredVehicles} em destaque
-                </p>
               </div>
               <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                 <Star className="h-6 w-6 text-muted-foreground" />
@@ -144,25 +116,15 @@ const Admin = () => {
         </Card>
       </div>
 
-      {/* Navigation Tabs */}
       <Tabs defaultValue="inventory" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
-          <TabsTrigger value="add-vehicle">Adicionar Veículo</TabsTrigger>
+          <TabsTrigger value="add-vehicle">Adicionar Produto</TabsTrigger>
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="inventory">
-          <VehicleManagement />
-        </TabsContent>
-
-        <TabsContent value="add-vehicle">
-          <AddVehicleForm />
-        </TabsContent>
-
-        <TabsContent value="orders">
-          <RealOrderManagement />
-        </TabsContent>
+        <TabsContent value="inventory"><VehicleManagement /></TabsContent>
+        <TabsContent value="add-vehicle"><AddVehicleForm /></TabsContent>
+        <TabsContent value="orders"><RealOrderManagement /></TabsContent>
       </Tabs>
     </div>
   );

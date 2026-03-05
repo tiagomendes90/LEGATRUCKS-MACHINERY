@@ -8,30 +8,21 @@ export interface Vehicle {
   title: string;
   description: string;
   brand_id: string;
+  category_id: string;
   subcategory_id: string;
-  condition: 'new' | 'used' | 'restored' | 'modified';
-  registration_year: number;
-  mileage_km?: number;
-  operating_hours?: number;
-  price_eur: number;
-  fuel_type?: 'diesel' | 'electric' | 'hybrid' | 'petrol' | 'gas';
-  gearbox?: 'manual' | 'automatic' | 'semi-automatic';
-  power_ps?: number;
-  drivetrain?: '4x2' | '4x4' | '6x2' | '6x4' | '8x4' | '8x6';
-  axles?: number;
-  weight_kg?: number;
-  body_color?: string;
-  main_image_url?: string;
-  location?: string;
-  contact_info?: string;
+  condition: string;
+  year: number;
+  price: number;
+  currency: string;
+  model: string;
+  stock_status: string;
+  location_country: string;
+  location_city: string;
   is_active: boolean;
-  is_featured: boolean;
-  is_published: boolean;
   created_at: string;
-  updated_at: string;
   // Joined data
-  brand?: { name: string; slug: string; category: string[] };
-  subcategory?: { name: string; slug: string; category: { name: string; slug: string } };
+  brand?: { name: string; slug: string };
+  subcategory?: { name: string; slug: string; category?: { name: string; slug: string } };
   images?: { image_url: string; sort_order: number }[];
 }
 
@@ -48,12 +39,6 @@ export interface VehicleFilters {
   gearbox?: string;
   drivetrain?: string;
   location?: string;
-  mileageFrom?: number;
-  mileageTo?: number;
-  operatingHoursFrom?: number;
-  operatingHoursTo?: number;
-  powerFrom?: number;
-  powerTo?: number;
   sortBy?: string;
 }
 
@@ -61,33 +46,27 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
   return useQuery({
     queryKey: ['vehicles', filters, limit, includeUnpublished],
     queryFn: async () => {
-      console.log('Fetching vehicles with filters:', filters);
+      console.log('Fetching products with filters:', filters);
       
-      let query = (supabase as any)
-        .from('vehicles')
+      let query = supabase
+        .from('products')
         .select(`
           *,
-          brand:vehicle_brands(name, slug, category),
+          brand:brands(name, slug),
           subcategory:subcategories(
             name, 
             slug,
             category:categories(name, slug)
           ),
-          images:vehicle_images(image_url, sort_order)
+          images:product_images(image_url, sort_order)
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      // Only filter by published if not including unpublished vehicles
-      if (!includeUnpublished) {
-        query = query.eq('is_published', true);
-      }
-
-      // Apply category filter - Fixed the approach
+      // Apply category filter
       if (filters?.category) {
         console.log('Filtering by category:', filters.category);
         
-        // First get all subcategories for this category
         const { data: categoryData } = await supabase
           .from('categories')
           .select('id')
@@ -103,20 +82,15 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
           if (subcategoryIds && subcategoryIds.length > 0) {
             const ids = subcategoryIds.map(sub => sub.id);
             query = query.in('subcategory_id', ids);
-            console.log('Found subcategories for category:', ids);
           } else {
-            console.log('No subcategories found for category:', filters.category);
-            // Return empty result if no subcategories found
             return [];
           }
         } else {
-          console.log('Category not found:', filters.category);
           return [];
         }
       }
 
       if (filters?.subcategory) {
-        // Get subcategory ID from slug
         const { data: subcategoryData } = await supabase
           .from('subcategories')
           .select('id')
@@ -129,9 +103,8 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
       }
 
       if (filters?.brand) {
-        // Get brand ID from slug
-        const { data: brandData } = await (supabase as any)
-          .from('vehicle_brands')
+        const { data: brandData } = await supabase
+          .from('brands')
           .select('id')
           .eq('slug', filters.brand)
           .single();
@@ -141,122 +114,39 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
         }
       }
 
-      if (filters?.condition) {
-        query = query.eq('condition', filters.condition);
-      }
-
-      if (filters?.yearFrom) {
-        query = query.gte('registration_year', filters.yearFrom);
-      }
-
-      if (filters?.yearTo) {
-        query = query.lte('registration_year', filters.yearTo);
-      }
-
-      if (filters?.priceFrom) {
-        query = query.gte('price_eur', filters.priceFrom);
-      }
-
-      if (filters?.priceTo) {
-        query = query.lte('price_eur', filters.priceTo);
-      }
-
-      if (filters?.fuelType) {
-        query = query.eq('fuel_type', filters.fuelType);
-      }
-
-      if (filters?.gearbox) {
-        query = query.eq('gearbox', filters.gearbox);
-      }
-
-      if (filters?.drivetrain) {
-        query = query.eq('drivetrain', filters.drivetrain);
-      }
-
-      if (filters?.location) {
-        query = query.ilike('location', `%${filters.location}%`);
-      }
-
-      if (filters?.mileageFrom) {
-        query = query.gte('mileage_km', filters.mileageFrom);
-      }
-
-      if (filters?.mileageTo) {
-        query = query.lte('mileage_km', filters.mileageTo);
-      }
-
-      if (filters?.operatingHoursFrom) {
-        query = query.gte('operating_hours', filters.operatingHoursFrom);
-      }
-
-      if (filters?.operatingHoursTo) {
-        query = query.lte('operating_hours', filters.operatingHoursTo);
-      }
-
-      if (filters?.powerFrom) {
-        query = query.gte('power_ps', filters.powerFrom);
-      }
-
-      if (filters?.powerTo) {
-        query = query.lte('power_ps', filters.powerTo);
-      }
+      if (filters?.condition) query = query.eq('condition', filters.condition);
+      if (filters?.yearFrom) query = query.gte('year', filters.yearFrom);
+      if (filters?.yearTo) query = query.lte('year', filters.yearTo);
+      if (filters?.priceFrom) query = query.gte('price', filters.priceFrom);
+      if (filters?.priceTo) query = query.lte('price', filters.priceTo);
 
       // Apply sorting
       if (filters?.sortBy) {
         switch (filters.sortBy) {
-          case 'price-low':
-            query = query.order('price_eur', { ascending: true });
-            break;
-          case 'price-high':
-            query = query.order('price_eur', { ascending: false });
-            break;
-          case 'year-new':
-            query = query.order('registration_year', { ascending: false });
-            break;
-          case 'year-old':
-            query = query.order('registration_year', { ascending: true });
-            break;
-          case 'mileage-low':
-            query = query.order('mileage_km', { ascending: true });
-            break;
-          case 'mileage-high':
-            query = query.order('mileage_km', { ascending: false });
-            break;
-          case 'hours-low':
-            query = query.order('operating_hours', { ascending: true });
-            break;
-          case 'hours-high':
-            query = query.order('operating_hours', { ascending: false });
-            break;
-          case 'power-low':
-            query = query.order('power_ps', { ascending: true });
-            break;
-          case 'power-high':
-            query = query.order('power_ps', { ascending: false });
-            break;
-          default:
-            query = query.order('created_at', { ascending: false });
+          case 'price-low': query = query.order('price', { ascending: true }); break;
+          case 'price-high': query = query.order('price', { ascending: false }); break;
+          case 'year-new': query = query.order('year', { ascending: false }); break;
+          case 'year-old': query = query.order('year', { ascending: true }); break;
+          default: query = query.order('created_at', { ascending: false });
         }
       }
 
-      if (limit) {
-        query = query.limit(limit);
-      }
+      if (limit) query = query.limit(limit);
 
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching vehicles:', error);
+        console.error('Error fetching products:', error);
         throw error;
       }
 
-      console.log('Vehicles fetched successfully:', data?.length || 0);
+      console.log('Products fetched successfully:', data?.length || 0);
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // Reduce stale time to 5 minutes
-    gcTime: 1000 * 60 * 10, // Reduce garbage collection time
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
-    refetchOnMount: true, // Always refetch on mount
+    refetchOnMount: true,
     retry: 1,
     retryDelay: 2000,
   });
@@ -266,25 +156,24 @@ export const useVehicle = (id: string) => {
   return useQuery({
     queryKey: ['vehicle', id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('vehicles')
+      const { data, error } = await supabase
+        .from('products')
         .select(`
           *,
-          brand:vehicle_brands(name, slug, category),
+          brand:brands(name, slug),
           subcategory:subcategories(
             name, 
             slug,
             category:categories(name, slug)
           ),
-          images:vehicle_images(image_url, sort_order)
+          images:product_images(image_url, sort_order)
         `)
         .eq('id', id)
         .eq('is_active', true)
-        .eq('is_published', true)
         .single();
 
       if (error) {
-        console.error('Error fetching vehicle:', error);
+        console.error('Error fetching product:', error);
         throw error;
       }
 
@@ -300,38 +189,24 @@ export const useAddVehicle = () => {
   const { user, isAdmin } = useAuth();
 
   return useMutation({
-    mutationFn: async (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at' | 'brand' | 'subcategory' | 'images'>) => {
-      if (!user || !isAdmin) {
-        throw new Error('Admin access required');
-      }
+    mutationFn: async (vehicle: any) => {
+      if (!user || !isAdmin) throw new Error('Admin access required');
 
-      const { data, error } = await (supabase as any)
-        .from('vehicles')
+      const { data, error } = await supabase
+        .from('products')
         .insert([vehicle])
         .select()
         .single();
 
-      if (error) {
-        console.error('Error inserting vehicle:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast({
-        title: "Success",
-        description: "Vehicle added successfully!",
-      });
+      toast({ title: "Sucesso", description: "Produto adicionado!" });
     },
     onError: (error: any) => {
-      console.error('Failed to add vehicle:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add vehicle.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message || "Falha ao adicionar.", variant: "destructive" });
     },
   });
 };
@@ -342,40 +217,26 @@ export const useUpdateVehicle = () => {
   const { user, isAdmin } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...vehicle }: Partial<Vehicle> & { id: string }) => {
-      if (!user || !isAdmin) {
-        throw new Error('Admin access required');
-      }
+    mutationFn: async ({ id, ...vehicle }: any) => {
+      if (!user || !isAdmin) throw new Error('Admin access required');
 
-      const { data, error } = await (supabase as any)
-        .from('vehicles')
+      const { data, error } = await supabase
+        .from('products')
         .update(vehicle)
         .eq('id', id)
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating vehicle:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       queryClient.invalidateQueries({ queryKey: ['vehicle'] });
-      toast({
-        title: "Success",
-        description: "Vehicle updated successfully!",
-      });
+      toast({ title: "Sucesso", description: "Produto atualizado!" });
     },
     onError: (error: any) => {
-      console.error('Failed to update vehicle:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update vehicle.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message || "Falha ao atualizar.", variant: "destructive" });
     },
   });
 };
@@ -387,36 +248,22 @@ export const useDeleteVehicle = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!user || !isAdmin) {
-        throw new Error('Admin access required');
-      }
+      if (!user || !isAdmin) throw new Error('Admin access required');
 
-      const { error } = await (supabase as any)
-        .from('vehicles')
+      const { error } = await supabase
+        .from('products')
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting vehicle:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast({
-        title: "Success",
-        description: "Vehicle deleted successfully!",
-      });
+      toast({ title: "Sucesso", description: "Produto eliminado!" });
     },
     onError: (error: any) => {
-      console.error('Failed to delete vehicle:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete vehicle.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message || "Falha ao eliminar.", variant: "destructive" });
     },
   });
 };

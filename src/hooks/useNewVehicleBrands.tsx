@@ -6,81 +6,64 @@ export interface VehicleBrand {
   id: string;
   name: string;
   slug: string;
-  category?: string[];
-  subcategories?: string[];
-  created_at: string;
-  updated_at: string;
 }
 
 export const useNewVehicleBrands = () => {
   return useQuery({
-    queryKey: ['vehicle-brands'],
+    queryKey: ['brands'],
     queryFn: async () => {
-      console.log('🔍 Fetching vehicle brands...');
+      console.log('🔍 Fetching brands...');
       
-      const { data, error } = await (supabase as any)
-        .from('vehicle_brands')
+      const { data, error } = await supabase
+        .from('brands')
         .select('*')
         .order('name');
 
       if (error) {
-        console.error('❌ Error fetching vehicle brands:', error);
+        console.error('❌ Error fetching brands:', error);
         throw error;
       }
 
-      console.log('✅ Vehicle brands fetched successfully:');
-      console.log(`📊 Total brands found: ${data?.length || 0}`);
-      console.log('📋 Brand names:', data?.map(brand => brand.name) || []);
-      console.log('🗂️ Full brand data:', data);
-      
+      console.log(`✅ Brands fetched: ${data?.length || 0}`);
       return data || [];
     },
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60, // 1 hour
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
   });
 };
 
 // Hook para buscar marcas filtradas por categoria
-export const useVehicleBrandsByCategory = (category?: string) => {
+export const useVehicleBrandsByCategory = (categorySlug?: string) => {
   return useQuery({
-    queryKey: ['vehicle-brands', 'by-category', category],
+    queryKey: ['brands', 'by-category', categorySlug],
     queryFn: async () => {
-      console.log(`🔍 Fetching brands for category: ${category || 'all'}`);
-      
-      const { data, error } = await (supabase as any)
-        .from('vehicle_brands')
-        .select('*')
-        .order('name');
-
-      if (error) {
-        console.error('❌ Error fetching brands by category:', error);
-        throw error;
-      }
-
-      console.log(`✅ All brands fetched: ${data?.length || 0}`);
-      
-      // If no category specified, return all brands
-      if (!category) {
-        console.log('📋 Returning all brands (no category filter)');
+      if (!categorySlug) {
+        const { data, error } = await supabase.from('brands').select('*').order('name');
+        if (error) throw error;
         return data || [];
       }
 
-      // Filter brands that include the category in their category array
-      const filteredBrands = data?.filter(brand => {
-        const hasCategory = brand.category?.some(cat => 
-          cat.toLowerCase() === category.toLowerCase()
-        );
-        console.log(`🔍 Brand "${brand.name}" has category "${category}":`, hasCategory);
-        console.log(`📂 Brand categories:`, brand.category);
-        return hasCategory;
-      }) || [];
+      // Get category id
+      const { data: cat } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('slug', categorySlug)
+        .single();
 
-      console.log(`✅ Filtered brands for "${category}":`, filteredBrands.length);
-      console.log('📋 Filtered brand names:', filteredBrands.map(b => b.name));
-      
-      return filteredBrands;
+      if (!cat) return [];
+
+      // Get brand ids for this category
+      const { data: cb, error } = await supabase
+        .from('category_brands')
+        .select('brand_id, brand:brands(*)')
+        .eq('category_id', cat.id);
+
+      if (error) throw error;
+
+      const brands = (cb || []).map((item: any) => item.brand).filter(Boolean);
+      return brands;
     },
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60, // 1 hour
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
   });
 };

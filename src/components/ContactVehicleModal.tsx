@@ -32,11 +32,10 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
         customer_email: formData.email,
         vehicle_id: vehicle.id,
         vehicle_title: vehicle.title,
-        vehicle_price: vehicle.price_eur,
+        vehicle_price: vehicle.price || 0,
         message: formData.message
       });
       
-      // Reset form and close modal
       setFormData({ name: '', email: '', message: '' });
       onClose();
     } catch (error) {
@@ -45,10 +44,7 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -58,7 +54,7 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
           <DialogTitle>Contactar sobre {vehicle.title}</DialogTitle>
           <DialogDescription>
             Preencha os seus dados para receber mais informações sobre este veículo.
-            Preço: €{vehicle.price_eur.toLocaleString()}
+            Preço: €{(vehicle.price || 0).toLocaleString()}
           </DialogDescription>
         </DialogHeader>
         
@@ -66,54 +62,21 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
           <div className="grid grid-cols-1 gap-4">
             <div>
               <Label htmlFor="name">Nome *</Label>
-              <Input
-                id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                required
-                placeholder="O seu nome completo"
-              />
+              <Input id="name" type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} required placeholder="O seu nome completo" />
             </div>
-            
             <div>
               <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                required
-                placeholder="o.seu.email@exemplo.com"
-              />
+              <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} required placeholder="o.seu.email@exemplo.com" />
             </div>
-            
             <div>
               <Label htmlFor="message">Mensagem (opcional)</Label>
-              <Textarea
-                id="message"
-                value={formData.message}
-                onChange={(e) => handleInputChange('message', e.target.value)}
-                placeholder="Questões específicas sobre o veículo..."
-                rows={4}
-              />
+              <Textarea id="message" value={formData.message} onChange={(e) => handleInputChange('message', e.target.value)} placeholder="Questões específicas sobre o veículo..." rows={4} />
             </div>
           </div>
           
           <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={createOrder.isPending || !formData.name || !formData.email}
-              className="flex-1"
-            >
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button type="submit" disabled={createOrder.isPending || !formData.name || !formData.email} className="flex-1">
               {createOrder.isPending ? 'Enviando...' : 'Enviar Contacto'}
             </Button>
           </div>

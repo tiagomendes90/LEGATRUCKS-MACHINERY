@@ -19,31 +19,24 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
   };
 
   const handleMailClick = () => {
-    window.location.href = `mailto:${'info@legar.pt'}?subject=Interesse em ${vehicle.title}&body=Olá, tenho interesse no veículo ${vehicle.title} (€${vehicle.price_eur.toLocaleString()}).`;
+    window.location.href = `mailto:${'info@legar.pt'}?subject=Interesse em ${vehicle.title}&body=Olá, tenho interesse no veículo ${vehicle.title} (€${(vehicle.price || 0).toLocaleString()}).`;
   };
 
   const handleShareClick = () => {
     if (navigator.share) {
       navigator.share({
         title: vehicle.title,
-        text: `Confira este veículo: ${vehicle.title} - €${vehicle.price_eur.toLocaleString()}`,
+        text: `Confira este veículo: ${vehicle.title} - €${(vehicle.price || 0).toLocaleString()}`,
         url: window.location.href,
-      })
-      .then(() => console.log('Partilha bem-sucedida'))
-      .catch((error) => console.error('Erro ao partilhar', error));
+      });
     } else {
       navigator.clipboard.writeText(window.location.href);
       alert('Link copiado para a área de transferência!');
     }
   };
 
-  const handlePrintClick = () => {
-    window.print();
-  };
-
-  const handleContactClick = () => {
-    setIsContactModalOpen(true);
-  };
+  const handlePrintClick = () => { window.print(); };
+  const handleContactClick = () => { setIsContactModalOpen(true); };
 
   return (
     <>
@@ -65,19 +58,13 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
           {t('vehicleDetails.shareVehicle')}
         </Button>
       </div>
-      
       <div className="mt-4 grid grid-cols-1 gap-2">
         <Button onClick={handlePrintClick} variant="outline" size="sm" className="w-full">
           <Printer className="h-5 w-5 mr-2" />
           {t('vehicleDetails.printDetails')}
         </Button>
       </div>
-
-      <ContactVehicleModal
-        isOpen={isContactModalOpen}
-        onClose={() => setIsContactModalOpen(false)}
-        vehicle={vehicle}
-      />
+      <ContactVehicleModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} vehicle={vehicle} />
     </>
   );
 };

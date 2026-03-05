@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -23,125 +23,47 @@ interface AddVehicleFormProps {
 const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormProps) => {
   const { toast } = useToast();
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
-  
-  console.log('🏗️ AddVehicleForm mounted');
-  console.log('📂 Categories loaded:', categories.length);
-  
   const vehicleFormHook = useVehicleForm();
-  
-  // Add error boundary for the hook
-  if (!vehicleFormHook) {
-    console.error('❌ useVehicleForm hook failed to initialize');
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardContent className="p-6">
-          <div className="text-center text-red-600">
-            Erro ao carregar o formulário. Por favor, recarregue a página.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const {
-    formData,
-    selectedCategoryId,
-    mainImage,
-    mainImageUrl,
-    setMainImage,
-    setMainImageUrl,
-    secondaryImages,
-    setSecondaryImages,
-    currentTab,
-    setCurrentTab,
-    handleInputChange,
-    setSelectedCategoryId,
-    resetForm,
-    availableBrands,
-    submitVehicle,
-    isSubmitting,
-    isUploading,
-    categoriesLoading: formCategoriesLoading,
-    brandsLoading
-  } = vehicleFormHook;
-
   const updateVehicleMutation = useUpdateVehicle();
   const isEditMode = !!editingVehicle;
 
-  console.log('🎯 Form state:', {
-    selectedCategoryId,
-    availableBrandsCount: availableBrands?.length || 0,
-    formData: formData ? 'loaded' : 'not loaded',
-    categoriesLoading: categoriesLoading || formCategoriesLoading,
-    brandsLoading,
-    hasMainImage: !!mainImage,
-    hasMainImageUrl: !!mainImageUrl
-  });
+  const {
+    formData, selectedCategoryId, mainImage, mainImageUrl,
+    setMainImage, setMainImageUrl, secondaryImages, setSecondaryImages,
+    currentTab, setCurrentTab, handleInputChange, setSelectedCategoryId,
+    resetForm, availableBrands, submitVehicle, isSubmitting, isUploading,
+    categoriesLoading: formCategoriesLoading, brandsLoading
+  } = vehicleFormHook;
 
-  // Show loading state
-  if (categoriesLoading || formCategoriesLoading) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardContent className="p-6">
-          <div className="text-center">A carregar formulário...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Show error state
-  if (categoriesError) {
-    console.error('❌ Categories loading error:', categoriesError);
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardContent className="p-6">
-          <div className="text-center text-red-600">
-            Erro ao carregar categorias. Por favor, recarregue a página.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Load editing vehicle data - Fixed to prevent infinite loop
+  // Load editing vehicle data
   useEffect(() => {
-    if (editingVehicle && editingVehicle.id && handleInputChange && !formData.title) {
-      console.log('📝 Loading vehicle data for editing:', editingVehicle.id);
-      
-      // Set form data for editing
+    if (editingVehicle && editingVehicle.id && !formData.title) {
       handleInputChange('title', editingVehicle.title || '');
       handleInputChange('description', editingVehicle.description || '');
       handleInputChange('brand_id', editingVehicle.brand_id || '');
       handleInputChange('subcategory_id', editingVehicle.subcategory_id || '');
       handleInputChange('condition', editingVehicle.condition || 'used');
-      handleInputChange('registration_year', editingVehicle.registration_year?.toString() || '');
-      handleInputChange('mileage_km', editingVehicle.mileage_km?.toString() || '');
-      handleInputChange('operating_hours', editingVehicle.operating_hours?.toString() || '');
-      handleInputChange('price_eur', editingVehicle.price_eur?.toString() || '');
-      handleInputChange('fuel_type', editingVehicle.fuel_type || '');
-      handleInputChange('gearbox', editingVehicle.gearbox || '');
-      handleInputChange('power_ps', editingVehicle.power_ps?.toString() || '');
-      handleInputChange('drivetrain', editingVehicle.drivetrain || '');
-      handleInputChange('axles', editingVehicle.axles?.toString() || '');
-      handleInputChange('weight_kg', editingVehicle.weight_kg?.toString() || '');
-      handleInputChange('body_color', editingVehicle.body_color || '');
-      handleInputChange('location', editingVehicle.location || '');
-      handleInputChange('contact_info', editingVehicle.contact_info || '');
+      handleInputChange('year', editingVehicle.year?.toString() || '');
+      handleInputChange('price', editingVehicle.price?.toString() || '');
+      handleInputChange('model', editingVehicle.model || '');
       handleInputChange('is_active', editingVehicle.is_active ?? true);
-      handleInputChange('is_featured', editingVehicle.is_featured ?? false);
-      handleInputChange('is_published', editingVehicle.is_published ?? false);
 
-      // Find and set category ID
       if (editingVehicle.subcategory_id && categories.length > 0) {
         const category = categories.find(cat => 
           cat.subcategories?.some(sub => sub.id === editingVehicle.subcategory_id)
         );
-        if (category && setSelectedCategoryId) {
-          setSelectedCategoryId(category.id);
-        }
+        if (category) setSelectedCategoryId(category.id);
       }
     }
-  }, [editingVehicle?.id, categories.length, handleInputChange, formData.title]); // Added formData.title to prevent re-runs
+  }, [editingVehicle?.id, categories.length]);
+
+  if (categoriesLoading || formCategoriesLoading) {
+    return <Card className="w-full max-w-4xl mx-auto"><CardContent className="p-6"><div className="text-center">A carregar...</div></CardContent></Card>;
+  }
+
+  if (categoriesError) {
+    return <Card className="w-full max-w-4xl mx-auto"><CardContent className="p-6"><div className="text-center text-red-600">Erro ao carregar categorias.</div></CardContent></Card>;
+  }
 
   const tabs = [
     { id: "basic", label: "Informações Básicas" },
@@ -157,124 +79,56 @@ const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormP
   const subcategory = categories
     .flatMap(cat => cat.subcategories || [])
     .find(sub => sub.id === formData.subcategory_id);
-
   const distanceField = subcategory ? getDistanceField(subcategory.slug) : null;
 
   const handleNext = () => {
     const mainImageSource = mainImage || mainImageUrl;
-    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImageSource, toast)) {
-      return;
-    }
-
+    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImageSource, toast)) return;
     const nextIndex = Math.min(currentTabIndex + 1, tabs.length - 1);
     setCurrentTab(tabs[nextIndex].id);
   };
 
   const handlePrevious = () => {
-    const prevIndex = Math.max(currentTabIndex - 1, 0);
-    setCurrentTab(tabs[prevIndex].id);
+    setCurrentTab(tabs[Math.max(currentTabIndex - 1, 0)].id);
   };
 
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    } else if (resetForm) {
-      resetForm();
-    }
-  };
+  const handleCancel = () => { onCancel ? onCancel() : resetForm(); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('🎯 Form submitted, current tab:', currentTab);
-    console.log('📝 Form data at submit:', formData);
-    console.log('🖼️ Image state at submit:', { file: mainImage?.name, url: mainImageUrl });
-
     const mainImageSource = mainImage || mainImageUrl;
-    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImageSource, toast)) {
-      console.log('❌ Validation failed for tab:', currentTab);
-      return;
-    }
+    if (!validateVehicleFormTab(currentTab, formData, distanceField, mainImageSource, toast)) return;
 
     try {
-      if (isEditMode) {
-        console.log('🔧 Editing vehicle:', editingVehicle.id);
-        // Handle edit mode logic here if needed
-        // For now, focus on the creation issue
-      } else {
-        console.log('➕ Adding new vehicle...');
-        if (submitVehicle) {
-          const result = await submitVehicle();
-          
-          if (result && onSuccess) {
-            onSuccess();
-          }
-        }
+      if (!isEditMode && submitVehicle) {
+        const result = await submitVehicle();
+        if (result && onSuccess) onSuccess();
       }
     } catch (error) {
-      console.error('❌ Error in handleSubmit:', error);
-      // Error is already handled in submitVehicle
+      console.error('Error in handleSubmit:', error);
     }
   };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>
-          {isEditMode ? "Editar Veículo" : "Adicionar Novo Veículo"}
-        </CardTitle>
-      </CardHeader>
+      <CardHeader><CardTitle>{isEditMode ? "Editar Produto" : "Adicionar Novo Produto"}</CardTitle></CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit}>
           <Tabs value={currentTab} onValueChange={setCurrentTab}>
             <TabsList className="grid w-full grid-cols-4">
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
+              {tabs.map((tab) => (<TabsTrigger key={tab.id} value={tab.id}>{tab.label}</TabsTrigger>))}
             </TabsList>
-
-            <VehicleBasicInfoForm 
-              formData={formData}
-              selectedCategoryId={selectedCategoryId}
-              categories={categories}
+            <VehicleBasicInfoForm formData={formData} selectedCategoryId={selectedCategoryId} categories={categories}
               availableSubcategories={categories.find(cat => cat.id === selectedCategoryId)?.subcategories || []}
-              availableBrands={availableBrands || []}
-              distanceField={distanceField}
-              onInputChange={handleInputChange}
-              onCategoryChange={setSelectedCategoryId}
-            />
-
-            <VehicleSpecsForm 
-              formData={formData}
-              onInputChange={handleInputChange}
-            />
-
-            <VehicleImagesForm
-              mainImage={mainImage}
-              mainImageUrl={mainImageUrl}
-              secondaryImages={secondaryImages}
-              onMainImageChange={setMainImage}
-              onMainImageUrlChange={setMainImageUrl}
-              onSecondaryImagesChange={setSecondaryImages}
-            />
-
-            <VehicleSettingsForm
-              formData={formData}
-              onInputChange={handleInputChange}
-            />
+              availableBrands={availableBrands || []} distanceField={distanceField} onInputChange={handleInputChange} onCategoryChange={setSelectedCategoryId} />
+            <VehicleSpecsForm formData={formData} onInputChange={handleInputChange} />
+            <VehicleImagesForm mainImage={mainImage} mainImageUrl={mainImageUrl} secondaryImages={secondaryImages}
+              onMainImageChange={setMainImage} onMainImageUrlChange={setMainImageUrl} onSecondaryImagesChange={setSecondaryImages} />
+            <VehicleSettingsForm formData={formData} onInputChange={handleInputChange} />
           </Tabs>
-
-          <VehicleFormNavigation
-            currentTab={currentTab}
-            isFirstTab={isFirstTab}
-            isLastTab={isLastTab}
-            isSubmitting={isSubmitting || updateVehicleMutation.isPending}
-            isUploading={isUploading}
-            onPrevious={handlePrevious}
-            onCancel={handleCancel}
-          />
+          <VehicleFormNavigation currentTab={currentTab} isFirstTab={isFirstTab} isLastTab={isLastTab}
+            isSubmitting={isSubmitting || updateVehicleMutation.isPending} isUploading={isUploading}
+            onPrevious={handlePrevious} onCancel={handleCancel} />
         </form>
       </CardContent>
     </Card>

@@ -9,48 +9,32 @@ import { useQueryClient } from '@tanstack/react-query';
 export interface VehicleFormData {
   title: string;
   description: string;
-  price_eur: string;
-  registration_year: string;
+  price: string;
+  year: string;
   condition: string;
   brand_id: string;
   subcategory_id: string;
-  fuel_type: string;
-  gearbox: string;
-  mileage_km: string;
-  operating_hours: string;
-  drivetrain: string;
-  axles: string;
-  power_ps: string;
-  weight_kg: string;
-  body_color: string;
-  location: string;
-  contact_info: string;
-  is_published: boolean;
-  is_featured: boolean;
+  model: string;
+  currency: string;
+  stock_status: string;
+  location_country: string;
+  location_city: string;
   is_active: boolean;
 }
 
 const initialFormData: VehicleFormData = {
   title: "",
   description: "",
-  price_eur: "",
-  registration_year: "",
+  price: "",
+  year: "",
   condition: "used",
   brand_id: "",
   subcategory_id: "",
-  fuel_type: "",
-  gearbox: "",
-  mileage_km: "",
-  operating_hours: "",
-  drivetrain: "",
-  axles: "",
-  power_ps: "",
-  weight_kg: "",
-  body_color: "",
-  location: "",
-  contact_info: "",
-  is_published: false,
-  is_featured: false,
+  model: "",
+  currency: "EUR",
+  stock_status: "disponivel",
+  location_country: "",
+  location_city: "",
   is_active: true,
 };
 
@@ -66,23 +50,14 @@ export const useVehicleForm = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Get data with proper error handling
   const categoriesQuery = useCategories();
   const brandsQuery = useNewVehicleBrands();
   const imageUploadHook = useImageKitUpload();
 
-  // Safely extract data with fallbacks
   const categories = categoriesQuery?.data || [];
   const allBrands = brandsQuery?.data || [];
   const { uploadImages, isUploading } = imageUploadHook || { uploadImages: null, isUploading: false };
 
-  console.log('🏗️ useVehicleForm Debug:');
-  console.log('📂 Selected Category ID:', selectedCategoryId);
-  console.log('📂 All Categories:', categories.length, 'categories loaded');
-  console.log('🏷️ All Brands:', allBrands.length, 'brands loaded');
-  console.log('🖼️ Main Image State:', { hasFile: !!mainImage, hasUrl: !!mainImageUrl });
-
-  // Get selected category info with better error handling
   const selectedCategory = useMemo(() => {
     if (!selectedCategoryId || !categories.length) return null;
     return categories.find(cat => cat.id === selectedCategoryId) || null;
@@ -90,82 +65,26 @@ export const useVehicleForm = () => {
 
   const selectedCategoryName = selectedCategory?.name || null;
 
-  console.log('📂 Selected Category:', selectedCategory);
-  console.log('📂 Selected Category Name:', selectedCategoryName);
-
-  // Filter brands based on selected category with improved logic
+  // All brands available (no category filtering on brands table - use category_brands if needed)
   const availableBrands = useMemo(() => {
-    console.log('🔍 Filtering brands...');
-    console.log('🔍 Selected category name:', selectedCategoryName);
-    console.log('🔍 All brands available:', allBrands.length);
+    return allBrands;
+  }, [allBrands]);
 
-    if (!selectedCategoryName || !allBrands.length) {
-      console.log('🚫 No category selected or no brands available');
-      return [];
-    }
-
-    try {
-      const filteredBrands = allBrands.filter(brand => {
-        if (!brand || !brand.category) {
-          console.log(`🔍 Brand has no category:`, brand?.name || 'unnamed');
-          return false;
-        }
-        
-        if (!Array.isArray(brand.category)) {
-          console.log(`🔍 Brand "${brand.name}" category is not an array:`, brand.category);
-          return false;
-        }
-        
-        // Check if any category in the brand matches the selected category (case insensitive)
-        const hasMatchingCategory = brand.category.some(cat => {
-          if (typeof cat !== 'string') return false;
-          return cat.toLowerCase().trim() === selectedCategoryName.toLowerCase().trim();
-        });
-        
-        console.log(`🔍 Brand "${brand.name}" categories:`, brand.category);
-        console.log(`🔍 Does "${brand.name}" match "${selectedCategoryName}"?`, hasMatchingCategory);
-        
-        return hasMatchingCategory;
-      });
-
-      console.log('✅ Filtered brands:', filteredBrands.length, 'brands match');
-      console.log('✅ Brand names:', filteredBrands.map(b => b.name));
-      return filteredBrands;
-    } catch (error) {
-      console.error('❌ Error filtering brands:', error);
-      return [];
-    }
-  }, [selectedCategoryName, allBrands]);
-
-  // Filter subcategories based on selected category
   const availableSubcategories = useMemo(() => {
     return selectedCategory?.subcategories || [];
   }, [selectedCategory]);
 
-  // Reset dependent fields when category changes
   useEffect(() => {
     if (selectedCategoryId) {
-      console.log('🔄 Category changed, resetting dependent fields');
-      setFormData(prev => ({ 
-        ...prev, 
-        subcategory_id: "",
-        brand_id: "",
-        mileage_km: "",
-        operating_hours: ""
-      }));
+      setFormData(prev => ({ ...prev, subcategory_id: "", brand_id: "" }));
     }
   }, [selectedCategoryId]);
 
   const handleInputChange = (field: keyof VehicleFormData, value: string | boolean) => {
-    console.log(`🔄 Field changed: ${field} = ${value}`);
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const resetForm = () => {
-    console.log('🔄 Resetting form');
     setFormData(initialFormData);
     setSelectedCategoryId("");
     setMainImage(null);
@@ -174,7 +93,6 @@ export const useVehicleForm = () => {
     setCurrentTab("basic");
   };
 
-  // Helper function to safely convert string to number
   const safeParseInt = (value: string): number | null => {
     if (!value || value.trim() === '') return null;
     const parsed = parseInt(value, 10);
@@ -190,138 +108,78 @@ export const useVehicleForm = () => {
 
   const submitVehicle = async () => {
     if (!uploadImages) {
-      console.error('❌ Upload function not available');
-      toast({
-        title: "Erro",
-        description: "Função de upload não disponível",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Função de upload não disponível", variant: "destructive" });
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      console.log('🚀 Starting vehicle submission...');
-      console.log('📝 Raw form data:', formData);
-      console.log('🖼️ Main image state:', { file: mainImage?.name, url: mainImageUrl });
-
-      // Validate required fields
-      const requiredFields = ['title', 'brand_id', 'subcategory_id', 'registration_year', 'price_eur'];
+      const requiredFields = ['title', 'brand_id', 'subcategory_id', 'year', 'price'];
       for (const field of requiredFields) {
         if (!formData[field as keyof VehicleFormData]) {
           throw new Error(`Campo obrigatório em falta: ${field}`);
         }
       }
 
-      // Parse numeric values properly
-      const parsedRegistrationYear = safeParseInt(formData.registration_year);
-      const parsedPrice = safeParseFloat(formData.price_eur);
-      const parsedMileage = safeParseInt(formData.mileage_km);
-      const parsedOperatingHours = safeParseInt(formData.operating_hours);
-      const parsedAxles = safeParseInt(formData.axles);
-      const parsedPowerPs = safeParseInt(formData.power_ps);
-      const parsedWeightKg = safeParseInt(formData.weight_kg);
+      const parsedYear = safeParseInt(formData.year);
+      const parsedPrice = safeParseFloat(formData.price);
 
-      console.log('🔢 Parsed values:', {
-        registration_year: parsedRegistrationYear,
-        price_eur: parsedPrice,
-        mileage_km: parsedMileage,
-        operating_hours: parsedOperatingHours
-      });
-
-      // Validate parsed values
-      if (!parsedRegistrationYear || parsedRegistrationYear < 1900 || parsedRegistrationYear > new Date().getFullYear() + 1) {
-        throw new Error('Ano deve ser um valor válido entre 1900 e ' + (new Date().getFullYear() + 1));
+      if (!parsedYear || parsedYear < 1900 || parsedYear > new Date().getFullYear() + 1) {
+        throw new Error('Ano deve ser válido');
       }
-
       if (!parsedPrice || parsedPrice <= 0) {
-        throw new Error('Preço deve ser um valor válido maior que zero');
+        throw new Error('Preço deve ser maior que zero');
       }
 
-      // Create vehicle with main image URL if available
-      const vehicleData = {
+      const productData = {
         title: formData.title.trim(),
-        description: formData.description.trim() || '',
-        price_eur: parsedPrice,
-        registration_year: parsedRegistrationYear,
+        description: formData.description.trim() || null,
+        price: parsedPrice,
+        year: parsedYear,
         condition: formData.condition,
         brand_id: formData.brand_id,
         subcategory_id: formData.subcategory_id,
-        mileage_km: parsedMileage,
-        operating_hours: parsedOperatingHours,
-        axles: parsedAxles,
-        power_ps: parsedPowerPs,
-        weight_kg: parsedWeightKg,
-        fuel_type: formData.fuel_type || null,
-        gearbox: formData.gearbox || null,
-        drivetrain: formData.drivetrain || null,
-        body_color: formData.body_color || null,
-        location: formData.location || null,
-        contact_info: formData.contact_info || null,
-        main_image_url: mainImageUrl, // Use the uploaded image URL
-        is_published: formData.is_published,
-        is_featured: formData.is_featured,
+        category_id: selectedCategoryId || null,
+        model: formData.model || null,
+        currency: formData.currency,
+        stock_status: formData.stock_status,
+        location_country: formData.location_country || null,
+        location_city: formData.location_city || null,
         is_active: formData.is_active,
       };
 
-      console.log('📋 Final vehicle data for insert:', vehicleData);
-
-      const { data: vehicle, error: vehicleError } = await (supabase as any)
-        .from('vehicles')
-        .insert([vehicleData])
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .insert([productData])
         .select()
         .single();
 
-      if (vehicleError) {
-        console.error('❌ Vehicle creation error:', vehicleError);
-        throw new Error(`Erro na base de dados: ${vehicleError.message}`);
-      }
+      if (productError) throw new Error(`Erro na base de dados: ${productError.message}`);
 
-      console.log('✅ Vehicle created successfully:', vehicle);
-
-      // If we have secondary images, upload them
-      if (secondaryImages.length > 0 && vehicle?.id) {
-        console.log('📤 Uploading secondary images...');
+      if (secondaryImages.length > 0 && product?.id) {
         try {
-          await uploadImages(secondaryImages, vehicle.id);
-          console.log('✅ Secondary images uploaded');
+          await uploadImages(secondaryImages, product.id);
         } catch (imageError) {
-          console.error('❌ Secondary images upload failed:', imageError);
-          toast({
-            title: "Aviso",
-            description: "Veículo criado mas falha no upload de imagens secundárias.",
-            variant: "destructive",
-          });
+          toast({ title: "Aviso", description: "Produto criado mas falha no upload de imagens.", variant: "destructive" });
         }
       }
 
       await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      
-      toast({
-        title: "Sucesso!",
-        description: `Veículo "${vehicle.title}" adicionado com sucesso!`,
-      });
-
+      toast({ title: "Sucesso!", description: `Produto "${product.title}" adicionado!` });
       resetForm();
-      return vehicle;
+      return product;
 
     } catch (error) {
-      console.error('❌ Error adding vehicle:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao adicionar veículo';
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast({ title: "Erro", description: errorMessage, variant: "destructive" });
       throw error;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Return hook data with comprehensive error handling
-  const hookData = {
+  return {
     formData,
     selectedCategoryId,
     mainImage,
@@ -345,13 +203,4 @@ export const useVehicleForm = () => {
     submitVehicle,
     resetForm
   };
-
-  console.log('🎯 Hook returning data:', {
-    categoriesCount: categories.length,
-    brandsCount: availableBrands.length,
-    selectedCategoryId,
-    selectedCategoryName
-  });
-
-  return hookData;
 };
