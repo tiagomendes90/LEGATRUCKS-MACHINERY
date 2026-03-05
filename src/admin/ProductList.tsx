@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import ProductForm from '@/admin/ProductForm';
@@ -15,8 +15,14 @@ export default function ProductList() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [featuredIds, setFeaturedIds] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const loadFeatured = async () => {
+    const { data } = await supabase.from('featured_products').select('product_id');
+    setFeaturedIds(new Set((data || []).map((r: any) => r.product_id)));
+  };
 
   const loadProducts = async () => {
     setLoading(true);
@@ -30,7 +36,33 @@ export default function ProductList() {
 
   useEffect(() => {
     loadProducts();
+    loadFeatured();
   }, []);
+
+  const toggleFeatured = async (productId: string) => {
+    if (featuredIds.has(productId)) {
+      const { error } = await supabase.from('featured_products').delete().eq('product_id', productId);
+      if (error) {
+        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+        return;
+      }
+      setFeaturedIds(prev => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
+      toast({ title: 'Destaque removido' });
+    } else {
+      const nextOrder = featuredIds.size + 1;
+      const { error } = await supabase.from('featured_products').insert([{ product_id: productId, display_order: nextOrder }]);
+      if (error) {
+        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+        return;
+      }
+      setFeaturedIds(prev => new Set(prev).add(productId));
+      toast({ title: 'Produto destacado' });
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem a certeza que deseja eliminar este produto?')) return;
@@ -74,6 +106,7 @@ export default function ProductList() {
                 <TableHead>Ano</TableHead>
                 <TableHead>Preço</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Destaque</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -98,6 +131,18 @@ export default function ProductList() {
                     <Badge variant={p.is_active ? 'default' : 'secondary'}>
                       {p.is_active ? 'Ativo' : 'Inativo'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleFeatured(p.id)}
+                      title={featuredIds.has(p.id) ? 'Remover destaque' : 'Destacar na homepage'}
+                    >
+                      <Star
+                        className={`h-5 w-5 ${featuredIds.has(p.id) ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
+                      />
+                    </Button>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
@@ -130,7 +175,7 @@ export default function ProductList() {
           {editing && (
             <ProductForm
               editingProduct={editing}
-              onSuccess={() => { setIsEditOpen(false); setEditing(null); loadProducts(); }}
+              onSuccess={() => { setIsEditOpen(false); setEditing(null); loadProducts(); loadFeatured(); }}
               onCancel={() => { setIsEditOpen(false); setEditing(null); }}
             />
           )}

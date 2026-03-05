@@ -29,7 +29,7 @@ export const useFeaturedVehicles = () => {
     queryFn: async () => {
       console.log('Fetching featured vehicles...');
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('featured_vehicles')
         .select(`
           *,
@@ -73,7 +73,7 @@ export const useAddFeaturedVehicle = () => {
         throw new Error('Admin access required');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('featured_vehicles')
         .insert([{ vehicle_id, display_order: position }])
         .select()
@@ -115,7 +115,7 @@ export const useUpdateFeaturedVehiclePosition = () => {
         throw new Error('Admin access required');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('featured_vehicles')
         .update({ display_order: position })
         .eq('id', id)
@@ -158,7 +158,7 @@ export const useRemoveFeaturedVehicle = () => {
         throw new Error('Admin access required');
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('featured_vehicles')
         .delete()
         .eq('id', id);

@@ -110,18 +110,12 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
   const availableBrands = React.useMemo(() => {
     if (!category || !brands.length || !categories.length) return [];
     
-    const categoryName = categories.find(cat => cat.slug === category)?.name;
+    const categoryName = categories.find((cat: any) => cat.slug === category)?.name;
     if (!categoryName) return [];
     
-    console.log('🔍 Filtering brands for category:', categoryName);
-    console.log('📋 Available brands:', brands.length);
-    
-    const filteredBrands = brands.filter(brand => 
+    const filteredBrands = (brands as any[]).filter((brand: any) => 
       brand.category?.includes(categoryName)
     );
-    
-    console.log('✅ Filtered brands:', filteredBrands.length);
-    console.log('📝 Brand names:', filteredBrands.map(b => b.name));
     
     return filteredBrands;
   }, [category, brands, categories]);
@@ -229,7 +223,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as marcas</SelectItem>
-                  {availableBrands.map((brand) => (
+                  {availableBrands.map((brand: any) => (
                     <SelectItem key={brand.id} value={brand.id}>
                       {brand.name}
                     </SelectItem>

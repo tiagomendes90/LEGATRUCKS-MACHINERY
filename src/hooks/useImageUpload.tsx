@@ -44,7 +44,7 @@ export const useImageUpload = () => {
           .getPublicUrl(fileName);
 
         // Insert into vehicle_images table
-        const { error: dbError } = await supabase
+        const { error: dbError } = await (supabase as any)
           .from('vehicle_images')
           .insert({
             vehicle_id: vehicleId,
@@ -59,7 +59,7 @@ export const useImageUpload = () => {
 
         // Update main_image_url in vehicles table if this is the main image
         if (isMainImage) {
-          const { error: vehicleUpdateError } = await supabase
+          const { error: vehicleUpdateError } = await (supabase as any)
             .from('vehicles')
             .update({ main_image_url: publicUrl })
             .eq('id', vehicleId);
