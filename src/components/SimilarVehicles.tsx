@@ -16,13 +16,14 @@ const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategor
   const { t } = useTranslation();
   const navigate = useNavigate();
   
-  const { data: vehicles, isLoading } = useVehicles(
+  const { data: vehiclesRaw, isLoading } = useVehicles(
     { subcategory: subcategoryId },
     6
   );
+  const vehicles = (vehiclesRaw || []) as any[];
 
   // Filter out the current vehicle
-  const similarVehicles = vehicles?.filter(v => v.id !== vehicleId) || [];
+  const similarVehicles = vehicles.filter((v: any) => v.id !== vehicleId);
 
   if (isLoading || similarVehicles.length === 0) {
     return null;

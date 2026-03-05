@@ -57,7 +57,7 @@ export const validateVehicleData = async (data: VehicleValidationData): Promise<
 
   // Validate brand exists
   if (data.brand_id) {
-    const { data: brand, error } = await supabase
+    const { data: brand, error } = await (supabase as any)
       .from('vehicle_brands')
       .select('id')
       .eq('id', data.brand_id)
@@ -160,7 +160,7 @@ export const validateDatabaseStructure = async (): Promise<MigrationValidationRe
       warnings.push('No categories found. Please add categories first.');
     }
 
-    const { data: brands } = await supabase.from('vehicle_brands').select('id').limit(1);
+    const { data: brands } = await (supabase as any).from('vehicle_brands').select('id').limit(1);
     if (!brands || brands.length === 0) {
       warnings.push('No vehicle brands found. Please add brands first.');
     }
@@ -171,7 +171,7 @@ export const validateDatabaseStructure = async (): Promise<MigrationValidationRe
     }
 
     // Check foreign key relationships
-    const { data: vehiclesWithBrands } = await supabase
+    const { data: vehiclesWithBrands } = await (supabase as any)
       .from('vehicles')
       .select('id, brand:vehicle_brands(id)')
       .limit(1);

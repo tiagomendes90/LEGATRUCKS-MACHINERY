@@ -18,7 +18,7 @@ export const useNewVehicleBrands = () => {
     queryFn: async () => {
       console.log('🔍 Fetching vehicle brands...');
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vehicle_brands')
         .select('*')
         .order('name');
@@ -47,7 +47,7 @@ export const useVehicleBrandsByCategory = (category?: string) => {
     queryFn: async () => {
       console.log(`🔍 Fetching brands for category: ${category || 'all'}`);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vehicle_brands')
         .select('*')
         .order('name');

@@ -63,7 +63,7 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
     queryFn: async () => {
       console.log('Fetching vehicles with filters:', filters);
       
-      let query = supabase
+      let query = (supabase as any)
         .from('vehicles')
         .select(`
           *,
@@ -130,7 +130,7 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
 
       if (filters?.brand) {
         // Get brand ID from slug
-        const { data: brandData } = await supabase
+        const { data: brandData } = await (supabase as any)
           .from('vehicle_brands')
           .select('id')
           .eq('slug', filters.brand)
@@ -266,7 +266,7 @@ export const useVehicle = (id: string) => {
   return useQuery({
     queryKey: ['vehicle', id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vehicles')
         .select(`
           *,
@@ -305,7 +305,7 @@ export const useAddVehicle = () => {
         throw new Error('Admin access required');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vehicles')
         .insert([vehicle])
         .select()
@@ -347,7 +347,7 @@ export const useUpdateVehicle = () => {
         throw new Error('Admin access required');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vehicles')
         .update(vehicle)
         .eq('id', id)
@@ -391,7 +391,7 @@ export const useDeleteVehicle = () => {
         throw new Error('Admin access required');
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('vehicles')
         .delete()
         .eq('id', id);

@@ -31,7 +31,7 @@ export const useVehicleSearch = (filters: VehicleSearchFilters = {}) => {
     queryFn: async () => {
       console.log('Searching vehicles with filters:', filters);
       
-      let query = supabase
+      let query = (supabase as any)
         .from('vehicles')
         .select(`
           *,
@@ -167,7 +167,7 @@ export const useLatestVehicles = (limit = 6) => {
   return useQuery({
     queryKey: ['latest-vehicles', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vehicles')
         .select(`
           *,

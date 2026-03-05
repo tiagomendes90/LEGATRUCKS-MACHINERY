@@ -14,7 +14,8 @@ import AddVehicleForm from "@/components/AddVehicleForm";
 
 export const VehicleManagement = () => {
   // Use includeUnpublished=true to show all vehicles in admin panel
-  const { data: vehicles = [], isLoading } = useVehicles({}, 50, true);
+  const { data: vehiclesRaw = [], isLoading } = useVehicles({}, 50, true);
+  const vehicles = vehiclesRaw as any[];
   const deleteVehicleMutation = useDeleteVehicle();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [editingVehicle, setEditingVehicle] = useState<any>(null);

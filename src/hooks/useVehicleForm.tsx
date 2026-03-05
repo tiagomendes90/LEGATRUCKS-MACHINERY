@@ -267,7 +267,7 @@ export const useVehicleForm = () => {
 
       console.log('📋 Final vehicle data for insert:', vehicleData);
 
-      const { data: vehicle, error: vehicleError } = await supabase
+      const { data: vehicle, error: vehicleError } = await (supabase as any)
         .from('vehicles')
         .insert([vehicleData])
         .select()
