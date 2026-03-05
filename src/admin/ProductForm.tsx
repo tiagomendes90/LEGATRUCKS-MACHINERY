@@ -64,7 +64,8 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         currency: editingProduct.currency || 'EUR',
       });
       if (editingProduct.images) {
-        setImages(editingProduct.images.map((img: any) => img.image_url));
+        const sortedImages = [...editingProduct.images].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        setImages(sortedImages.map((img: any) => img.image_url));
       }
       // Load featured status
       const loadFeatured = async () => {
@@ -131,13 +132,22 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     setSpecValues((prev) => ({ ...prev, [specId]: value }));
   };
 
-  const uploadImage = async (): Promise<string | null> => {
+  const getCategorySlug = () => {
+    if (!form.category_id) return 'sem-categoria';
+    const cat = categories.find((c: any) => c.id === form.category_id);
+    return cat?.slug || 'sem-categoria';
+  };
+
+  const uploadImage = async (productId: string): Promise<string | null> => {
     if (!file) return null;
 
     setUploading(true);
-    const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage
-      .from('product-images')
+    const categorySlug = getCategorySlug();
+    const ext = file.name.split('.').pop();
+    const fileName = `${categorySlug}/${productId}/${Date.now()}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from('vehicle-images')
       .upload(fileName, file);
 
     if (error) {
@@ -148,7 +158,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     }
 
     const url = supabase.storage
-      .from('product-images')
+      .from('vehicle-images')
       .getPublicUrl(fileName).data.publicUrl;
 
     setUploading(false);
@@ -156,11 +166,14 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   };
 
   const handleAddImage = async () => {
-    const url = await uploadImage();
+    if (!file) return;
+
+    // If editing, we have the product ID; otherwise use a temp approach
+    const tempId = editingProduct?.id || 'temp';
+    const url = await uploadImage(tempId);
     if (url) {
       setImages((prev) => [...prev, url]);
       setFile(null);
-      // Reset file input
       const input = document.getElementById('image-upload') as HTMLInputElement;
       if (input) input.value = '';
     }
