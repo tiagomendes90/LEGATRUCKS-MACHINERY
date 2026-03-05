@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
 import { Save, X, Upload, Trash2, ImageIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ProductFormProps {
   editingProduct?: any;
@@ -27,6 +28,8 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [uploading, setUploading] = useState(false);
   const [specs, setSpecs] = useState<any[]>([]);
   const [specValues, setSpecValues] = useState<Record<string, any>>({});
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [displayOrder, setDisplayOrder] = useState(0);
 
   const [form, setForm] = useState({
     title: '',
@@ -43,6 +46,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     currency: 'EUR',
   });
 
+  // Load editing product data
   useEffect(() => {
     if (editingProduct) {
       setForm({
@@ -59,10 +63,22 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         location_country: editingProduct.location_country || 'Portugal',
         currency: editingProduct.currency || 'EUR',
       });
-      // Load existing images
       if (editingProduct.images) {
         setImages(editingProduct.images.map((img: any) => img.image_url));
       }
+      // Load featured status
+      const loadFeatured = async () => {
+        const { data } = await supabase
+          .from('featured_products')
+          .select('*')
+          .eq('product_id', editingProduct.id)
+          .maybeSingle();
+        if (data) {
+          setIsFeatured(true);
+          setDisplayOrder(data.display_order ?? 0);
+        }
+      };
+      loadFeatured();
     }
   }, [editingProduct]);
 
@@ -238,6 +254,17 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       }
     }
 
+    // Save featured status
+    if (productId) {
+      if (isFeatured) {
+        // Remove existing then insert
+        await supabase.from('featured_products').delete().eq('product_id', productId);
+        await supabase.from('featured_products').insert([{ product_id: productId, display_order: displayOrder }]);
+      } else {
+        await supabase.from('featured_products').delete().eq('product_id', productId);
+      }
+    }
+
     setLoading(false);
     toast({
       title: editingProduct ? 'Produto atualizado' : 'Produto criado',
@@ -378,6 +405,30 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
             </div>
           </div>
         )}
+
+        {/* Featured Product */}
+        <div className="flex items-start gap-4 p-4 border rounded-lg">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="featured"
+              checked={isFeatured}
+              onCheckedChange={(checked) => setIsFeatured(checked === true)}
+            />
+            <Label htmlFor="featured" className="cursor-pointer">Destacar na homepage</Label>
+          </div>
+          {isFeatured && (
+            <div className="flex items-center gap-2">
+              <Label>Ordem</Label>
+              <Input
+                type="number"
+                className="w-24"
+                value={displayOrder}
+                onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
+                min={0}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Image Upload */}
         <div>
