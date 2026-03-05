@@ -29,15 +29,19 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             
-            {/* Dynamic category route */}
-            <Route path="/categoria/:slug" element={<NewVehicleCategory />} />
-            
-            {/* Legacy routes - redirect to new pattern */}
-            <Route path="/trucks" element={<NewVehicleCategory />} />
-            <Route path="/machinery" element={<NewVehicleCategory />} />
-            <Route path="/agriculture" element={<NewVehicleCategory />} />
+            {/* Category routes */}
+            <Route path="/camioes" element={<NewVehicleCategory />} />
+            <Route path="/maquinas" element={<NewVehicleCategory />} />
+            <Route path="/tractores" element={<NewVehicleCategory />} />
+            <Route path="/reboques" element={<NewVehicleCategory />} />
+            <Route path="/pecas" element={<NewVehicleCategory />} />
+            <Route path="/:slug" element={<NewVehicleCategory />} />
             
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/sobre" element={<About />} />
+            <Route path="/contactos" element={<Contact />} />
+            
+            {/* Legacy routes */}
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<AdminLogin />} />
