@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 
 const FeaturedVehiclesSection = () => {
-  const { data: featuredVehicles = [], isLoading } = useFeaturedVehicles();
+  const { data: featuredProducts = [], isLoading } = useFeaturedVehicles();
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -35,13 +35,13 @@ const FeaturedVehiclesSection = () => {
     );
   }
 
-  if (!featuredVehicles.length) {
+  if (!featuredProducts.length) {
     return (
       <div className="py-12">
         <div className="container mx-auto px-6">
           <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Featured Vehicles</h2>
-            <p className="text-gray-600 mb-8">No featured vehicles available at the moment</p>
+            <h2 className="text-3xl font-bold mb-4">Produtos em Destaque</h2>
+            <p className="text-gray-600 mb-8">Nenhum produto em destaque de momento</p>
           </div>
         </div>
       </div>
@@ -52,44 +52,38 @@ const FeaturedVehiclesSection = () => {
     <div className="py-12">
       <div className="container mx-auto px-6">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4">Featured Vehicles</h2>
-          <p className="text-gray-600">Hand-picked premium vehicles for you</p>
+          <h2 className="text-3xl font-bold mb-4">Produtos em Destaque</h2>
+          <p className="text-gray-600">Selecionados especialmente para si</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredVehicles.slice(0, 6).map((featuredVehicle) => (
-            <Card key={featuredVehicle.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <div className="relative">
-                <img 
-                  src={featuredVehicle.vehicle.main_image_url || featuredVehicle.vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
-                  alt={featuredVehicle.vehicle.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-                <Badge className="absolute top-2 right-2 bg-red-600">Featured</Badge>
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{featuredVehicle.vehicle.title}</h3>
-                <p className="text-gray-600 mb-2">{featuredVehicle.vehicle.brand?.name} • {featuredVehicle.vehicle.registration_year}</p>
-                <p className="text-lg font-bold text-primary mb-4">€{featuredVehicle.vehicle.price_eur.toLocaleString()}</p>
-                <Button 
-                  onClick={() => navigate(`/vehicle/${featuredVehicle.vehicle.id}`)}
-                  className="w-full"
-                >
-                  View Details
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          {featuredProducts.slice(0, 6).map((item: any) => {
+            const product = item.product;
+            if (!product) return null;
+            return (
+              <Card key={item.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="relative">
+                  <img 
+                    src={product.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
+                    alt={product.title}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                  />
+                  <Badge className="absolute top-2 right-2 bg-red-600">Destaque</Badge>
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{product.title}</h3>
+                  <p className="text-gray-600 mb-2">{product.brand?.name} {product.year && `• ${product.year}`}</p>
+                  <p className="text-lg font-bold text-primary mb-4">€{(product.price || 0).toLocaleString()}</p>
+                  <Button 
+                    onClick={() => navigate(`/vehicle/${product.id}`)}
+                    className="w-full"
+                  >
+                    Ver Detalhes
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-        {featuredVehicles.length > 6 && (
-          <div className="text-center mt-8">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/trucks')}
-            >
-              View All Featured Vehicles
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );

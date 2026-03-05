@@ -6,17 +6,15 @@ import { useAuth } from '@/hooks/useAuth';
 
 export interface FeaturedVehicle {
   id: string;
-  vehicle_id: string;
-  position: number;
+  product_id: string;
+  display_order: number;
   created_at: string;
-  updated_at: string;
-  vehicle: {
+  product: {
     id: string;
     title: string;
-    price_eur: number;
-    main_image_url?: string;
-    registration_year: number;
+    price: number;
     condition: string;
+    year: number;
     brand?: { name: string; slug: string };
     subcategory?: { name: string; slug: string };
     images?: { image_url: string; sort_order: number }[];
@@ -27,38 +25,38 @@ export const useFeaturedVehicles = () => {
   return useQuery({
     queryKey: ['featured-vehicles'],
     queryFn: async () => {
-      console.log('Fetching featured vehicles...');
+      console.log('Fetching featured products...');
       
-      const { data, error } = await (supabase as any)
-        .from('featured_vehicles')
+      const { data, error } = await supabase
+        .from('featured_products')
         .select(`
           *,
-          vehicle:vehicles(
+          product:products(
             id,
             title,
-            price_eur,
-            main_image_url,
-            registration_year,
+            price,
             condition,
-            brand:vehicle_brands(name, slug),
+            year,
+            brand:brands(name, slug),
             subcategory:subcategories(name, slug),
-            images:vehicle_images(image_url, sort_order)
+            images:product_images(image_url, sort_order)
           )
         `)
-        .eq('vehicle.is_active', true)
-        .eq('vehicle.is_published', true)
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.error('Error fetching featured vehicles:', error);
+        console.error('Error fetching featured products:', error);
         throw error;
       }
 
-      console.log('Featured vehicles fetched:', data?.length || 0);
-      return data || [];
+      // Filter out entries where product is inactive
+      const filtered = (data || []).filter((item: any) => item.product?.is_active !== false);
+
+      console.log('Featured products fetched:', filtered.length);
+      return filtered;
     },
-    staleTime: 1000 * 60 * 15, // 15 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: 1000 * 60 * 15,
+    gcTime: 1000 * 60 * 30,
   });
 };
 
@@ -73,14 +71,14 @@ export const useAddFeaturedVehicle = () => {
         throw new Error('Admin access required');
       }
 
-      const { data, error } = await (supabase as any)
-        .from('featured_vehicles')
-        .insert([{ vehicle_id, display_order: position }])
+      const { data, error } = await supabase
+        .from('featured_products')
+        .insert([{ product_id: vehicle_id, display_order: position }])
         .select()
         .single();
 
       if (error) {
-        console.error('Error adding featured vehicle:', error);
+        console.error('Error adding featured product:', error);
         throw error;
       }
 
@@ -88,18 +86,10 @@ export const useAddFeaturedVehicle = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['featured-vehicles'] });
-      toast({
-        title: "Success",
-        description: "Vehicle added to featured list!",
-      });
+      toast({ title: "Sucesso", description: "Produto adicionado aos destaques!" });
     },
     onError: (error: any) => {
-      console.error('Failed to add featured vehicle:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add featured vehicle.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message || "Falha ao adicionar destaque.", variant: "destructive" });
     },
   });
 };
@@ -115,34 +105,22 @@ export const useUpdateFeaturedVehiclePosition = () => {
         throw new Error('Admin access required');
       }
 
-      const { data, error } = await (supabase as any)
-        .from('featured_vehicles')
+      const { data, error } = await supabase
+        .from('featured_products')
         .update({ display_order: position })
         .eq('id', id)
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating featured vehicle position:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['featured-vehicles'] });
-      toast({
-        title: "Success",
-        description: "Featured vehicle position updated!",
-      });
+      toast({ title: "Sucesso", description: "Posição atualizada!" });
     },
     onError: (error: any) => {
-      console.error('Failed to update featured vehicle position:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update position.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message || "Falha ao atualizar posição.", variant: "destructive" });
     },
   });
 };
@@ -158,32 +136,20 @@ export const useRemoveFeaturedVehicle = () => {
         throw new Error('Admin access required');
       }
 
-      const { error } = await (supabase as any)
-        .from('featured_vehicles')
+      const { error } = await supabase
+        .from('featured_products')
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Error removing featured vehicle:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['featured-vehicles'] });
-      toast({
-        title: "Success",
-        description: "Vehicle removed from featured list!",
-      });
+      toast({ title: "Sucesso", description: "Produto removido dos destaques!" });
     },
     onError: (error: any) => {
-      console.error('Failed to remove featured vehicle:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to remove featured vehicle.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message || "Falha ao remover destaque.", variant: "destructive" });
     },
   });
 };
