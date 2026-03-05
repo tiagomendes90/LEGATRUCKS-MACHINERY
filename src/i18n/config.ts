@@ -8,8 +8,10 @@ const resources = {
       nav: {
         home: "Home",
         trucks: "Trucks",
-        machinery: "Machinery", 
-        agriculture: "Agriculture",
+        machinery: "Machines",
+        tractors: "Tractors",
+        trailers: "Trailers",
+        parts: "Parts",
         about: "About",
         contact: "Contact"
       },
@@ -345,10 +347,12 @@ const resources = {
       nav: {
         home: "Início",
         trucks: "Camiões",
-        machinery: "Maquinaria",
-        agriculture: "Agricultura",
+        machinery: "Máquinas",
+        tractors: "Tractores",
+        trailers: "Reboques",
+        parts: "Peças",
         about: "Sobre",
-        contact: "Contacto"
+        contact: "Contactos"
       },
       common: {
         loading: "A carregar...",
@@ -683,7 +687,9 @@ const resources = {
         home: "Accueil",
         trucks: "Camions",
         machinery: "Machines",
-        agriculture: "Agriculture",
+        tractors: "Tracteurs",
+        trailers: "Remorques",
+        parts: "Pièces",
         about: "À propos",
         contact: "Contact"
       },

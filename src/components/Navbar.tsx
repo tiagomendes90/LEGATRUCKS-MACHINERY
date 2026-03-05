@@ -14,17 +14,26 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Build nav items dynamically from categories
+  // Map category slugs to i18n keys
+  const slugToNavKey: Record<string, string> = {
+    camioes: 'nav.trucks',
+    maquinas: 'nav.machinery',
+    tractores: 'nav.tractors',
+    reboques: 'nav.trailers',
+    pecas: 'nav.parts',
+  };
+
+  // Build nav items dynamically from categories with translations
   const categoryItems = (categories as any[]).map((cat) => ({
-    name: cat.name,
+    name: slugToNavKey[cat.slug] ? t(slugToNavKey[cat.slug]) : cat.name,
     path: `/${cat.slug}`,
   }));
 
   const navItems = [
-    { name: "Inicio", path: "/" },
+    { name: t('nav.home'), path: "/" },
     ...categoryItems,
-    { name: "Sobre", path: "/sobre" },
-    { name: "Contactos", path: "/contactos" },
+    { name: t('nav.about'), path: "/sobre" },
+    { name: t('nav.contact'), path: "/contactos" },
   ];
 
   useEffect(() => {
