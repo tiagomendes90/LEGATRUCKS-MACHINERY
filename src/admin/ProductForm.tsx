@@ -23,9 +23,11 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [images, setImages] = useState<string[]>([]);
+  const [primaryIndex, setPrimaryIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
   const [specs, setSpecs] = useState<any[]>([]);
   const [specValues, setSpecValues] = useState<Record<string, any>>({});
   const [isFeatured, setIsFeatured] = useState(false);
@@ -138,49 +140,55 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     return cat?.slug || 'sem-categoria';
   };
 
-  const uploadImage = async (productId: string): Promise<string | null> => {
-    if (!file) return null;
-
-    setUploading(true);
-    const categorySlug = getCategorySlug();
-    const ext = file.name.split('.').pop();
-    const fileName = `${categorySlug}/${productId}/${Date.now()}.${ext}`;
-
-    const { error } = await supabase.storage
-      .from('vehicle-images')
-      .upload(fileName, file);
-
-    if (error) {
-      console.error(error);
-      toast({ title: 'Erro', description: 'Falha ao carregar imagem.', variant: 'destructive' });
-      setUploading(false);
-      return null;
-    }
-
-    const url = supabase.storage
-      .from('vehicle-images')
-      .getPublicUrl(fileName).data.publicUrl;
-
-    setUploading(false);
-    return url;
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setPendingFiles((prev) => [...prev, ...files]);
+    e.target.value = '';
   };
 
-  const handleAddImage = async () => {
-    if (!file) return;
-
-    // If editing, we have the product ID; otherwise use a temp approach
-    const tempId = editingProduct?.id || 'temp';
-    const url = await uploadImage(tempId);
-    if (url) {
-      setImages((prev) => [...prev, url]);
-      setFile(null);
-      const input = document.getElementById('image-upload') as HTMLInputElement;
-      if (input) input.value = '';
-    }
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleRemoveImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      return next;
+    });
+    if (primaryIndex === index) setPrimaryIndex(0);
+    else if (primaryIndex > index) setPrimaryIndex((p) => p - 1);
+  };
+
+  const uploadAllPendingFiles = async (productId: string): Promise<string[]> => {
+    const categorySlug = getCategorySlug();
+    const urls: string[] = [];
+
+    for (let i = 0; i < pendingFiles.length; i++) {
+      const file = pendingFiles[i];
+      setUploadProgress(`A carregar ${i + 1}/${pendingFiles.length}...`);
+      const ext = file.name.split('.').pop();
+      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `${categorySlug}/${productId}/${Date.now()}-${safeName}`;
+
+      const { error } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Upload error for', file.name, error);
+        toast({ title: 'Erro', description: `Falha ao carregar: ${file.name}`, variant: 'destructive' });
+        continue;
+      }
+
+      const url = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName).data.publicUrl;
+      urls.push(url);
+    }
+
+    setUploadProgress('');
+    return urls;
   };
 
   const handleSave = async () => {
@@ -223,24 +231,34 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       return;
     }
 
-    // Save images to product_images table
-    if (productId && images.length > 0) {
+    // Upload pending files and save all images
+    if (productId) {
+      setUploading(true);
+      const newUrls = await uploadAllPendingFiles(productId);
+      const allImages = [...images, ...newUrls];
+      setUploading(false);
+
       // Delete existing images if editing
       if (editingProduct) {
         await supabase.from('product_images').delete().eq('product_id', productId);
       }
 
-      const imageRows = images.map((url, i) => ({
-        product_id: productId,
-        image_url: url,
-        is_primary: i === 0,
-        sort_order: i,
-      }));
+      if (allImages.length > 0) {
+        // Adjust primaryIndex for the combined array
+        const adjustedPrimary = primaryIndex < images.length ? primaryIndex : images.length + (primaryIndex - images.length);
+        const imageRows = allImages.map((url, i) => ({
+          product_id: productId,
+          image_url: url,
+          is_primary: i === adjustedPrimary,
+          sort_order: i,
+        }));
 
-      const { error: imgError } = await supabase.from('product_images').insert(imageRows);
-      if (imgError) {
-        console.error('Error saving images:', imgError);
+        const { error: imgError } = await supabase.from('product_images').insert(imageRows);
+        if (imgError) console.error('Error saving images:', imgError);
       }
+
+      setImages(allImages);
+      setPendingFiles([]);
     }
 
     // Save spec values
@@ -445,46 +463,89 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
 
         {/* Image Upload */}
         <div>
-          <Label>Imagens</Label>
+          <Label>Imagens (selecione múltiplas de uma vez)</Label>
           <div className="flex gap-2 mt-2">
             <Input
               id="image-upload"
               type="file"
               accept="image/*"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              multiple
+              onChange={handleFilesSelected}
               className="flex-1"
             />
-            <Button variant="outline" onClick={handleAddImage} disabled={!file || uploading}>
-              <Upload className="h-4 w-4 mr-2" />
-              {uploading ? 'A carregar...' : 'Carregar'}
-            </Button>
           </div>
 
-          {images.length > 0 && (
-            <div className="grid grid-cols-4 gap-3 mt-4">
-              {images.map((url, i) => (
-                <div key={i} className="relative group">
-                  <img src={url} alt={`Imagem ${i + 1}`} className="w-full h-24 object-cover rounded border" />
-                  {i === 0 && (
-                    <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
-                  )}
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleRemoveImage(i)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+          {uploadProgress && (
+            <p className="text-sm text-muted-foreground mt-2">{uploadProgress}</p>
+          )}
+
+          {/* Pending files preview */}
+          {pendingFiles.length > 0 && (
+            <div className="mt-4">
+              <Label className="text-sm text-muted-foreground">Novas imagens a carregar ({pendingFiles.length})</Label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-2">
+                {pendingFiles.map((file, i) => {
+                  const globalIndex = images.length + i;
+                  return (
+                    <div key={`pending-${i}`} className="relative group cursor-pointer" onClick={() => setPrimaryIndex(globalIndex)}>
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className={`w-full h-24 object-cover rounded border-2 ${primaryIndex === globalIndex ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
+                      />
+                      {primaryIndex === globalIndex && (
+                        <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
+                      )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); removePendingFile(i); }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                      <p className="text-xs truncate mt-1">{file.name}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {images.length === 0 && (
+          {/* Already uploaded images */}
+          {images.length > 0 && (
+            <div className="mt-4">
+              <Label className="text-sm text-muted-foreground">Imagens guardadas ({images.length})</Label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-2">
+                {images.map((url, i) => (
+                  <div key={`img-${i}`} className="relative group cursor-pointer" onClick={() => setPrimaryIndex(i)}>
+                    <img
+                      src={url}
+                      alt={`Imagem ${i + 1}`}
+                      className={`w-full h-24 object-cover rounded border-2 ${primaryIndex === i ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
+                    />
+                    {primaryIndex === i && (
+                      <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
+                    )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => { e.stopPropagation(); handleRemoveImage(i); }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {images.length === 0 && pendingFiles.length === 0 && (
             <div className="mt-3 border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground">
               <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Nenhuma imagem adicionada</p>
+              <p className="text-xs mt-1">Clique para selecionar até 20 imagens de uma vez</p>
             </div>
           )}
         </div>
