@@ -62,11 +62,11 @@ const VehicleDetails = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+      <div className="container mx-auto px-4 lg:px-8 pt-24 pb-12">
+        <div className="grid lg:grid-cols-3 gap-8 lg:gap-10">
+          <div className="lg:col-span-2 space-y-8">
             <VehicleImageGallery images={imageUrls} vehicleName={vehicle.title} />
             
             <div className="mt-8">
