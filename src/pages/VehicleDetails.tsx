@@ -64,20 +64,22 @@ const VehicleDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 lg:px-8 pt-24 pb-12">
-        <div className="grid lg:grid-cols-3 gap-8 lg:gap-10">
-          <div className="lg:col-span-2 space-y-8">
-            <VehicleImageGallery images={imageUrls} vehicleName={vehicle.title} />
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-28 pb-12">
+        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
+          <div className="lg:col-span-2 space-y-10">
+            <div className="mb-10">
+              <VehicleImageGallery images={imageUrls} vehicleName={vehicle.title} />
+            </div>
             
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">{vehicle.subcategory?.name || 'Produto'}</Badge>
                 <Badge variant="outline">{vehicle.condition}</Badge>
                 {vehicle.brand?.name && <Badge variant="outline">{vehicle.brand.name}</Badge>}
               </div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{vehicle.title}</h1>
-              <div className="text-3xl font-bold text-primary mb-6">€{(vehicle.price || 0).toLocaleString()}</div>
-              <div className="prose max-w-none">
+              <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{vehicle.title}</h1>
+              <div className="text-3xl lg:text-4xl font-bold text-primary">€{(vehicle.price || 0).toLocaleString()}</div>
+              <div className="prose max-w-none pt-2">
                 <h3 className="text-xl font-semibold mb-4">{t('vehicleDetails.description')}</h3>
                 <p className="text-muted-foreground leading-relaxed">{vehicle.description}</p>
               </div>
@@ -102,7 +104,7 @@ const VehicleDetails = () => {
           </div>
           
           <div className="lg:col-span-1">
-            <div className="sticky top-8">
+            <div className="sticky top-28">
               <Card>
                 <CardHeader><CardTitle>{t('vehicleDetails.contactInfo')}</CardTitle></CardHeader>
                 <CardContent>
