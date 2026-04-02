@@ -22,14 +22,16 @@ const VehicleDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-6 py-8">
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Skeleton className="w-full h-96 mb-6" />
-              <Skeleton className="h-8 w-3/4 mb-4" />
-              <Skeleton className="h-6 w-1/2 mb-6" />
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-28 pb-12">
+          <Skeleton className="h-10 w-3/4 mb-2" />
+          <Skeleton className="h-8 w-1/4 mb-8" />
+          <Skeleton className="w-full h-[520px] rounded-xl mb-12" />
+          <div className="grid lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-24 w-full" />
             </div>
-            <div className="lg:col-span-1"><Skeleton className="w-full h-64" /></div>
+            <Skeleton className="h-64 w-full" />
           </div>
         </div>
         <Footer />
@@ -42,7 +44,7 @@ const VehicleDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-28 pb-12">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">{t('vehicleDetails.notFound')}</h1>
             <p className="text-muted-foreground">{t('vehicleDetails.notFoundDescription')}</p>
@@ -65,26 +67,35 @@ const VehicleDetails = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-28 pb-12">
-        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
+
+        {/* TITLE + PRICE + BADGES */}
+        <div className="mb-8">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <Badge variant="secondary">{vehicle.subcategory?.name || 'Produto'}</Badge>
+            <Badge variant="outline">{vehicle.condition}</Badge>
+            {vehicle.brand?.name && <Badge variant="outline">{vehicle.brand.name}</Badge>}
+          </div>
+          <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{vehicle.title}</h1>
+          <p className="text-2xl lg:text-3xl font-bold text-primary mt-2">
+            €{(vehicle.price || 0).toLocaleString()}
+          </p>
+        </div>
+
+        {/* PREMIUM GALLERY */}
+        <div className="mb-12">
+          <VehicleImageGallery images={imageUrls} vehicleName={vehicle.title} />
+        </div>
+
+        {/* CONTENT: Description + Specs | Contact sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+
+          {/* LEFT: Description + Specifications */}
           <div className="lg:col-span-2 space-y-10">
-            <div className="mb-10">
-              <VehicleImageGallery images={imageUrls} vehicleName={vehicle.title} />
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-3">{t('vehicleDetails.description')}</h2>
+              <p className="text-muted-foreground leading-relaxed">{vehicle.description}</p>
             </div>
-            
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">{vehicle.subcategory?.name || 'Produto'}</Badge>
-                <Badge variant="outline">{vehicle.condition}</Badge>
-                {vehicle.brand?.name && <Badge variant="outline">{vehicle.brand.name}</Badge>}
-              </div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{vehicle.title}</h1>
-              <div className="text-3xl lg:text-4xl font-bold text-primary">€{(vehicle.price || 0).toLocaleString()}</div>
-              <div className="prose max-w-none pt-2">
-                <h3 className="text-xl font-semibold mb-4">{t('vehicleDetails.description')}</h3>
-                <p className="text-muted-foreground leading-relaxed">{vehicle.description}</p>
-              </div>
-            </div>
-            
+
             <Card>
               <CardHeader><CardTitle>{t('vehicleDetails.specifications')}</CardTitle></CardHeader>
               <CardContent>
@@ -102,7 +113,8 @@ const VehicleDetails = () => {
               </CardContent>
             </Card>
           </div>
-          
+
+          {/* RIGHT: Contact (sticky) */}
           <div className="lg:col-span-1">
             <div className="sticky top-28">
               <Card>
@@ -114,7 +126,8 @@ const VehicleDetails = () => {
             </div>
           </div>
         </div>
-        
+
+        {/* Similar Vehicles */}
         <div className="mt-12 pt-8 border-t border-border">
           <SimilarVehicles vehicleId={vehicle.id} subcategoryId={vehicle.subcategory_id} />
         </div>
