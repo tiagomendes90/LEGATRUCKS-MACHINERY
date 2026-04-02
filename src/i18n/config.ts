@@ -338,7 +338,13 @@ const resources = {
         model: "Model",
         price: "Price",
         hours: "Hours",
-        operatingHours: "Operating Hours"
+        operatingHours: "Operating Hours",
+        contactInfo: "Contact Information",
+        contactSeller: "Contact Seller",
+        notFound: "Vehicle Not Found",
+        notFoundDescription: "The vehicle you are looking for does not exist or has been removed.",
+        location: "Location",
+        notSpecified: "Not specified"
       }
     }
   },
@@ -677,7 +683,13 @@ const resources = {
         model: "Modelo",
         price: "Preço",
         hours: "Horas",
-        operatingHours: "Horas de Funcionamento"
+        operatingHours: "Horas de Funcionamento",
+        contactInfo: "Informações de Contacto",
+        contactSeller: "Contactar Vendedor",
+        notFound: "Veículo Não Encontrado",
+        notFoundDescription: "O veículo que procura não existe ou foi removido.",
+        location: "Localização",
+        notSpecified: "Não especificado"
       }
     }
   },
@@ -1016,7 +1028,13 @@ const resources = {
         model: "Modèle",
         price: "Prix",
         hours: "Heures",
-        operatingHours: "Heures de Fonctionnement"
+        operatingHours: "Heures de Fonctionnement",
+        contactInfo: "Informations de Contact",
+        contactSeller: "Contacter Vendeur",
+        notFound: "Véhicule Non Trouvé",
+        notFoundDescription: "Le véhicule que vous recherchez n'existe pas ou a été supprimé.",
+        location: "Localisation",
+        notSpecified: "Non spécifié"
       }
     }
   }
