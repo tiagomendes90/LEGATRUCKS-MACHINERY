@@ -76,14 +76,14 @@ const VehicleDetails = () => {
                 {vehicle.brand?.name && <Badge variant="outline">{vehicle.brand.name}</Badge>}
               </div>
               <h1 className="text-3xl font-bold text-foreground mb-2">{vehicle.title}</h1>
-              <div className="text-3xl font-bold text-orange-600 mb-6">€{(vehicle.price || 0).toLocaleString()}</div>
+              <div className="text-3xl font-bold text-primary mb-6">€{(vehicle.price || 0).toLocaleString()}</div>
               <div className="prose max-w-none">
                 <h3 className="text-xl font-semibold mb-4">{t('vehicleDetails.description')}</h3>
                 <p className="text-muted-foreground leading-relaxed">{vehicle.description}</p>
               </div>
             </div>
             
-            <Card className="mt-8">
+            <Card>
               <CardHeader><CardTitle>{t('vehicleDetails.specifications')}</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
