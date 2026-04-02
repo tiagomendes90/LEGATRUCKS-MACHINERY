@@ -1028,7 +1028,13 @@ const resources = {
         model: "Modèle",
         price: "Prix",
         hours: "Heures",
-        operatingHours: "Heures de Fonctionnement"
+        operatingHours: "Heures de Fonctionnement",
+        contactInfo: "Informations de Contact",
+        contactSeller: "Contacter Vendeur",
+        notFound: "Véhicule Non Trouvé",
+        notFoundDescription: "Le véhicule que vous recherchez n'existe pas ou a été supprimé.",
+        location: "Localisation",
+        notSpecified: "Non spécifié"
       }
     }
   }

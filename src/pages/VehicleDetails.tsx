@@ -113,7 +113,7 @@ const VehicleDetails = () => {
           </div>
         </div>
         
-        <div className="mt-16">
+        <div className="mt-12 pt-8 border-t border-border">
           <SimilarVehicles vehicleId={vehicle.id} subcategoryId={vehicle.subcategory_id} />
         </div>
       </div>
