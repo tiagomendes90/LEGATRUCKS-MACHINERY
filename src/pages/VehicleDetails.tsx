@@ -69,7 +69,7 @@ const VehicleDetails = () => {
           <div className="lg:col-span-2 space-y-8">
             <VehicleImageGallery images={imageUrls} vehicleName={vehicle.title} />
             
-            <div className="mt-8">
+            <div>
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 <Badge variant="secondary">{vehicle.subcategory?.name || 'Produto'}</Badge>
                 <Badge variant="outline">{vehicle.condition}</Badge>
