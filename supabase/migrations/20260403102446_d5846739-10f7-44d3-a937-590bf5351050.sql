@@ -1,0 +1,1 @@
+INSERT INTO public.profiles (id, email, role) VALUES ('fd1227ae-b635-4970-addc-508da7f4cdf2', 'admin@lega.pt', 'admin');
