@@ -58,10 +58,27 @@ const VehicleDetails = () => {
 
   const imageUrls = vehicle.images?.map((img: any) => img.image_url) || [];
 
-  const specifications = [
-    { icon: Calendar, label: t('vehicleDetails.year'), value: vehicle.year },
-    { icon: MapPin, label: t('vehicleDetails.location'), value: [vehicle.location_city, vehicle.location_country].filter(Boolean).join(', ') || t('vehicleDetails.notSpecified') },
-  ];
+  // Extract dynamic spec values
+  const dynamicSpecs = (vehicle.spec_values || []).map((sv: any) => {
+    const def = sv.spec_definition;
+    if (!def) return null;
+    let value: string | number | boolean | null = null;
+    if (def.data_type === 'number') value = sv.value_number;
+    else if (def.data_type === 'boolean') value = sv.value_boolean;
+    else value = sv.value_text;
+    
+    const displayValue = def.data_type === 'boolean' 
+      ? (value ? '✓' : '✗')
+      : value != null 
+        ? `${value}${def.unit ? ` ${def.unit}` : ''}`
+        : t('vehicleDetails.notSpecified');
+
+    return {
+      id: sv.id,
+      label: def.label || def.name,
+      value: displayValue,
+    };
+  }).filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,7 +94,7 @@ const VehicleDetails = () => {
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{vehicle.title}</h1>
           <p className="text-2xl lg:text-3xl font-bold text-primary mt-2">
-            €{(vehicle.price || 0).toLocaleString()}
+            {vehicle.price ? `€${vehicle.price.toLocaleString()}` : t('vehicleDetails.contactForPrice')}
           </p>
         </div>
 
@@ -91,18 +108,56 @@ const VehicleDetails = () => {
 
           {/* LEFT: Description + Specifications */}
           <div className="lg:col-span-2 space-y-10">
+            {/* Description */}
             <div>
               <h2 className="text-xl font-semibold text-foreground mb-3">{t('vehicleDetails.description')}</h2>
-              <p className="text-muted-foreground leading-relaxed">{vehicle.description}</p>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{vehicle.description}</p>
             </div>
 
+            {/* Base Specifications */}
             <Card>
               <CardHeader><CardTitle>{t('vehicleDetails.specifications')}</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {specifications.map((spec, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <spec.icon className="h-5 w-5 text-muted-foreground" />
+                  {vehicle.year && (
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <span className="font-medium text-foreground">{t('vehicleDetails.year')}:</span>
+                        <span className="ml-2 text-muted-foreground">{vehicle.year}</span>
+                      </div>
+                    </div>
+                  )}
+                  {(vehicle.location_city || vehicle.location_country) && (
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <span className="font-medium text-foreground">{t('vehicleDetails.location')}:</span>
+                        <span className="ml-2 text-muted-foreground">
+                          {[vehicle.location_city, vehicle.location_country].filter(Boolean).join(', ')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {vehicle.model && (
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <span className="font-medium text-foreground">{t('vehicleDetails.model')}:</span>
+                        <span className="ml-2 text-muted-foreground">{vehicle.model}</span>
+                      </div>
+                    </div>
+                  )}
+                  {vehicle.brand?.name && (
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <span className="font-medium text-foreground">{t('vehicleDetails.brand')}:</span>
+                        <span className="ml-2 text-muted-foreground">{vehicle.brand.name}</span>
+                      </div>
+                    </div>
+                  )}
+                  {/* Dynamic specs from spec_values */}
+                  {dynamicSpecs.map((spec: any) => (
+                    <div key={spec.id} className="flex items-center space-x-3">
                       <div>
                         <span className="font-medium text-foreground">{spec.label}:</span>
                         <span className="ml-2 text-muted-foreground">{spec.value}</span>
