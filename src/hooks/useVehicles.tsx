@@ -91,14 +91,20 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
       }
 
       if (filters?.subcategory) {
-        const { data: subcategoryData } = await supabase
-          .from('subcategories')
-          .select('id')
-          .eq('slug', filters.subcategory)
-          .single();
-        
-        if (subcategoryData) {
-          query = query.eq('subcategory_id', subcategoryData.id);
+        // Support both UUID (direct id) and slug
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(filters.subcategory);
+        if (isUuid) {
+          query = query.eq('subcategory_id', filters.subcategory);
+        } else {
+          const { data: subcategoryData } = await supabase
+            .from('subcategories')
+            .select('id')
+            .eq('slug', filters.subcategory)
+            .maybeSingle();
+          
+          if (subcategoryData) {
+            query = query.eq('subcategory_id', subcategoryData.id);
+          }
         }
       }
 
