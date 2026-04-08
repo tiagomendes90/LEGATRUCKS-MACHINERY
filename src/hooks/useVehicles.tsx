@@ -177,7 +177,19 @@ export const useVehicle = (id: string) => {
         throw error;
       }
 
-      return data;
+      // Fetch dynamic specs
+      const { data: specValues } = await supabase
+        .from('spec_values')
+        .select(`
+          id,
+          value_text,
+          value_number,
+          value_boolean,
+          spec_definition:spec_definitions(id, name, label, data_type, unit)
+        `)
+        .eq('product_id', id);
+
+      return { ...data, spec_values: specValues || [] };
     },
     enabled: !!id,
   });
