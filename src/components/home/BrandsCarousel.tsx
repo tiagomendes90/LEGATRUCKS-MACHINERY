@@ -101,7 +101,7 @@ const BrandsCarousel = () => {
                     key={brand.id}
                     className="pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
                   >
-                    <div className="flex items-center justify-center px-2 py-4 group cursor-pointer">
+                    <div className="flex items-center justify-center h-20 px-2 group cursor-pointer">
                       {logoSrc ? (
                         <img
                           src={logoSrc}
@@ -109,13 +109,21 @@ const BrandsCarousel = () => {
                           loading="lazy"
                           width={512}
                           height={512}
-                          className="h-10 md:h-12 w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
+                          className="h-12 w-auto max-w-[120px] object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'block';
+                          }}
                         />
-                      ) : (
-                        <span className="text-sm font-semibold text-muted-foreground/60 group-hover:text-foreground transition-colors duration-300 whitespace-nowrap">
-                          {brand.name}
-                        </span>
-                      )}
+                      ) : null}
+                      <span
+                        className="text-sm font-semibold text-muted-foreground/60 group-hover:text-foreground transition-colors duration-300 whitespace-nowrap"
+                        style={{ display: logoSrc ? 'none' : 'block' }}
+                      >
+                        {brand.name}
+                      </span>
                     </div>
                   </CarouselItem>
                 );
