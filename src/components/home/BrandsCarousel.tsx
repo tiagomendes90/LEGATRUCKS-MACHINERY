@@ -8,23 +8,57 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
+const brandLogos: Record<string, string> = {
+  "bosch": "/logos/bosch.png",
+  "case-ih": "/logos/case-ih.png",
+  "caterpillar": "/logos/caterpillar.png",
+  "claas": "/logos/claas.png",
+  "daf": "/logos/daf.png",
+  "doosan": "/logos/doosan.png",
+  "fendt": "/logos/fendt.png",
+  "hitachi": "/logos/hitachi.png",
+  "iveco": "/logos/iveco.png",
+  "jcb": "/logos/jcb.png",
+  "john-deere": "/logos/john-deere.png",
+  "knorr-bremse": "/logos/knorr-bremse.png",
+  "kogel": "/logos/kogel.png",
+  "komatsu": "/logos/komatsu.png",
+  "krone": "/logos/krone.png",
+  "kubota": "/logos/kubota.png",
+  "liebherr": "/logos/liebherr.png",
+  "man-trucks": "/logos/man-trucks.png",
+  "massey-ferguson": "/logos/massey-ferguson.png",
+  "mercedes-trucks": "/logos/mercedes-trucks.png",
+  "new-holland-agri": "/logos/new-holland-agri.png",
+  "renault-trucks": "/logos/renault-trucks.png",
+  "sany": "/logos/sany.png",
+  "scania": "/logos/scania.png",
+  "schmitz": "/logos/schmitz.png",
+  "schwarzmuller": "/logos/schwarzmuller.png",
+  "sdc": "/logos/sdc.png",
+  "valtra": "/logos/valtra.png",
+  "volvo-construction": "/logos/volvo.png",
+  "volvo-trucks": "/logos/volvo.png",
+  "wabco": "/logos/wabco.png",
+  "wielton": "/logos/wielton.png",
+  "xcmg": "/logos/xcmg.png",
+  "zf": "/logos/zf.png",
+};
+
 const BrandsCarousel = () => {
   const { data: brands = [], isLoading } = useNewVehicleBrands();
 
   if (isLoading) {
     return (
-      <div className="py-12 bg-gray-50">
+      <div className="py-16 bg-muted/30">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-8">
+          <div className="text-center mb-10">
             <Skeleton className="h-8 w-48 mx-auto mb-4" />
             <Skeleton className="h-4 w-64 mx-auto" />
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="flex gap-10 justify-center">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="text-center">
-                <Skeleton className="h-16 w-16 rounded-full mx-auto mb-2" />
-                <Skeleton className="h-4 w-20 mx-auto" />
-              </div>
+              <Skeleton key={i} className="h-12 w-24" />
             ))}
           </div>
         </div>
@@ -37,14 +71,14 @@ const BrandsCarousel = () => {
   }
 
   return (
-    <div className="py-12 bg-gray-50">
+    <div className="py-16 bg-muted/30">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4">Trusted Brands</h2>
-          <p className="text-gray-600">We work with the most reliable vehicle manufacturers</p>
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold mb-3 text-foreground">Trusted Brands</h2>
+          <p className="text-muted-foreground">We work with the most reliable vehicle manufacturers</p>
         </div>
-        
-        <div className="relative max-w-5xl mx-auto">
+
+        <div className="relative max-w-6xl mx-auto">
           <Carousel
             opts={{
               align: "start",
@@ -54,28 +88,38 @@ const BrandsCarousel = () => {
               Autoplay({
                 delay: 2000,
                 stopOnInteraction: false,
-                stopOnMouseEnter: false,
+                stopOnMouseEnter: true,
               }),
             ]}
             className="w-full"
           >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {brands.map((brand) => (
-                <CarouselItem key={brand.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
-                  <div className="text-center group cursor-pointer">
-                    <div className="w-16 h-16 bg-white rounded-full shadow-md flex items-center justify-center mx-auto mb-3 group-hover:shadow-lg transition-shadow border-2 border-gray-100">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-primary font-bold text-sm">
-                          {brand.name.charAt(0).toUpperCase()}
+            <CarouselContent className="-ml-4">
+              {brands.map((brand) => {
+                const logoSrc = brandLogos[brand.slug];
+                return (
+                  <CarouselItem
+                    key={brand.id}
+                    className="pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
+                  >
+                    <div className="flex items-center justify-center px-2 py-4 group cursor-pointer">
+                      {logoSrc ? (
+                        <img
+                          src={logoSrc}
+                          alt={brand.name}
+                          loading="lazy"
+                          width={512}
+                          height={512}
+                          className="h-10 md:h-12 w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
+                        />
+                      ) : (
+                        <span className="text-sm font-semibold text-muted-foreground/60 group-hover:text-foreground transition-colors duration-300 whitespace-nowrap">
+                          {brand.name}
                         </span>
-                      </div>
+                      )}
                     </div>
-                    <h3 className="font-medium text-sm text-gray-700 group-hover:text-primary transition-colors">
-                      {brand.name}
-                    </h3>
-                  </div>
-                </CarouselItem>
-              ))}
+                  </CarouselItem>
+                );
+              })}
             </CarouselContent>
           </Carousel>
         </div>
