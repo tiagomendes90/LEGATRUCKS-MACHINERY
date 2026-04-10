@@ -48,6 +48,13 @@ const brandLogos: Record<string, string> = {
 const BrandsCarousel = () => {
   const { data: brands = [], isLoading } = useNewVehicleBrands();
 
+  // Deduplicate brands by logo path to avoid showing same logo twice (e.g. Volvo)
+  const uniqueBrands = brands.filter((brand, index, self) => {
+    const logo = brandLogos[brand.slug];
+    if (!logo) return true;
+    return index === self.findIndex((b) => brandLogos[b.slug] === logo);
+  });
+
   if (isLoading) {
     return (
       <div className="py-16 bg-muted/30">
@@ -58,7 +65,7 @@ const BrandsCarousel = () => {
           </div>
           <div className="flex gap-10 justify-center">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-24" />
+              <Skeleton key={i} className="h-16 w-28" />
             ))}
           </div>
         </div>
@@ -66,7 +73,7 @@ const BrandsCarousel = () => {
     );
   }
 
-  if (!brands.length) {
+  if (!uniqueBrands.length) {
     return null;
   }
 
@@ -93,15 +100,15 @@ const BrandsCarousel = () => {
             ]}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
-              {brands.map((brand) => {
+            <CarouselContent className="-ml-6">
+              {uniqueBrands.map((brand) => {
                 const logoSrc = brandLogos[brand.slug];
                 return (
                   <CarouselItem
                     key={brand.id}
-                    className="pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
+                    className="pl-6 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
                   >
-                    <div className="flex items-center justify-center h-20 px-2 group cursor-pointer">
+                    <div className="flex items-center justify-center h-28 px-2 group cursor-pointer">
                       {logoSrc ? (
                         <img
                           src={logoSrc}
@@ -109,7 +116,7 @@ const BrandsCarousel = () => {
                           loading="lazy"
                           width={512}
                           height={512}
-                          className="h-12 w-auto max-w-[120px] object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
+                          className="h-20 w-auto max-w-[140px] object-contain object-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
                           onError={(e) => {
                             const target = e.currentTarget;
                             target.style.display = 'none';
