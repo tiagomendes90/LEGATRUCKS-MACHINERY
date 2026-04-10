@@ -39,7 +39,7 @@ const brandLogos: Record<string, string> = {
   "zf": "/logos/zf.png",
 };
 
-const INVALID_SLUGS = new Set(["trailers", ""]);
+const INVALID_SLUGS = new Set(["trailers", "", "sdc"]);
 
 const BrandsCarousel = () => {
   const { data: brands = [], isLoading } = useNewVehicleBrands();
