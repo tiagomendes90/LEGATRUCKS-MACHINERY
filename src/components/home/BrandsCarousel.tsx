@@ -1,12 +1,6 @@
 
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 
 const brandLogos: Record<string, string> = {
   "bosch": "/logos/bosch.png",
@@ -45,13 +39,20 @@ const brandLogos: Record<string, string> = {
   "zf": "/logos/zf.png",
 };
 
+const INVALID_SLUGS = new Set(["trailers", ""]);
+
 const BrandsCarousel = () => {
   const { data: brands = [], isLoading } = useNewVehicleBrands();
 
-  // Deduplicate brands by logo path to avoid showing same logo twice (e.g. Volvo)
-  const uniqueBrands = brands.filter((brand, index, self) => {
+  // Filter invalid, deduplicate by logo path, require a logo
+  const validBrands = brands.filter((brand) => {
+    if (!brand || !brand.slug || INVALID_SLUGS.has(brand.slug.toLowerCase())) return false;
+    if (!brandLogos[brand.slug]) return false;
+    return true;
+  });
+
+  const uniqueBrands = validBrands.filter((brand, index, self) => {
     const logo = brandLogos[brand.slug];
-    if (!logo) return true;
     return index === self.findIndex((b) => brandLogos[b.slug] === logo);
   });
 
@@ -73,9 +74,10 @@ const BrandsCarousel = () => {
     );
   }
 
-  if (!uniqueBrands.length) {
-    return null;
-  }
+  if (!uniqueBrands.length) return null;
+
+  // Double the list for seamless infinite scroll
+  const marqueeItems = [...uniqueBrands, ...uniqueBrands];
 
   return (
     <div className="py-16 bg-muted/30">
@@ -85,58 +87,33 @@ const BrandsCarousel = () => {
           <p className="text-muted-foreground">We work with the most reliable vehicle manufacturers</p>
         </div>
 
-        <div className="relative max-w-6xl mx-auto">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            plugins={[
-              Autoplay({
-                delay: 2000,
-                stopOnInteraction: false,
-                stopOnMouseEnter: true,
-              }),
-            ]}
-            className="w-full"
+        <div className="relative max-w-6xl mx-auto overflow-hidden">
+          {/* Fade edges */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 z-10 bg-gradient-to-r from-muted/30 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 z-10 bg-gradient-to-l from-muted/30 to-transparent" />
+
+          <div
+            className="flex items-center gap-12 w-max animate-marquee hover:[animation-play-state:paused]"
           >
-            <CarouselContent className="-ml-6">
-              {uniqueBrands.map((brand) => {
-                const logoSrc = brandLogos[brand.slug];
-                return (
-                  <CarouselItem
-                    key={brand.id}
-                    className="pl-6 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
-                  >
-                    <div className="flex items-center justify-center h-28 px-2 group cursor-pointer">
-                      {logoSrc ? (
-                        <img
-                          src={logoSrc}
-                          alt={brand.name}
-                          loading="lazy"
-                          width={512}
-                          height={512}
-                          className="h-20 w-auto max-w-[140px] object-contain object-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            target.style.display = 'none';
-                            const fallback = target.nextElementSibling as HTMLElement;
-                            if (fallback) fallback.style.display = 'block';
-                          }}
-                        />
-                      ) : null}
-                      <span
-                        className="text-sm font-semibold text-muted-foreground/60 group-hover:text-foreground transition-colors duration-300 whitespace-nowrap"
-                        style={{ display: logoSrc ? 'none' : 'block' }}
-                      >
-                        {brand.name}
-                      </span>
-                    </div>
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-          </Carousel>
+            {marqueeItems.map((brand, index) => (
+              <div
+                key={`${brand.id}-${index}`}
+                className="flex-shrink-0 flex items-center justify-center h-28 w-[140px] group cursor-pointer"
+              >
+                <img
+                  src={brandLogos[brand.slug]}
+                  alt={brand.name}
+                  loading="lazy"
+                  width={512}
+                  height={512}
+                  className="h-20 w-auto max-w-[140px] object-contain object-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
