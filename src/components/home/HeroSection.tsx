@@ -1,7 +1,7 @@
 
 const HeroSection = () => {
   return (
-    <section className="relative h-[500px] md:h-[600px] w-full overflow-hidden">
+    <section className="relative h-screen w-full overflow-hidden">
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
         backgroundImage: `url('/lovable-uploads/5e2912d0-c74c-4979-91b4-a8a43d2ac24b.png')`
       }} />
