@@ -10,7 +10,7 @@ const HeroSection = () => {
         <img
           src="/logo-hero.png"
           alt="LEGA Trucks & Machinery"
-          className="w-[85%] md:w-[70%] max-w-3xl object-contain drop-shadow-2xl"
+          className="w-[64%] md:w-[52%] max-w-2xl object-contain drop-shadow-2xl"
         />
       </div>
     </section>
