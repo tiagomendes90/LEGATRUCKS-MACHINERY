@@ -460,7 +460,9 @@ const resources = {
         tractorsTitle: "Tratores Agrícolas",
         tractorsDescription: "Equipamento agrícola para agricultura moderna",
         wantToSellTitle: "Quer Vender o Seu Veículo?",
-        wantToSellDescription: "Obtenha o melhor valor pelo seu camião ou maquinaria"
+        wantToSellDescription: "Obtenha o melhor valor pelo seu camião ou maquinaria",
+        trustedBrandsTitle: "Marcas de Confiança",
+        trustedBrandsSubtitle: "Trabalhamos com os fabricantes de veículos mais fiáveis"
       },
       category: {
         trucks: {
@@ -805,7 +807,9 @@ const resources = {
         tractorsTitle: "Tracteurs Agricoles",
         tractorsDescription: "Équipement agricole pour l'agriculture moderne",
         wantToSellTitle: "Vous Voulez Vendre Votre Véhicule?",
-        wantToSellDescription: "Obtenez la meilleure valeur pour votre camion ou machine"
+        wantToSellDescription: "Obtenez la meilleure valeur pour votre camion ou machine",
+        trustedBrandsTitle: "Marques de Confiance",
+        trustedBrandsSubtitle: "Nous travaillons avec les fabricants de véhicules les plus fiables"
       },
       category: {
         trucks: {
