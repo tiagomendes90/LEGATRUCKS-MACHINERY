@@ -1,4 +1,5 @@
 
+import { useTranslation } from "react-i18next";
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -42,6 +43,7 @@ const brandLogos: Record<string, string> = {
 const INVALID_SLUGS = new Set(["trailers", "", "sdc"]);
 
 const BrandsCarousel = () => {
+  const { t } = useTranslation();
   const { data: brands = [], isLoading } = useNewVehicleBrands();
 
   // Filter invalid, deduplicate by logo path, require a logo
@@ -83,8 +85,8 @@ const BrandsCarousel = () => {
     <div className="py-16 bg-muted/30">
       <div className="container mx-auto px-6">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-3 text-foreground">Trusted Brands</h2>
-          <p className="text-muted-foreground">We work with the most reliable vehicle manufacturers</p>
+          <h2 className="text-3xl font-bold mb-3 text-foreground">{t('home.trustedBrandsTitle')}</h2>
+          <p className="text-muted-foreground">{t('home.trustedBrandsSubtitle')}</p>
         </div>
 
         <div className="relative max-w-6xl mx-auto overflow-hidden">
