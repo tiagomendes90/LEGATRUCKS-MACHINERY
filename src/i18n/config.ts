@@ -113,7 +113,9 @@ const resources = {
         tractorsTitle: "Agricultural Tractors",
         tractorsDescription: "Farm equipment for modern agriculture",
         wantToSellTitle: "Want to Sell Your Vehicle?",
-        wantToSellDescription: "Get the best value for your truck or machinery"
+        wantToSellDescription: "Get the best value for your truck or machinery",
+        trustedBrandsTitle: "Trusted Brands",
+        trustedBrandsSubtitle: "We work with the most reliable vehicle manufacturers"
       },
       category: {
         trucks: {
