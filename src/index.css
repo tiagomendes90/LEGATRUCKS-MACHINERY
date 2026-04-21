@@ -99,3 +99,79 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .logo-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-image {
+    transform-origin: center;
+  }
+
+  @keyframes logoFadeIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes logoFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  .animate-logo-entry {
+    opacity: 0;
+    animation: logoFadeIn 1.2s ease-out forwards,
+               logoFloat 6s ease-in-out 1.2s infinite;
+    will-change: transform, opacity;
+  }
+
+  .logo-shine {
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      rgba(255, 255, 255, 0.15) 60%,
+      transparent 100%
+    );
+    transform: skewX(-25deg);
+    pointer-events: none;
+    will-change: transform, left;
+    animation: shineMove 5s ease-in-out infinite;
+  }
+
+  @keyframes shineMove {
+    0% {
+      left: -75%;
+    }
+    100% {
+      left: 125%;
+    }
+  }
+
+  @media (hover: hover) {
+    .logo-image {
+      transition: transform 0.3s ease;
+    }
+    .logo-image:hover {
+      transform: scale(1.03);
+    }
+  }
+}
