@@ -309,6 +309,28 @@ const resources = {
         viewOnGoogleMaps: "View on Google Maps",
         allRightsReserved: "All rights reserved"
       },
+      legal: {
+        terms: {
+          title: "Terms and Conditions",
+          intro: "By accessing this website, you agree to the present Terms and Conditions.",
+          sections: [
+            { title: "Use", body: "The user agrees to use this website in a lawful and responsible manner." },
+            { title: "Intellectual Property", body: "All content belongs to LEGA or is used with authorization." },
+            { title: "Liability", body: "We are not responsible for damages arising from the use of the website." },
+            { title: "Changes", body: "These terms may be updated without prior notice." }
+          ]
+        },
+        privacy: {
+          title: "Privacy Policy",
+          intro: "Your privacy is important to us. We comply with GDPR.",
+          sections: [
+            { title: "Data", body: "We may collect data such as name and email." },
+            { title: "Purpose", body: "We use data for communication and to improve our service." },
+            { title: "Security", body: "We apply adequate protection measures." },
+            { title: "Rights", body: "You have the right to access, correct, or delete your data (GDPR)." }
+          ]
+        }
+      },
       vehicleDetails: {
         specifications: "Specifications",
         features: "Features",
