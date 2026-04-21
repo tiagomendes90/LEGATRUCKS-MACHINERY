@@ -106,7 +106,6 @@
     display: inline-block;
     width: fit-content;
     height: auto;
-    overflow: hidden;
   }
 
   .logo-image {
@@ -142,7 +141,23 @@
     will-change: transform, opacity;
   }
 
-  .logo-shine {
+  .logo-shine-mask {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    -webkit-mask-image: url('/logo-hero.png');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-image: url('/logo-hero.png');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+  }
+
+  .logo-shine-mask::after {
+    content: "";
     position: absolute;
     top: 0;
     left: -75%;
@@ -151,13 +166,12 @@
     background: linear-gradient(
       120deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.15) 40%,
-      rgba(255, 255, 255, 0.6) 50%,
-      rgba(255, 255, 255, 0.15) 60%,
+      rgba(255, 255, 255, 0.2) 40%,
+      rgba(255, 255, 255, 0.7) 50%,
+      rgba(255, 255, 255, 0.2) 60%,
       transparent 100%
     );
     transform: skewX(-25deg);
-    pointer-events: none;
     will-change: transform, left;
     animation: shineMove 5s ease-in-out infinite;
   }
