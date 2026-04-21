@@ -4,18 +4,33 @@ import { Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
 
 const Footer = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
+  const [accepted, setAccepted] = useState(false);
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Newsletter subscription for:", email);
-    // Add newsletter subscription logic here
+    if (!accepted) {
+      toast({
+        title: t("footer.consentRequiredTitle"),
+        description: t("footer.consentRequired"),
+        variant: "destructive",
+      });
+      return;
+    }
     setEmail("");
+    setAccepted(false);
+    toast({
+      title: t("footer.subscribedTitle"),
+      description: t("footer.subscribedDesc"),
+    });
   };
 
   return (
@@ -45,6 +60,7 @@ const Footer = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white pr-12"
                   required
+                  maxLength={255}
                 />
                 <button 
                   type="submit" 
@@ -53,6 +69,23 @@ const Footer = () => {
                   <ArrowRight className="h-5 w-5" />
                 </button>
               </form>
+              <div className="flex items-start gap-2 mt-3">
+                <Checkbox
+                  id="newsletter-consent"
+                  checked={accepted}
+                  onCheckedChange={(v) => setAccepted(v === true)}
+                  className="mt-0.5 border-white data-[state=checked]:bg-white data-[state=checked]:text-orange-500"
+                />
+                <label
+                  htmlFor="newsletter-consent"
+                  className="text-white text-xs leading-snug cursor-pointer"
+                >
+                  {t("footer.consentReadAccept")}{" "}
+                  <Link to="/privacy" className="underline hover:text-gray-200">
+                    {t("footer.privacyPolicy")}
+                  </Link>
+                </label>
+              </div>
             </div>
             
             {/* Social Media Icons */}
