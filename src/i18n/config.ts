@@ -307,7 +307,27 @@ const resources = {
         contact: "Contact",
         location: "Location",
         viewOnGoogleMaps: "View on Google Maps",
-        allRightsReserved: "All rights reserved"
+        allRightsReserved: "All rights reserved",
+        consentReadAccept: "I have read and accept the",
+        consentRequiredTitle: "Consent required",
+        consentRequired: "Please accept the Privacy Policy to subscribe.",
+        subscribedTitle: "Subscribed",
+        subscribedDesc: "Thanks for subscribing to our newsletter."
+      },
+      cookies: {
+        title: "We value your privacy",
+        description: "We use cookies to improve your experience. You can accept all, reject, or configure them.",
+        acceptAll: "Accept all",
+        reject: "Reject",
+        customize: "Customize",
+        preferencesTitle: "Cookie Preferences",
+        savePreferences: "Save preferences",
+        necessary: "Necessary cookies",
+        necessaryDesc: "Required for the website to function. Always active.",
+        analytics: "Analytics",
+        analyticsDesc: "Help us understand how visitors use the site.",
+        marketing: "Marketing",
+        marketingDesc: "Used to deliver relevant ads and measure campaigns."
       },
       legal: {
         terms: {
@@ -676,7 +696,27 @@ const resources = {
         contact: "Contacto",
         location: "Localização",
         viewOnGoogleMaps: "Ver no Google Maps",
-        allRightsReserved: "Todos os direitos reservados"
+        allRightsReserved: "Todos os direitos reservados",
+        consentReadAccept: "Li e aceito a",
+        consentRequiredTitle: "Consentimento necessário",
+        consentRequired: "Aceite a Política de Privacidade para subscrever.",
+        subscribedTitle: "Subscrito",
+        subscribedDesc: "Obrigado por subscrever a nossa newsletter."
+      },
+      cookies: {
+        title: "Valorizamos a sua privacidade",
+        description: "Utilizamos cookies para melhorar a sua experiência. Pode aceitar todos, rejeitar ou configurar.",
+        acceptAll: "Aceitar tudo",
+        reject: "Rejeitar",
+        customize: "Configurar",
+        preferencesTitle: "Preferências de Cookies",
+        savePreferences: "Guardar preferências",
+        necessary: "Cookies necessários",
+        necessaryDesc: "Necessários ao funcionamento do site. Sempre ativos.",
+        analytics: "Analytics",
+        analyticsDesc: "Ajudam-nos a perceber como os visitantes usam o site.",
+        marketing: "Marketing",
+        marketingDesc: "Usados para apresentar anúncios relevantes e medir campanhas."
       },
       legal: {
         terms: {
@@ -1045,7 +1085,27 @@ const resources = {
         contact: "Contact",
         location: "Localisation",
         viewOnGoogleMaps: "Voir sur Google Maps",
-        allRightsReserved: "Tous droits réservés"
+        allRightsReserved: "Tous droits réservés",
+        consentReadAccept: "J'ai lu et j'accepte la",
+        consentRequiredTitle: "Consentement requis",
+        consentRequired: "Veuillez accepter la Politique de Confidentialité pour vous abonner.",
+        subscribedTitle: "Inscrit",
+        subscribedDesc: "Merci de vous être abonné à notre newsletter."
+      },
+      cookies: {
+        title: "Nous respectons votre vie privée",
+        description: "Nous utilisons des cookies pour améliorer votre expérience. Vous pouvez tout accepter, refuser ou configurer.",
+        acceptAll: "Tout accepter",
+        reject: "Refuser",
+        customize: "Configurer",
+        preferencesTitle: "Préférences des cookies",
+        savePreferences: "Enregistrer les préférences",
+        necessary: "Cookies nécessaires",
+        necessaryDesc: "Requis au fonctionnement du site. Toujours actifs.",
+        analytics: "Analytics",
+        analyticsDesc: "Nous aident à comprendre l'utilisation du site.",
+        marketing: "Marketing",
+        marketingDesc: "Utilisés pour proposer des publicités pertinentes et mesurer les campagnes."
       },
       legal: {
         terms: {
