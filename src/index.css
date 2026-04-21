@@ -103,10 +103,15 @@
 @layer utilities {
   .logo-wrapper {
     position: relative;
+    display: inline-block;
+    width: fit-content;
+    height: auto;
     overflow: hidden;
   }
 
   .logo-image {
+    display: block;
+    height: auto;
     transform-origin: center;
   }
 
