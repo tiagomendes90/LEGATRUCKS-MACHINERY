@@ -678,6 +678,28 @@ const resources = {
         viewOnGoogleMaps: "Ver no Google Maps",
         allRightsReserved: "Todos os direitos reservados"
       },
+      legal: {
+        terms: {
+          title: "Termos e Condições",
+          intro: "Ao aceder a este website, concorda com os presentes Termos e Condições.",
+          sections: [
+            { title: "Utilização", body: "O utilizador compromete-se a utilizar este website de forma legal e responsável." },
+            { title: "Propriedade Intelectual", body: "Todos os conteúdos pertencem à LEGA ou são utilizados com autorização." },
+            { title: "Responsabilidade", body: "Não nos responsabilizamos por danos decorrentes do uso do website." },
+            { title: "Alterações", body: "Estes termos podem ser atualizados sem aviso prévio." }
+          ]
+        },
+        privacy: {
+          title: "Política de Privacidade",
+          intro: "A sua privacidade é importante para nós. Cumprimos o RGPD.",
+          sections: [
+            { title: "Dados", body: "Podemos recolher dados como nome e email." },
+            { title: "Finalidade", body: "Utilizamos os dados para comunicação e melhoria do serviço." },
+            { title: "Segurança", body: "Aplicamos medidas de proteção adequadas." },
+            { title: "Direitos", body: "Tem direito a aceder, corrigir ou apagar os seus dados (RGPD)." }
+          ]
+        }
+      },
       vehicleDetails: {
         specifications: "Especificações",
         features: "Características",
