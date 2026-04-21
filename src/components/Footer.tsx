@@ -85,7 +85,6 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/terms" className="text-white hover:text-gray-200 transition-colors">{t('footer.termsOfService')}</Link></li>
               <li><Link to="/privacy" className="text-white hover:text-gray-200 transition-colors">{t('footer.privacyPolicy')}</Link></li>
-              <li><Link to="/admin" className="text-white hover:text-gray-200 transition-colors">{t('footer.admin')}</Link></li>
             </ul>
           </div>
 
@@ -96,15 +95,17 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-white">
                 <Phone className="h-4 w-4" />
-                <span className="font-normal text-white">(351) 123 456 789</span>
+                <span className="font-normal text-white">+351 912 406 089</span>
               </div>
               <div className="flex items-center space-x-2 text-white">
                 <Mail className="h-4 w-4" />
                 <span className="text-white">info@lega.pt</span>
               </div>
-              <div className="flex items-center space-x-2 text-white">
-                <MapPin className="h-4 w-4" />
-                <span className="text-white">123 Joane, Braga, Portugal</span>
+              <div className="flex items-start space-x-2 text-white">
+                <MapPin className="h-4 w-4 mt-1 shrink-0" />
+                <span className="text-white whitespace-pre-line">
+                  {"Av. Dr. António Palha Nº25\n5º DIR FRT\n4715-009 Braga, Portugal"}
+                </span>
               </div>
             </div>
           </div>
@@ -121,7 +122,7 @@ const Footer = () => {
                   Portugal
                 </p>
                 <a 
-                  href="https://maps.google.com/?q=Joane,Braga,Portugal" 
+                  href="https://maps.google.com/?q=Av.+Dr.+António+Palha+25,+4715-009+Braga,+Portugal"
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-white/80 hover:text-white text-xs underline mt-1 inline-block"
@@ -134,7 +135,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-4 text-center">
-          <p className="text-white">© 2025 Lega. {t('footer.allRightsReserved')}</p>
+          <p className="text-white">© 2026 Lega. {t('footer.allRightsReserved')}</p>
         </div>
       </div>
     </footer>

@@ -309,6 +309,28 @@ const resources = {
         viewOnGoogleMaps: "View on Google Maps",
         allRightsReserved: "All rights reserved"
       },
+      legal: {
+        terms: {
+          title: "Terms and Conditions",
+          intro: "By accessing this website, you agree to the present Terms and Conditions.",
+          sections: [
+            { title: "Use", body: "The user agrees to use this website in a lawful and responsible manner." },
+            { title: "Intellectual Property", body: "All content belongs to LEGA or is used with authorization." },
+            { title: "Liability", body: "We are not responsible for damages arising from the use of the website." },
+            { title: "Changes", body: "These terms may be updated without prior notice." }
+          ]
+        },
+        privacy: {
+          title: "Privacy Policy",
+          intro: "Your privacy is important to us. We comply with GDPR.",
+          sections: [
+            { title: "Data", body: "We may collect data such as name and email." },
+            { title: "Purpose", body: "We use data for communication and to improve our service." },
+            { title: "Security", body: "We apply adequate protection measures." },
+            { title: "Rights", body: "You have the right to access, correct, or delete your data (GDPR)." }
+          ]
+        }
+      },
       vehicleDetails: {
         specifications: "Specifications",
         features: "Features",
@@ -656,6 +678,28 @@ const resources = {
         viewOnGoogleMaps: "Ver no Google Maps",
         allRightsReserved: "Todos os direitos reservados"
       },
+      legal: {
+        terms: {
+          title: "Termos e Condições",
+          intro: "Ao aceder a este website, concorda com os presentes Termos e Condições.",
+          sections: [
+            { title: "Utilização", body: "O utilizador compromete-se a utilizar este website de forma legal e responsável." },
+            { title: "Propriedade Intelectual", body: "Todos os conteúdos pertencem à LEGA ou são utilizados com autorização." },
+            { title: "Responsabilidade", body: "Não nos responsabilizamos por danos decorrentes do uso do website." },
+            { title: "Alterações", body: "Estes termos podem ser atualizados sem aviso prévio." }
+          ]
+        },
+        privacy: {
+          title: "Política de Privacidade",
+          intro: "A sua privacidade é importante para nós. Cumprimos o RGPD.",
+          sections: [
+            { title: "Dados", body: "Podemos recolher dados como nome e email." },
+            { title: "Finalidade", body: "Utilizamos os dados para comunicação e melhoria do serviço." },
+            { title: "Segurança", body: "Aplicamos medidas de proteção adequadas." },
+            { title: "Direitos", body: "Tem direito a aceder, corrigir ou apagar os seus dados (RGPD)." }
+          ]
+        }
+      },
       vehicleDetails: {
         specifications: "Especificações",
         features: "Características",
@@ -1002,6 +1046,28 @@ const resources = {
         location: "Localisation",
         viewOnGoogleMaps: "Voir sur Google Maps",
         allRightsReserved: "Tous droits réservés"
+      },
+      legal: {
+        terms: {
+          title: "Conditions Générales",
+          intro: "En accédant à ce site web, vous acceptez les présentes Conditions Générales.",
+          sections: [
+            { title: "Utilisation", body: "L'utilisateur s'engage à utiliser ce site de manière légale et responsable." },
+            { title: "Propriété Intellectuelle", body: "Tous les contenus appartiennent à LEGA ou sont utilisés avec autorisation." },
+            { title: "Responsabilité", body: "Nous ne sommes pas responsables des dommages résultant de l'utilisation du site." },
+            { title: "Modifications", body: "Ces conditions peuvent être mises à jour sans préavis." }
+          ]
+        },
+        privacy: {
+          title: "Politique de Confidentialité",
+          intro: "Votre vie privée est importante pour nous. Nous respectons le RGPD.",
+          sections: [
+            { title: "Données", body: "Nous pouvons collecter des données telles que le nom et l'email." },
+            { title: "Finalité", body: "Nous utilisons les données pour la communication et l'amélioration du service." },
+            { title: "Sécurité", body: "Nous appliquons des mesures de protection adéquates." },
+            { title: "Droits", body: "Vous avez le droit d'accéder, de corriger ou de supprimer vos données (RGPD)." }
+          ]
+        }
       },
       vehicleDetails: {
         specifications: "Spécifications",
