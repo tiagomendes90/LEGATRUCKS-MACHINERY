@@ -116,9 +116,24 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4 text-white">{t('footer.info')}</h3>
             <Separator className="bg-white/30 mb-4" />
             <ul className="space-y-2">
-              <li><Link to="/terms" className="text-white hover:text-gray-200 transition-colors">{t('footer.termsOfService')}</Link></li>
-              <li><Link to="/privacy" className="text-white hover:text-gray-200 transition-colors">{t('footer.privacyPolicy')}</Link></li>
-            </ul>
+  <li>
+    <Link to="/terms" className="text-white hover:text-gray-200 transition-colors">
+      {t('footer.termsOfService')}
+    </Link>
+  </li>
+
+  <li>
+    <Link to="/privacy" className="text-white hover:text-gray-200 transition-colors">
+      {t('footer.privacyPolicy')}
+    </Link>
+  </li>
+
+  <li>
+    <Link to="/admin" className="text-white hover:text-gray-200 transition-colors">
+      {t('footer.admin')}
+    </Link>
+  </li>
+</ul>
           </div>
 
           {/* Contact Info */}
@@ -137,8 +152,8 @@ const Footer = () => {
               <div className="flex items-start space-x-2 text-white">
                 <MapPin className="h-4 w-4 mt-1 shrink-0" />
                 <span className="text-white whitespace-pre-line">
-                  {"Av. Dr. António Palha Nº25\n5º DIR FRT\n4715-009 Braga, Portugal"}
-                </span>
+                  {"Av. Dr. António Palha Nº25\n5º DIR FRT 4715-009\nBraga, Portugal"}
+                </span> 
               </div>
             </div>
           </div>
@@ -151,17 +166,17 @@ const Footer = () => {
               <div className="text-center">
                 <MapPin className="h-8 w-8 text-white mx-auto mb-2" />
                 <p className="text-white text-sm">
-                  Joane, Braga<br />
-                  Portugal
-                </p>
-                <a 
-                  href="https://maps.google.com/?q=Av.+Dr.+António+Palha+25,+4715-009+Braga,+Portugal"
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-white/80 hover:text-white text-xs underline mt-1 inline-block"
-                >
-                  {t('footer.viewOnGoogleMaps')}
-                </a>
+  Av. Dr. António Palha 25<br />
+  4715-009 Braga, Portugal
+</p>
+                <a
+  href="https://www.google.com/maps/search/?api=1&query=Av.+Dr.+Ant%C3%B3nio+Palha+25+Braga+Portugal"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-white underline"
+>
+  {t('footer.viewOnGoogleMaps')}
+</a>
               </div>
             </div>
           </div>
