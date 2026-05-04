@@ -1526,9 +1526,13 @@ i18n
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng'
     },
-    lng: typeof window !== 'undefined' && localStorage.getItem('i18nextLng')
-      ? undefined
-      : 'pt'
+    lng: (() => {
+      try {
+        return localStorage.getItem('i18nextLng') || 'pt';
+      } catch {
+        return 'pt';
+      }
+    })()
   });
 
 export default i18n;
