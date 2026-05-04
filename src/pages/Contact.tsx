@@ -79,7 +79,7 @@ const Contact = () => {
                           id="name" 
                           value={formData.name} 
                           onChange={(e) => handleInputChange("name", e.target.value)} 
-                          placeholder="John Doe" 
+                          placeholder={t('contactPage.namePlaceholder')} 
                           required 
                           className="mt-1" 
                         />
@@ -91,7 +91,7 @@ const Contact = () => {
                           type="email" 
                           value={formData.email} 
                           onChange={(e) => handleInputChange("email", e.target.value)} 
-                          placeholder="john@company.com" 
+                          placeholder={t('contactPage.emailPlaceholder')} 
                           required 
                           className="mt-1" 
                         />
@@ -105,7 +105,7 @@ const Contact = () => {
                           id="phone" 
                           value={formData.phone} 
                           onChange={(e) => handleInputChange("phone", e.target.value)} 
-                          placeholder="(555) 123-4567" 
+                          placeholder={t('contactPage.phonePlaceholder')} 
                           className="mt-1" 
                         />
                       </div>
@@ -115,7 +115,7 @@ const Contact = () => {
                           id="company" 
                           value={formData.company} 
                           onChange={(e) => handleInputChange("company", e.target.value)} 
-                          placeholder="Your Company" 
+                          placeholder={t('contactPage.companyPlaceholder')} 
                           className="mt-1" 
                         />
                       </div>
@@ -175,7 +175,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-800">{t('contact.phone')}</h3>
-                      <p className="text-gray-600">(555) 123-4567</p>
+                      <p className="text-gray-600">+351 912 406 089</p>
                       <p className="text-sm text-gray-500">{t('contact.salesInquiries')}</p>
                     </div>
                   </div>
@@ -186,7 +186,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-800">{t('contact.email')}</h3>
-                      <p className="text-gray-600">info@truckhub.com</p>
+                      <p className="text-gray-600">info@lega.pt</p>
                       <p className="text-sm text-gray-500">{t('contact.respondWithin')}</p>
                     </div>
                   </div>
@@ -197,8 +197,8 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-800">{t('contact.location')}</h3>
-                      <p className="text-gray-600">123 Industrial Avenue</p>
-                      <p className="text-gray-600">Business City, ST 12345</p>
+                      <p className="text-gray-600">Av. Dr. António Palha Nº25</p>
+                      <p className="text-gray-600">4715-009 Braga, Portugal</p>
                     </div>
                   </div>
 
