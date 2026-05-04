@@ -226,6 +226,118 @@ const resources = {
         message: "The page you're looking for doesn't exist.",
         returnHome: "Return Home"
       },
+      contactModal: {
+        title: "Contact about {{vehicle}}",
+        description: "Fill in your details to receive more information about this vehicle.",
+        priceLabel: "Price: €{{price}}",
+        name: "Name *",
+        namePlaceholder: "Your full name",
+        email: "Email *",
+        emailPlaceholder: "your.email@example.com",
+        message: "Message (optional)",
+        messagePlaceholder: "Specific questions about the vehicle...",
+        cancel: "Cancel",
+        sending: "Sending...",
+        send: "Send Contact"
+      },
+      filterPanel: {
+        subcategory: "Subcategory",
+        all: "All",
+        allBrands: "All brands",
+        loading: "Loading...",
+        noBrands: "No brands available for this category",
+        priceUpTo: "Price up to",
+        condition: "Condition",
+        allConditions: "All conditions",
+        new: "New",
+        used: "Used",
+        restored: "Restored",
+        modified: "Modified",
+        sortBy: "Sort by",
+        relevance: "Relevance",
+        priceAsc: "Price ascending",
+        priceDesc: "Price descending",
+        yearDesc: "Year newest",
+        yearAsc: "Year oldest",
+        mileageAsc: "Least mileage",
+        hoursAsc: "Least hours",
+        moreFilters: "More filters",
+        search: "Search",
+        offer: "offer",
+        offers: "offers",
+        clearFilters: "Clear filters",
+        filter: "filter",
+        filters: "filters",
+        active: "active",
+        advancedFilters: "Advanced Filters",
+        yearFrom: "Year from",
+        yearTo: "Year to",
+        any: "Any",
+        mileageUpTo: "Mileage up to",
+        hoursUpTo: "Hours up to",
+        transmission: "Transmission",
+        manual: "Manual",
+        automatic: "Automatic",
+        semiAutomatic: "Semi-automatic",
+        drivetrain: "Drivetrain",
+        axles: "Number of axles",
+        fuelType: "Fuel type",
+        diesel: "Diesel",
+        gasoline: "Gasoline",
+        electric: "Electric",
+        hybrid: "Hybrid",
+        powerUpTo: "Power up to (PS)",
+        weightUpTo: "Weight up to (kg)",
+        bodyColor: "Exterior color",
+        white: "White",
+        black: "Black",
+        silver: "Silver",
+        red: "Red",
+        blue: "Blue",
+        green: "Green",
+        yellow: "Yellow",
+        orange: "Orange",
+        categoryNames: {
+          trucks: "Trucks",
+          machinery: "Machines",
+          agriculture: "Agriculture",
+          default: "Vehicles"
+        }
+      },
+      featured: {
+        title: "Featured Products",
+        subtitle: "Specially selected for you",
+        badge: "Featured",
+        new: "New",
+        used: "Used",
+        onRequest: "On request",
+        noFeatured: "No featured products at the moment"
+      },
+      whatsapp: {
+        message: "Hello! I'm interested in your trucks and machinery.",
+        ariaLabel: "Contact us on WhatsApp"
+      },
+      searchBar: {
+        placeholder: "Search vehicles...",
+        button: "Search"
+      },
+      errors: {
+        loadingData: "Problem loading data.",
+        loginError: "Login error"
+      },
+      adminLogin: {
+        title: "Admin Login",
+        email: "Email",
+        password: "Password",
+        loggingIn: "Logging in...",
+        login: "Login"
+      },
+      contactPage: {
+        phonePlaceholder: "+351 912 345 678",
+        companyPlaceholder: "Your company",
+        namePlaceholder: "Your full name",
+        emailPlaceholder: "your.email@example.com"
+      },
       admin: {
         title: "Admin Dashboard",
         welcome: "Welcome to the admin dashboard",
@@ -388,7 +500,8 @@ const resources = {
         notFound: "Vehicle Not Found",
         notFoundDescription: "The vehicle you are looking for does not exist or has been removed.",
         location: "Location",
-        notSpecified: "Not specified"
+        notSpecified: "Not specified",
+        product: "Product"
       }
     }
   },
@@ -615,6 +728,118 @@ const resources = {
         message: "A página que procura não existe.",
         returnHome: "Voltar ao Início"
       },
+      contactModal: {
+        title: "Contactar sobre {{vehicle}}",
+        description: "Preencha os seus dados para receber mais informações sobre este veículo.",
+        priceLabel: "Preço: €{{price}}",
+        name: "Nome *",
+        namePlaceholder: "O seu nome completo",
+        email: "Email *",
+        emailPlaceholder: "o.seu.email@exemplo.com",
+        message: "Mensagem (opcional)",
+        messagePlaceholder: "Questões específicas sobre o veículo...",
+        cancel: "Cancelar",
+        sending: "A enviar...",
+        send: "Enviar Contacto"
+      },
+      filterPanel: {
+        subcategory: "Subcategoria",
+        all: "Todas",
+        allBrands: "Todas as marcas",
+        loading: "A carregar...",
+        noBrands: "Nenhuma marca disponível para esta categoria",
+        priceUpTo: "Preço até",
+        condition: "Estado",
+        allConditions: "Todos os estados",
+        new: "Novo",
+        used: "Usado",
+        restored: "Restaurado",
+        modified: "Modificado",
+        sortBy: "Ordenar por",
+        relevance: "Relevância",
+        priceAsc: "Preço crescente",
+        priceDesc: "Preço decrescente",
+        yearDesc: "Ano mais recente",
+        yearAsc: "Ano mais antigo",
+        mileageAsc: "Menos quilómetros",
+        hoursAsc: "Menos horas",
+        moreFilters: "Mais filtros",
+        search: "Pesquisar",
+        offer: "oferta",
+        offers: "ofertas",
+        clearFilters: "Limpar filtros",
+        filter: "filtro",
+        filters: "filtros",
+        active: "ativo",
+        advancedFilters: "Filtros Avançados",
+        yearFrom: "Ano de",
+        yearTo: "Ano até",
+        any: "Qualquer",
+        mileageUpTo: "Quilómetros até",
+        hoursUpTo: "Horas até",
+        transmission: "Transmissão",
+        manual: "Manual",
+        automatic: "Automática",
+        semiAutomatic: "Semi-automática",
+        drivetrain: "Tração",
+        axles: "Nº de eixos",
+        fuelType: "Combustível",
+        diesel: "Diesel",
+        gasoline: "Gasolina",
+        electric: "Elétrico",
+        hybrid: "Híbrido",
+        powerUpTo: "Potência até (PS)",
+        weightUpTo: "Peso até (kg)",
+        bodyColor: "Cor exterior",
+        white: "Branco",
+        black: "Preto",
+        silver: "Prateado",
+        red: "Vermelho",
+        blue: "Azul",
+        green: "Verde",
+        yellow: "Amarelo",
+        orange: "Laranja",
+        categoryNames: {
+          trucks: "Camiões",
+          machinery: "Máquinas",
+          agriculture: "Agricultura",
+          default: "Veículos"
+        }
+      },
+      featured: {
+        title: "Produtos em Destaque",
+        subtitle: "Selecionados especialmente para si",
+        badge: "Destaque",
+        new: "Novo",
+        used: "Usado",
+        onRequest: "Sob consulta",
+        noFeatured: "Nenhum produto em destaque de momento"
+      },
+      whatsapp: {
+        message: "Olá! Tenho interesse nos vossos camiões e maquinaria.",
+        ariaLabel: "Contacte-nos pelo WhatsApp"
+      },
+      searchBar: {
+        placeholder: "Pesquisar veículos...",
+        button: "Pesquisar"
+      },
+      errors: {
+        loadingData: "Problema ao carregar os dados.",
+        loginError: "Erro no login"
+      },
+      adminLogin: {
+        title: "Login Admin",
+        email: "Email",
+        password: "Senha",
+        loggingIn: "A entrar...",
+        login: "Entrar"
+      },
+      contactPage: {
+        phonePlaceholder: "+351 912 345 678",
+        companyPlaceholder: "A sua empresa",
+        namePlaceholder: "O seu nome completo",
+        emailPlaceholder: "o.seu.email@exemplo.com"
+      },
       admin: {
         title: "Painel de Administração",
         welcome: "Bem-vindo ao painel de administração",
@@ -777,7 +1002,8 @@ const resources = {
         notFound: "Veículo Não Encontrado",
         notFoundDescription: "O veículo que procura não existe ou foi removido.",
         location: "Localização",
-        notSpecified: "Não especificado"
+        notSpecified: "Não especificado",
+        product: "Produto"
       }
     }
   },
@@ -1004,6 +1230,118 @@ const resources = {
         message: "La page que vous recherchez n'existe pas.",
         returnHome: "Retour Accueil"
       },
+      contactModal: {
+        title: "Contacter à propos de {{vehicle}}",
+        description: "Remplissez vos coordonnées pour recevoir plus d'informations sur ce véhicule.",
+        priceLabel: "Prix : €{{price}}",
+        name: "Nom *",
+        namePlaceholder: "Votre nom complet",
+        email: "Email *",
+        emailPlaceholder: "votre.email@exemple.com",
+        message: "Message (facultatif)",
+        messagePlaceholder: "Questions spécifiques sur le véhicule...",
+        cancel: "Annuler",
+        sending: "Envoi en cours...",
+        send: "Envoyer Contact"
+      },
+      filterPanel: {
+        subcategory: "Sous-catégorie",
+        all: "Toutes",
+        allBrands: "Toutes les marques",
+        loading: "Chargement...",
+        noBrands: "Aucune marque disponible pour cette catégorie",
+        priceUpTo: "Prix jusqu'à",
+        condition: "État",
+        allConditions: "Tous les états",
+        new: "Neuf",
+        used: "Occasion",
+        restored: "Restauré",
+        modified: "Modifié",
+        sortBy: "Trier par",
+        relevance: "Pertinence",
+        priceAsc: "Prix croissant",
+        priceDesc: "Prix décroissant",
+        yearDesc: "Année la plus récente",
+        yearAsc: "Année la plus ancienne",
+        mileageAsc: "Moins de kilomètres",
+        hoursAsc: "Moins d'heures",
+        moreFilters: "Plus de filtres",
+        search: "Rechercher",
+        offer: "offre",
+        offers: "offres",
+        clearFilters: "Effacer les filtres",
+        filter: "filtre",
+        filters: "filtres",
+        active: "actif",
+        advancedFilters: "Filtres Avancés",
+        yearFrom: "Année de",
+        yearTo: "Année jusqu'à",
+        any: "Tout",
+        mileageUpTo: "Kilométrage jusqu'à",
+        hoursUpTo: "Heures jusqu'à",
+        transmission: "Transmission",
+        manual: "Manuelle",
+        automatic: "Automatique",
+        semiAutomatic: "Semi-automatique",
+        drivetrain: "Traction",
+        axles: "Nombre d'essieux",
+        fuelType: "Carburant",
+        diesel: "Diesel",
+        gasoline: "Essence",
+        electric: "Électrique",
+        hybrid: "Hybride",
+        powerUpTo: "Puissance jusqu'à (PS)",
+        weightUpTo: "Poids jusqu'à (kg)",
+        bodyColor: "Couleur extérieure",
+        white: "Blanc",
+        black: "Noir",
+        silver: "Argenté",
+        red: "Rouge",
+        blue: "Bleu",
+        green: "Vert",
+        yellow: "Jaune",
+        orange: "Orange",
+        categoryNames: {
+          trucks: "Camions",
+          machinery: "Machines",
+          agriculture: "Agriculture",
+          default: "Véhicules"
+        }
+      },
+      featured: {
+        title: "Produits en Vedette",
+        subtitle: "Spécialement sélectionnés pour vous",
+        badge: "Vedette",
+        new: "Neuf",
+        used: "Occasion",
+        onRequest: "Sur demande",
+        noFeatured: "Aucun produit en vedette pour le moment"
+      },
+      whatsapp: {
+        message: "Bonjour ! Je suis intéressé par vos camions et machines.",
+        ariaLabel: "Contactez-nous sur WhatsApp"
+      },
+      searchBar: {
+        placeholder: "Rechercher véhicules...",
+        button: "Rechercher"
+      },
+      errors: {
+        loadingData: "Problème de chargement des données.",
+        loginError: "Erreur de connexion"
+      },
+      adminLogin: {
+        title: "Connexion Admin",
+        email: "Email",
+        password: "Mot de passe",
+        loggingIn: "Connexion en cours...",
+        login: "Se connecter"
+      },
+      contactPage: {
+        phonePlaceholder: "+351 912 345 678",
+        companyPlaceholder: "Votre entreprise",
+        namePlaceholder: "Votre nom complet",
+        emailPlaceholder: "votre.email@exemple.com"
+      },
       admin: {
         title: "Tableau de Bord Admin",
         welcome: "Bienvenue dans le tableau de bord admin",
@@ -1166,7 +1504,8 @@ const resources = {
         notFound: "Véhicule Non Trouvé",
         notFoundDescription: "Le véhicule que vous recherchez n'existe pas ou a été supprimé.",
         location: "Localisation",
-        notSpecified: "Non spécifié"
+        notSpecified: "Non spécifié",
+        product: "Produit"
       }
     }
   }
@@ -1177,8 +1516,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en',
-    fallbackLng: 'en',
+    lng: 'pt',
+    fallbackLng: 'pt',
     debug: false,
     interpolation: {
       escapeValue: false
