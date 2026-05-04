@@ -19,19 +19,18 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
   };
 
   const handleMailClick = () => {
-    window.location.href = `mailto:${'info@legar.pt'}?subject=Interesse em ${vehicle.title}&body=Olá, tenho interesse no veículo ${vehicle.title} (€${(vehicle.price || 0).toLocaleString()}).`;
+    const subject = encodeURIComponent(vehicle.title);
+    const body = encodeURIComponent(`${vehicle.title} - €${(vehicle.price || 0).toLocaleString()}`);
+    window.location.href = `mailto:info@lega.pt?subject=${subject}&body=${body}`;
   };
 
   const handleShareClick = () => {
     if (navigator.share) {
       navigator.share({
         title: vehicle.title,
-        text: `Confira este veículo: ${vehicle.title} - €${(vehicle.price || 0).toLocaleString()}`,
+        text: `${vehicle.title} - €${(vehicle.price || 0).toLocaleString()}`,
         url: window.location.href,
       });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado para a área de transferência!');
     }
   };
 
