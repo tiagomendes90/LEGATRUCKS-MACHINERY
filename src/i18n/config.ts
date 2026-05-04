@@ -1522,10 +1522,13 @@ i18n
       escapeValue: false
     },
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['localStorage'],
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng'
-    }
+    },
+    lng: typeof window !== 'undefined' && localStorage.getItem('i18nextLng')
+      ? undefined
+      : 'pt'
   });
 
 export default i18n;
