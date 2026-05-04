@@ -11,6 +11,7 @@ import { Search, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCategories } from "@/hooks/useCategories";
 import { useNewVehicleBrands } from "@/hooks/useNewVehicleBrands";
+import { useTranslation } from "react-i18next";
 
 interface VehicleFilters {
   brand: string;
@@ -72,19 +73,6 @@ const getCategoryIcon = (categorySlug?: string) => {
   }
 };
 
-const getCategoryName = (categorySlug?: string) => {
-  switch (categorySlug) {
-    case 'trucks':
-      return 'Camiões';
-    case 'machinery':
-      return 'Máquinas';
-    case 'agriculture':
-      return 'Agricultura';
-    default:
-      return 'Veículos';
-  }
-};
-
 const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
   filters,
   onFiltersChange,
@@ -97,6 +85,16 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
   const { data: brands = [], isLoading: brandsLoading } = useNewVehicleBrands();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [priceRange, setPriceRange] = useState([filters.priceTo ? parseInt(filters.priceTo) : 500000]);
+  const { t } = useTranslation();
+
+  const getCategoryName = (categorySlug?: string) => {
+    switch (categorySlug) {
+      case 'trucks': return t('filterPanel.categoryNames.trucks');
+      case 'machinery': return t('filterPanel.categoryNames.machinery');
+      case 'agriculture': return t('filterPanel.categoryNames.agriculture');
+      default: return t('filterPanel.categoryNames.default');
+    }
+  };
   
   // Filter subcategories by the current category
   const subcategories = React.useMemo(() => {
@@ -175,7 +173,9 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-gray-900">{getCategoryName(category)}</h2>
             <span className="text-gray-600 font-medium">{totalCount} oferta{totalCount !== 1 ? 's' : ''}</span>
-          </div>
+
+             <span className="text-gray-600 font-medium">{totalCount} {totalCount !== 1 ? t('filterPanel.offers') : t('filterPanel.offer')}</span>
+           </div>
         </div>
       </div>
 
@@ -187,17 +187,17 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
             {subcategories.length > 0 && (
               <div>
                 <Label htmlFor="subcategory" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Subcategoria
+                  {t('filterPanel.subcategory')}
                 </Label>
                 <Select 
                   value={filters.subcategory || 'all'} 
                   onValueChange={(value) => handleFilterChange('subcategory', value === 'all' ? '' : value)}
                 >
                   <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Todas" />
+                    <SelectValue placeholder={t('filterPanel.all')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="all">{t('filterPanel.all')}</SelectItem>
                     {subcategories.map((subcategory) => (
                       <SelectItem key={subcategory.id} value={subcategory.slug}>
                         {subcategory.name}
@@ -211,7 +211,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
             {/* Brand - Now uses the same filtering logic as AddVehicleForm */}
             <div>
               <Label htmlFor="brand" className="text-sm font-medium text-gray-700 mb-2 block">
-                Marca
+                {t('filters.brand')}
               </Label>
               <Select 
                 value={filters.brand || 'all'} 
@@ -219,10 +219,10 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 disabled={brandsLoading || availableBrands.length === 0}
               >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder={brandsLoading ? "A carregar..." : "Todas as marcas"} />
+                  <SelectValue placeholder={brandsLoading ? t('filterPanel.loading') : t('filterPanel.allBrands')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as marcas</SelectItem>
+                  <SelectItem value="all">{t('filterPanel.allBrands')}</SelectItem>
                   {availableBrands.map((brand: any) => (
                     <SelectItem key={brand.id} value={brand.id}>
                       {brand.name}
@@ -232,7 +232,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
               </Select>
               {!brandsLoading && availableBrands.length === 0 && (
                 <p className="text-sm text-gray-500 mt-1">
-                  Nenhuma marca disponível para esta categoria
+                  {t('filterPanel.noBrands')}
                 </p>
               )}
             </div>
@@ -240,7 +240,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
             {/* Price Range Slider */}
             <div>
               <Label htmlFor="price" className="text-sm font-medium text-gray-700 mb-2 block">
-                Preço até: €{priceRange[0].toLocaleString()}
+                {t('filterPanel.priceUpTo')}: €{priceRange[0].toLocaleString()}
               </Label>
               <div className="px-2 py-3">
                 <Slider
@@ -257,21 +257,21 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
             {/* Condition */}
             <div>
               <Label htmlFor="condition" className="text-sm font-medium text-gray-700 mb-2 block">
-                Estado
+                {t('filterPanel.condition')}
               </Label>
               <Select 
                 value={filters.condition || 'all'} 
                 onValueChange={(value) => handleFilterChange('condition', value === 'all' ? '' : value)}
               >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Todos os estados" />
+                    <SelectValue placeholder={t('filterPanel.allConditions')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os estados</SelectItem>
-                  <SelectItem value="new">Novo</SelectItem>
-                  <SelectItem value="used">Usado</SelectItem>
-                  <SelectItem value="restored">Restaurado</SelectItem>
-                  <SelectItem value="modified">Modificado</SelectItem>
+                    <SelectItem value="all">{t('filterPanel.allConditions')}</SelectItem>
+                    <SelectItem value="new">{t('filterPanel.new')}</SelectItem>
+                    <SelectItem value="used">{t('filterPanel.used')}</SelectItem>
+                    <SelectItem value="restored">{t('filterPanel.restored')}</SelectItem>
+                    <SelectItem value="modified">{t('filterPanel.modified')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -279,23 +279,23 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
             {/* Sort By */}
             <div>
               <Label htmlFor="sortBy" className="text-sm font-medium text-gray-700 mb-2 block">
-                Ordenar por
+                {t('filterPanel.sortBy')}
               </Label>
               <Select 
                 value={filters.sortBy || 'relevance'} 
                 onValueChange={(value) => handleFilterChange('sortBy', value)}
               >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Relevância" />
+                    <SelectValue placeholder={t('filterPanel.relevance')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="relevance">Relevância</SelectItem>
-                  <SelectItem value="price_asc">Preço crescente</SelectItem>
-                  <SelectItem value="price_desc">Preço decrescente</SelectItem>
-                  <SelectItem value="year_desc">Ano mais recente</SelectItem>
-                  <SelectItem value="year_asc">Ano mais antigo</SelectItem>
-                  <SelectItem value="mileage_asc">Menos quilómetros</SelectItem>
-                  <SelectItem value="hours_asc">Menos horas</SelectItem>
+                    <SelectItem value="relevance">{t('filterPanel.relevance')}</SelectItem>
+                    <SelectItem value="price_asc">{t('filterPanel.priceAsc')}</SelectItem>
+                    <SelectItem value="price_desc">{t('filterPanel.priceDesc')}</SelectItem>
+                    <SelectItem value="year_desc">{t('filterPanel.yearDesc')}</SelectItem>
+                    <SelectItem value="year_asc">{t('filterPanel.yearAsc')}</SelectItem>
+                    <SelectItem value="mileage_asc">{t('filterPanel.mileageAsc')}</SelectItem>
+                    <SelectItem value="hours_asc">{t('filterPanel.hoursAsc')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -306,7 +306,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
             <Collapsible open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
               <CollapsibleTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2">
-                  Mais filtros
+                  {t('filterPanel.moreFilters')}
                   {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>
@@ -317,19 +317,19 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center gap-2"
             >
               <Search className="h-4 w-4" />
-              Pesquisar {totalCount} oferta{totalCount !== 1 ? 's' : ''}
+              {t('filterPanel.search')} {totalCount} {totalCount !== 1 ? t('filterPanel.offers') : t('filterPanel.offer')}
             </Button>
 
             {getActiveFiltersCount() > 0 && (
               <Button variant="ghost" size="sm" onClick={resetFilters} className="text-gray-600">
                 <RotateCcw className="h-4 w-4 mr-1" />
-                Limpar filtros
+                {t('filterPanel.clearFilters')}
               </Button>
             )}
 
             {getActiveFiltersCount() > 0 && (
               <Badge variant="secondary" className="text-sm">
-                {getActiveFiltersCount()} filtro{getActiveFiltersCount() > 1 ? 's' : ''} ativo{getActiveFiltersCount() > 1 ? 's' : ''}
+                {getActiveFiltersCount()} {getActiveFiltersCount() > 1 ? t('filterPanel.filters') : t('filterPanel.filter')} {t('filterPanel.active')}
               </Badge>
             )}
           </div>
@@ -341,24 +341,24 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
         <CollapsibleContent>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Filtros Avançados</CardTitle>
+              <CardTitle className="text-lg">{t('filterPanel.advancedFilters')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Year Range */}
                 <div>
                   <Label htmlFor="yearFrom" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Ano de
+                    {t('filterPanel.yearFrom')}
                   </Label>
                   <Select 
                     value={filters.yearFrom || 'all'} 
                     onValueChange={(value) => handleFilterChange('yearFrom', value === 'all' ? '' : value)}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Qualquer" />
+                      <SelectValue placeholder={t('filterPanel.any')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Qualquer</SelectItem>
+                      <SelectItem value="all">{t('filterPanel.any')}</SelectItem>
                       {years.map((year) => (
                         <SelectItem key={year} value={year.toString()}>
                           {year}
@@ -370,17 +370,17 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
 
                 <div>
                   <Label htmlFor="yearTo" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Ano até
+                    {t('filterPanel.yearTo')}
                   </Label>
                   <Select 
                     value={filters.yearTo || 'all'} 
                     onValueChange={(value) => handleFilterChange('yearTo', value === 'all' ? '' : value)}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Qualquer" />
+                      <SelectValue placeholder={t('filterPanel.any')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Qualquer</SelectItem>
+                      <SelectItem value="all">{t('filterPanel.any')}</SelectItem>
                       {years.map((year) => (
                         <SelectItem key={year} value={year.toString()}>
                           {year}
@@ -394,7 +394,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {category === 'trucks' && (
                   <div>
                     <Label htmlFor="mileageMax" className="text-sm font-medium text-gray-700 mb-2 block">
-                      Quilómetros até
+                      {t('filterPanel.mileageUpTo')}
                     </Label>
                     <Input
                       id="mileageMax"
@@ -411,7 +411,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {(category === 'machinery' || category === 'agriculture') && (
                   <div>
                     <Label htmlFor="operatingHoursMax" className="text-sm font-medium text-gray-700 mb-2 block">
-                      Horas até
+                      {t('filterPanel.hoursUpTo')}
                     </Label>
                     <Input
                       id="operatingHoursMax"
@@ -427,20 +427,20 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {/* Gearbox */}
                 <div>
                   <Label htmlFor="gearbox" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Transmissão
+                    {t('filterPanel.transmission')}
                   </Label>
                   <Select 
                     value={filters.gearbox || 'all'} 
                     onValueChange={(value) => handleFilterChange('gearbox', value === 'all' ? '' : value)}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Qualquer" />
+                      <SelectValue placeholder={t('filterPanel.any')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Qualquer</SelectItem>
-                      <SelectItem value="manual">Manual</SelectItem>
-                      <SelectItem value="automatic">Automática</SelectItem>
-                      <SelectItem value="semi-automatic">Semi-automática</SelectItem>
+                      <SelectItem value="all">{t('filterPanel.any')}</SelectItem>
+                      <SelectItem value="manual">{t('filterPanel.manual')}</SelectItem>
+                      <SelectItem value="automatic">{t('filterPanel.automatic')}</SelectItem>
+                      <SelectItem value="semi-automatic">{t('filterPanel.semiAutomatic')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -448,17 +448,17 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {/* Drivetrain */}
                 <div>
                   <Label htmlFor="drivetrain" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Tração
+                    {t('filterPanel.drivetrain')}
                   </Label>
                   <Select 
                     value={filters.drivetrain || 'all'} 
                     onValueChange={(value) => handleFilterChange('drivetrain', value === 'all' ? '' : value)}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Qualquer" />
+                      <SelectValue placeholder={t('filterPanel.any')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Qualquer</SelectItem>
+                      <SelectItem value="all">{t('filterPanel.any')}</SelectItem>
                       <SelectItem value="2wd">2WD</SelectItem>
                       <SelectItem value="4wd">4WD</SelectItem>
                       <SelectItem value="awd">AWD</SelectItem>
@@ -469,7 +469,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {/* Axles */}
                 <div>
                   <Label htmlFor="axles" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Nº de eixos
+                    {t('filterPanel.axles')}
                   </Label>
                   <Input
                     id="axles"
@@ -484,21 +484,21 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {/* Fuel Type */}
                 <div>
                   <Label htmlFor="fuelType" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Combustível
+                    {t('filterPanel.fuelType')}
                   </Label>
                   <Select 
                     value={filters.fuelType || 'all'} 
                     onValueChange={(value) => handleFilterChange('fuelType', value === 'all' ? '' : value)}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Qualquer" />
+                      <SelectValue placeholder={t('filterPanel.any')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Qualquer</SelectItem>
-                      <SelectItem value="diesel">Diesel</SelectItem>
-                      <SelectItem value="gasoline">Gasolina</SelectItem>
-                      <SelectItem value="electric">Elétrico</SelectItem>
-                      <SelectItem value="hybrid">Híbrido</SelectItem>
+                      <SelectItem value="all">{t('filterPanel.any')}</SelectItem>
+                      <SelectItem value="diesel">{t('filterPanel.diesel')}</SelectItem>
+                      <SelectItem value="gasoline">{t('filterPanel.gasoline')}</SelectItem>
+                      <SelectItem value="electric">{t('filterPanel.electric')}</SelectItem>
+                      <SelectItem value="hybrid">{t('filterPanel.hybrid')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -506,7 +506,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {/* Power */}
                 <div>
                   <Label htmlFor="powerPs" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Potência até (PS)
+                    {t('filterPanel.powerUpTo')}
                   </Label>
                   <Input
                     id="powerPs"
@@ -521,7 +521,7 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {/* Weight */}
                 <div>
                   <Label htmlFor="weightKg" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Peso até (kg)
+                    {t('filterPanel.weightUpTo')}
                   </Label>
                   <Input
                     id="weightKg"
@@ -536,25 +536,25 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 {/* Body Color */}
                 <div>
                   <Label htmlFor="bodyColor" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Cor exterior
+                    {t('filterPanel.bodyColor')}
                   </Label>
                   <Select 
                     value={filters.bodyColor || 'all'} 
                     onValueChange={(value) => handleFilterChange('bodyColor', value === 'all' ? '' : value)}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Qualquer" />
+                      <SelectValue placeholder={t('filterPanel.any')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Qualquer</SelectItem>
-                      <SelectItem value="white">Branco</SelectItem>
-                      <SelectItem value="black">Preto</SelectItem>
-                      <SelectItem value="silver">Prateado</SelectItem>
-                      <SelectItem value="red">Vermelho</SelectItem>
-                      <SelectItem value="blue">Azul</SelectItem>
-                      <SelectItem value="green">Verde</SelectItem>
-                      <SelectItem value="yellow">Amarelo</SelectItem>
-                      <SelectItem value="orange">Laranja</SelectItem>
+                      <SelectItem value="all">{t('filterPanel.any')}</SelectItem>
+                      <SelectItem value="white">{t('filterPanel.white')}</SelectItem>
+                      <SelectItem value="black">{t('filterPanel.black')}</SelectItem>
+                      <SelectItem value="silver">{t('filterPanel.silver')}</SelectItem>
+                      <SelectItem value="red">{t('filterPanel.red')}</SelectItem>
+                      <SelectItem value="blue">{t('filterPanel.blue')}</SelectItem>
+                      <SelectItem value="green">{t('filterPanel.green')}</SelectItem>
+                      <SelectItem value="yellow">{t('filterPanel.yellow')}</SelectItem>
+                      <SelectItem value="orange">{t('filterPanel.orange')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateContactOrder } from "@/hooks/useContactOrders";
 import { Vehicle } from "@/hooks/useVehicles";
+import { useTranslation } from "react-i18next";
 
 interface ContactVehicleModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface ContactVehicleModalProps {
 }
 
 const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalProps) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -51,33 +53,33 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Contactar sobre {vehicle.title}</DialogTitle>
+          <DialogTitle>{t('contactModal.title', { vehicle: vehicle.title })}</DialogTitle>
           <DialogDescription>
-            Preencha os seus dados para receber mais informações sobre este veículo.
-            Preço: €{(vehicle.price || 0).toLocaleString()}
+            {t('contactModal.description')}
+            {' '}{t('contactModal.priceLabel', { price: (vehicle.price || 0).toLocaleString() })}
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <Label htmlFor="name">Nome *</Label>
-              <Input id="name" type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} required placeholder="O seu nome completo" />
+              <Label htmlFor="name">{t('contactModal.name')}</Label>
+              <Input id="name" type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} required placeholder={t('contactModal.namePlaceholder')} />
             </div>
             <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} required placeholder="o.seu.email@exemplo.com" />
+              <Label htmlFor="email">{t('contactModal.email')}</Label>
+              <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} required placeholder={t('contactModal.emailPlaceholder')} />
             </div>
             <div>
-              <Label htmlFor="message">Mensagem (opcional)</Label>
-              <Textarea id="message" value={formData.message} onChange={(e) => handleInputChange('message', e.target.value)} placeholder="Questões específicas sobre o veículo..." rows={4} />
+              <Label htmlFor="message">{t('contactModal.message')}</Label>
+              <Textarea id="message" value={formData.message} onChange={(e) => handleInputChange('message', e.target.value)} placeholder={t('contactModal.messagePlaceholder')} rows={4} />
             </div>
           </div>
           
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">{t('contactModal.cancel')}</Button>
             <Button type="submit" disabled={createOrder.isPending || !formData.name || !formData.email} className="flex-1">
-              {createOrder.isPending ? 'Enviando...' : 'Enviar Contacto'}
+              {createOrder.isPending ? t('contactModal.sending') : t('contactModal.send')}
             </Button>
           </div>
         </form>

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface VehicleSearchBarProps {
   onSearch: (keyword: string) => void;
@@ -12,10 +13,12 @@ interface VehicleSearchBarProps {
 
 const VehicleSearchBar = ({ 
   onSearch, 
-  placeholder = "Pesquisar veículos...", 
+  placeholder, 
   className = "" 
 }: VehicleSearchBarProps) => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
+  const finalPlaceholder = placeholder || t('searchBar.placeholder');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +36,7 @@ const VehicleSearchBar = ({
       <div className="relative flex-1">
         <Input
           type="text"
-          placeholder={placeholder}
+          placeholder={finalPlaceholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyPress={handleKeyPress}
@@ -42,7 +45,7 @@ const VehicleSearchBar = ({
         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
       </div>
       <Button type="submit" variant="default">
-        Pesquisar
+        {t('searchBar.button')}
       </Button>
     </form>
   );

@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminLogin() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function AdminLogin() {
     });
 
     if (error) {
-      alert('Erro no login');
+      alert(t('errors.loginError'));
       setLoading(false);
       return;
     }
@@ -47,23 +49,23 @@ export default function AdminLogin() {
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Lock className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Login Admin</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t('adminLogin.title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Input
             type="email"
-            placeholder="Email"
+            placeholder={t('adminLogin.email')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <Input
             type="password"
-            placeholder="Senha"
+            placeholder={t('adminLogin.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <Button className="w-full" onClick={handleLogin} disabled={loading}>
-            {loading ? 'A entrar...' : 'Entrar'}
+            {loading ? t('adminLogin.loggingIn') : t('adminLogin.login')}
           </Button>
         </CardContent>
       </Card>

@@ -133,7 +133,7 @@ const NewVehicleCategory = () => {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="text-lg text-red-600 mb-4">{t('common.error')}</div>
-            <p className="text-gray-600">Problema ao carregar os dados.</p>
+            <p className="text-gray-600">{t('errors.loadingData')}</p>
           </div>
         </div>
         <Footer />
@@ -186,7 +186,7 @@ const NewVehicleCategory = () => {
                         loading="lazy"
                       />
                       <Badge className="absolute top-4 left-4 bg-blue-600">
-                        {vehicle.subcategory?.name || 'Produto'}
+                        {vehicle.subcategory?.name || t('vehicleDetails.product')}
                       </Badge>
                     </div>
                     <CardHeader>

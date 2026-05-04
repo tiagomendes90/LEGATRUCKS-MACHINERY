@@ -9,10 +9,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const FeaturedVehiclesSection = () => {
   const { data: featuredProducts = [], isLoading } = useFeaturedVehicles();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
@@ -85,8 +87,8 @@ const FeaturedVehiclesSection = () => {
       <div className="py-16">
         <div className="container mx-auto px-6">
           <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Produtos em Destaque</h2>
-            <p className="text-muted-foreground mb-8">Nenhum produto em destaque de momento</p>
+            <h2 className="text-3xl font-bold mb-4">{t('featured.title')}</h2>
+            <p className="text-muted-foreground mb-8">{t('featured.noFeatured')}</p>
           </div>
         </div>
       </div>
@@ -100,8 +102,8 @@ const FeaturedVehiclesSection = () => {
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-6">
         <div className="text-center mb-10">
-          <h2 className="text-3xl lg:text-4xl font-bold mb-3">Produtos em Destaque</h2>
-          <p className="text-muted-foreground text-lg">Selecionados especialmente para si</p>
+          <h2 className="text-3xl lg:text-4xl font-bold mb-3">{t('featured.title')}</h2>
+          <p className="text-muted-foreground text-lg">{t('featured.subtitle')}</p>
         </div>
 
         <div className="relative group">
@@ -110,7 +112,7 @@ const FeaturedVehiclesSection = () => {
             onClick={scrollPrev}
             className="absolute -left-3 lg:-left-5 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border shadow-lg rounded-full p-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:scale-110 disabled:opacity-0"
             disabled={!canScrollPrev}
-            aria-label="Anterior"
+            aria-label={t('common.back')}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -118,7 +120,7 @@ const FeaturedVehiclesSection = () => {
             onClick={scrollNext}
             className="absolute -right-3 lg:-right-5 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm border border-border shadow-lg rounded-full p-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:scale-110 disabled:opacity-0"
             disabled={!canScrollNext}
-            aria-label="Próximo"
+            aria-label={t('common.viewDetails')}
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -159,14 +161,14 @@ const FeaturedVehiclesSection = () => {
                             loading="lazy"
                           />
                           <Badge className="absolute top-3 right-3 bg-destructive text-destructive-foreground shadow-md">
-                            Destaque
+                            {t('featured.badge')}
                           </Badge>
                           {product.condition && (
                             <Badge
                               variant="secondary"
                               className="absolute top-3 left-3 shadow-md"
                             >
-                              {product.condition === "new" ? "Novo" : "Usado"}
+                              {product.condition === "new" ? t('featured.new') : t('featured.used')}
                             </Badge>
                           )}
                         </div>
@@ -182,10 +184,10 @@ const FeaturedVehiclesSection = () => {
                             <p className="text-xl font-bold text-primary">
                               {product.price
                                 ? `€${product.price.toLocaleString()}`
-                                : "Sob consulta"}
+                                : t('featured.onRequest')}
                             </p>
                             <Button size="sm" variant="outline">
-                              Ver Detalhes
+                              {t('common.viewDetails')}
                             </Button>
                           </div>
                         </CardContent>
