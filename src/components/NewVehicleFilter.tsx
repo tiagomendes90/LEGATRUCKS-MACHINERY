@@ -173,7 +173,9 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-gray-900">{getCategoryName(category)}</h2>
             <span className="text-gray-600 font-medium">{totalCount} oferta{totalCount !== 1 ? 's' : ''}</span>
-          </div>
+
+             <span className="text-gray-600 font-medium">{totalCount} {totalCount !== 1 ? t('filterPanel.offers') : t('filterPanel.offer')}</span>
+           </div>
         </div>
       </div>
 
@@ -192,8 +194,6 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                   onValueChange={(value) => handleFilterChange('subcategory', value === 'all' ? '' : value)}
                 >
                   <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Todas" />
-
                     <SelectValue placeholder={t('filterPanel.all')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -219,8 +219,6 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
                 disabled={brandsLoading || availableBrands.length === 0}
               >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder={brandsLoading ? "A carregar..." : "Todas as marcas"} />
-
                   <SelectValue placeholder={brandsLoading ? t('filterPanel.loading') : t('filterPanel.allBrands')} />
                 </SelectTrigger>
                 <SelectContent>
