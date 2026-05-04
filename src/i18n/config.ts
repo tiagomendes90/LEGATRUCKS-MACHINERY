@@ -1516,7 +1516,6 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'pt',
     fallbackLng: 'pt',
     debug: false,
     interpolation: {
@@ -1524,7 +1523,8 @@ i18n
     },
     detection: {
       order: ['localStorage', 'navigator'],
-      caches: ['localStorage']
+      caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng'
     }
   });
 
