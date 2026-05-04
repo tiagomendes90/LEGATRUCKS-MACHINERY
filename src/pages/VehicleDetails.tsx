@@ -89,7 +89,8 @@ const VehicleDetails = () => {
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Badge variant="secondary">{vehicle.subcategory?.name || 'Produto'}</Badge>
-            <Badge variant="outline">{vehicle.condition}</Badge>
+
+            <Badge variant="secondary">{vehicle.subcategory?.name || t('vehicleDetails.product')}</Badge>
             {vehicle.brand?.name && <Badge variant="outline">{vehicle.brand.name}</Badge>}
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{vehicle.title}</h1>
