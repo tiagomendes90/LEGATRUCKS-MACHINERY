@@ -83,7 +83,7 @@ const About = () => {
               </div>
             </div>
             <div className="relative">
-              <img src="https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=600&h=400&fit=crop" alt="Our facility" className="rounded-lg shadow-xl" />
+              <img src="https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=600&h=400&fit=crop" alt="Our facility" className="rounded-lg shadow-xl" loading="lazy" width={600} height={400} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg"></div>
             </div>
           </div>

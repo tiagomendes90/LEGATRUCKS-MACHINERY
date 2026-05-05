@@ -172,6 +172,9 @@ export const VehicleManagement = () => {
                         src={vehicle.main_image_url || vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=100&h=100&fit=crop"} 
                         alt={vehicle.title} 
                         className="w-12 h-12 object-cover rounded"
+                        loading="lazy"
+                        width={48}
+                        height={48}
                       />
                       <div>
                         <p className="font-medium">{vehicle.title}</p>

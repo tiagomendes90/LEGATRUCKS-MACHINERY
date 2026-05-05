@@ -62,6 +62,9 @@ const VehicleImageGallery = ({ images, vehicleName }: VehicleImageGalleryProps) 
             src={validImages[selectedImageIndex]}
             alt={`${vehicleName} - ${selectedImageIndex + 1}`}
             className="w-full h-[400px] lg:h-[520px] object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="eager"
+            width={800}
+            height={520}
           />
 
           {/* Zoom icon overlay */}
@@ -116,6 +119,9 @@ const VehicleImageGallery = ({ images, vehicleName }: VehicleImageGalleryProps) 
                   src={image}
                   alt={`${vehicleName} - ${index + 1}`}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  width={80}
+                  height={80}
                 />
               </button>
             ))}
@@ -183,7 +189,7 @@ const VehicleImageGallery = ({ images, vehicleName }: VehicleImageGalleryProps) 
                       : 'border-transparent opacity-50 hover:opacity-80'
                   }`}
                 >
-                  <img src={image} alt="" className="w-full h-full object-cover" />
+                  <img src={image} alt="" className="w-full h-full object-cover" loading="lazy" width={64} height={64} />
                 </button>
               ))}
             </div>

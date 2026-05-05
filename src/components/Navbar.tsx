@@ -57,7 +57,10 @@ const Navbar = () => {
             <img 
               src="/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png" 
               alt="LEGA Logo" 
-              className="h-10 w-auto object-contain" 
+              className="h-10 w-auto object-contain"
+              loading="eager"
+              width={120}
+              height={40}
             />
           </Link>
 
