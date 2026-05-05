@@ -184,6 +184,8 @@ const NewVehicleCategory = () => {
                         alt={vehicle.title} 
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
+                        width={500}
+                        height={192}
                       />
                       <Badge className="absolute top-4 left-4 bg-blue-600">
                         {vehicle.subcategory?.name || t('vehicleDetails.product')}

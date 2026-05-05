@@ -36,8 +36,10 @@ const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategor
               <img 
                 src={vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
                 alt={vehicle.title} 
-                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
+                width={400}
+                height={192}
+                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <Badge className="absolute top-3 left-3 bg-blue-600">{vehicle.subcategory?.name}</Badge>
             </div>

@@ -116,7 +116,7 @@ export default function ProductList() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {getPrimaryImage(p) && (
-                        <img src={getPrimaryImage(p)} alt={p.title} className="w-12 h-12 object-cover rounded" />
+                        <img src={getPrimaryImage(p)} alt={p.title} className="w-12 h-12 object-cover rounded" loading="lazy" width={48} height={48} />
                       )}
                       <div>
                         <p className="font-medium">{p.title}</p>

@@ -159,6 +159,8 @@ const FeaturedVehiclesSection = () => {
                             alt={product.title}
                             className="w-full h-56 object-cover transition-transform duration-500 hover:scale-105"
                             loading="lazy"
+                            width={400}
+                            height={224}
                           />
                           <Badge className="absolute top-3 right-3 bg-destructive text-destructive-foreground shadow-md">
                             {t('featured.badge')}

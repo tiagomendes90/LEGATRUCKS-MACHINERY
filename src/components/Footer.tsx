@@ -44,6 +44,9 @@ const Footer = () => {
                 src="/lovable-uploads/1a81f82c-9a4f-4f4f-8f58-da6ed2f213dc.png" 
                 alt="LEGA Logo" 
                 className="h-10 w-auto object-contain brightness-0 invert"
+                loading="lazy"
+                width={120}
+                height={40}
               />
             </div>
             

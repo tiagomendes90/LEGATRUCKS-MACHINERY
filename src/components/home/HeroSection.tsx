@@ -12,6 +12,10 @@ const HeroSection = () => {
             src="/logo-hero.png"
             alt="LEGA Trucks & Machinery"
             className="logo-image w-[64vw] md:w-[52vw] max-w-2xl object-contain drop-shadow-2xl"
+            loading="eager"
+            fetchPriority="high"
+            width={640}
+            height={360}
           />
           <div className="logo-shine-mask" aria-hidden="true" />
         </div>
