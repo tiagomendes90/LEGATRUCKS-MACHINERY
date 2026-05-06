@@ -9,6 +9,10 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import FeaturedVehiclesSection from "@/components/home/FeaturedVehiclesSection";
 import BrandsCarousel from "@/components/home/BrandsCarousel";
+import QuickContactBar from "@/components/home/QuickContactBar";
+import TrustSection from "@/components/home/TrustSection";
+import MidCTA from "@/components/home/MidCTA";
+import FinalCTA from "@/components/home/FinalCTA";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
@@ -20,11 +24,19 @@ const Index = () => {
       
       <HeroSection />
       
+      <QuickContactBar />
+      
+      <TrustSection />
+      
       <FeaturesSection />
       
       <FeaturedVehiclesSection />
 
+      <MidCTA />
+
       <BrandsCarousel />
+
+      <FinalCTA />
 
       <Footer />
       <WhatsAppFloat />
