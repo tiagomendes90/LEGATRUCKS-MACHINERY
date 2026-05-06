@@ -36,9 +36,7 @@ const Navbar = () => {
   }));
 
   const navItems = [
-    { name: t('nav.home'), path: "/" },
     ...categoryItems,
-    { name: t('nav.about'), path: "/sobre" },
     { name: t('nav.contact'), path: "/contactos" },
   ];
 
