@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -8,9 +8,14 @@ import LanguageSwitcher from "./LanguageSwitcher";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
   const location = useLocation();
   const { t } = useTranslation();
   const { data: categories = [] } = useCategories();
+
+  const isHomepage = location.pathname === "/";
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -38,8 +43,24 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 50);
+      if (ticking.current) return;
+      ticking.current = true;
+      requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        setIsScrolled(currentScrollY > 50);
+
+        if (currentScrollY < 50) {
+          setIsVisible(true);
+        } else if (currentScrollY > lastScrollY.current + 5) {
+          setIsVisible(false);
+          setIsOpen(false);
+        } else if (currentScrollY < lastScrollY.current - 5) {
+          setIsVisible(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+        ticking.current = false;
+      });
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -47,11 +68,18 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-orange-500 shadow-lg border-b border-orange-600' : 'bg-transparent'
+    <nav
+      onMouseEnter={() => setIsVisible(true)}
+      onFocus={() => setIsVisible(true)}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    } ${
+      isScrolled
+        ? 'bg-orange-500/95 backdrop-blur-md shadow-lg border-b border-orange-600'
+        : 'bg-transparent'
     }`}>
       <div className="container mx-auto px-6">
-        <div className="flex justify-between items-center py-4 px-0">
+          <div className="flex justify-between items-center py-3 lg:py-4 px-0">
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img 
