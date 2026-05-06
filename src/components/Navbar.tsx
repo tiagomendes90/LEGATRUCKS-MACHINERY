@@ -11,6 +11,7 @@ const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+  const scrollDelta = useRef(0);
   const location = useLocation();
   const { t } = useTranslation();
   const { data: categories = [] } = useCategories();
@@ -47,15 +48,22 @@ const Navbar = () => {
       ticking.current = true;
       requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
-        setIsScrolled(currentScrollY > 50);
+        const delta = currentScrollY - lastScrollY.current;
+        setIsScrolled(currentScrollY > 20);
 
         if (currentScrollY < 50) {
           setIsVisible(true);
-        } else if (currentScrollY > lastScrollY.current + 5) {
-          setIsVisible(false);
-          setIsOpen(false);
-        } else if (currentScrollY < lastScrollY.current - 5) {
-          setIsVisible(true);
+          scrollDelta.current = 0;
+        } else {
+          scrollDelta.current += delta;
+          if (scrollDelta.current > 50) {
+            setIsVisible(false);
+            setIsOpen(false);
+            scrollDelta.current = 0;
+          } else if (scrollDelta.current < -10) {
+            setIsVisible(true);
+            scrollDelta.current = 0;
+          }
         }
 
         lastScrollY.current = currentScrollY;
@@ -71,15 +79,17 @@ const Navbar = () => {
     <nav
       onMouseEnter={() => setIsVisible(true)}
       onFocus={() => setIsVisible(true)}
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-      isVisible ? 'translate-y-0' : '-translate-y-full'
-    } ${
-      isScrolled
-        ? 'bg-orange-500/95 backdrop-blur-md shadow-lg border-b border-orange-600'
-        : 'bg-transparent'
-    }`}>
+      className={`fixed top-0 w-full z-50 transition-transform duration-300 ease-in-out will-change-transform ${
+        isVisible ? 'translate-y-0' : '-translate-y-full'
+      } ${
+        isScrolled
+          ? 'bg-orange-500/95 backdrop-blur-md shadow-lg border-b border-orange-600'
+          : 'bg-transparent'
+      }`}
+      style={{ backfaceVisibility: 'hidden' }}
+    >
       <div className="container mx-auto px-6">
-          <div className="flex justify-between items-center py-3 lg:py-4 px-0">
+          <div className="flex justify-between items-center py-2 lg:py-3 px-0">
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img 
@@ -98,7 +108,7 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] ${
                   isActive(item.path)
                     ? isScrolled
                       ? "bg-orange-600 text-white"
@@ -132,15 +142,19 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="lg:hidden py-4 border-t border-orange-600 bg-orange-500">
-            <div className="flex flex-col space-y-2">
+        <div
+          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="py-3 border-t border-orange-600 bg-orange-500/95 backdrop-blur-md">
+            <div className="flex flex-col space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
                     isActive(item.path)
                       ? "bg-orange-600 text-white"
                       : "text-white hover:bg-orange-600 hover:text-white"
@@ -151,7 +165,7 @@ const Navbar = () => {
               ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
