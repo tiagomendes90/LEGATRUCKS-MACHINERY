@@ -40,7 +40,7 @@ const HeroSection = () => {
             <Button asChild size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-xl shadow-lg">
               <Link to="/camioes">{t('home.viewStock')}</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/20 text-lg px-8 py-6 rounded-xl shadow-lg backdrop-blur-sm">
+            <Button asChild size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-gray-900 text-lg px-8 py-6 rounded-xl shadow-lg backdrop-blur-sm">
               <Link to="/contactos">{t('home.requestQuote')}</Link>
             </Button>
           </div>
