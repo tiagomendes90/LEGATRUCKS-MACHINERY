@@ -16,7 +16,7 @@ const QuickContactBar = () => {
           <Phone className="h-5 w-5" />
           +351 912 345 678
         </a>
-        <Button asChild variant="outline" className="border-white text-white hover:bg-white/20 rounded-full">
+        <Button asChild className="bg-white/10 border-2 border-white text-white hover:bg-white hover:text-orange-600 rounded-full">
           <Link to="/contactos">
             <MessageCircle className="h-4 w-4 mr-2" />
             {t('home.quickContactCta')}
