@@ -51,7 +51,7 @@ const WhatsAppFloat = () => {
   if (shouldHide) return null;
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = "351123456789";
+    const phoneNumber = "351912406089";
     const message = t('whatsapp.message');
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
