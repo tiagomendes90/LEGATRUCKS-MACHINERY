@@ -18,24 +18,30 @@ const lucideSvgProps = {
   className: iconClass,
 };
 
-// Minimal excavator arm (side profile): boom + stick + bucket
+// Minimal excavator arm (side profile): boom + stick + bucket — fills viewBox
 const ExcavatorArmIcon = () => (
   <svg {...lucideSvgProps}>
-    <path d="M3 19h18" />
-    <path d="M4 19l6-9" />
-    <path d="M10 10l8 3" />
-    <path d="M18 13l-2 5h-5l1-4z" />
+    {/* boom from pivot up to elbow */}
+    <path d="M3 21L13 4" />
+    {/* stick from elbow down to bucket pin */}
+    <path d="M13 4l8 9" />
+    {/* bucket */}
+    <path d="M21 13l-2 7h-7l2-6z" />
   </svg>
 );
 
-// Minimal trailer (side profile): box body on two wheels with hitch
+// Minimal trailer (side profile): towed trailer with drawbar + hitch ball
 const TrailerIcon = () => (
   <svg {...lucideSvgProps}>
-    <path d="M2 16h2" />
-    <path d="M4 16V8h16v8" />
-    <path d="M20 16h2" />
-    <circle cx="9" cy="18" r="2" />
-    <circle cx="17" cy="18" r="2" />
+    {/* trailer body */}
+    <path d="M7 6h15v11H7z" />
+    {/* drawbar to hitch */}
+    <path d="M7 11L2 17" />
+    {/* hitch coupler */}
+    <circle cx="2" cy="18" r="1.2" />
+    {/* wheels */}
+    <circle cx="12" cy="19" r="2" />
+    <circle cx="19" cy="19" r="2" />
   </svg>
 );
 
