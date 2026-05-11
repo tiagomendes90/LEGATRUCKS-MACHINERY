@@ -1,9 +1,43 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Truck, Tractor, Wrench, Construction, Container } from "lucide-react";
+import { Truck, Tractor, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const iconClass = "h-9 w-9 text-orange-500";
+
+const lucideSvgProps = {
+  xmlns: "http://www.w3.org/2000/svg",
+  width: 24,
+  height: 24,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  className: iconClass,
+};
+
+// Minimal excavator arm (side profile): boom + stick + bucket
+const ExcavatorArmIcon = () => (
+  <svg {...lucideSvgProps}>
+    <path d="M3 19h18" />
+    <path d="M4 19l6-9" />
+    <path d="M10 10l8 3" />
+    <path d="M18 13l-2 5h-5l1-4z" />
+  </svg>
+);
+
+// Minimal trailer (side profile): box body on two wheels with hitch
+const TrailerIcon = () => (
+  <svg {...lucideSvgProps}>
+    <path d="M2 16h2" />
+    <path d="M4 16V8h16v8" />
+    <path d="M20 16h2" />
+    <circle cx="9" cy="18" r="2" />
+    <circle cx="17" cy="18" r="2" />
+  </svg>
+);
 
 const FeaturesSection = () => {
   const { t } = useTranslation();
@@ -15,9 +49,9 @@ const FeaturesSection = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
           {[
             { to: "/camioes", icon: <Truck className={iconClass} />, titleKey: "home.trucksTitle", descKey: "home.trucksDescription" },
-            { to: "/maquinas", icon: <Construction className={iconClass} strokeWidth={2} />, titleKey: "home.machineryTitle", descKey: "home.machineryDescription" },
+            { to: "/maquinas", icon: <ExcavatorArmIcon />, titleKey: "home.machineryTitle", descKey: "home.machineryDescription" },
             { to: "/pecas", icon: <Wrench className={iconClass} />, titleKey: "home.partsTitle", descKey: "home.partsDescription" },
-            { to: "/reboques", icon: <Container className={iconClass} strokeWidth={2} />, titleKey: "home.trailersTitle", descKey: "home.trailersDescription" },
+            { to: "/reboques", icon: <TrailerIcon />, titleKey: "home.trailersTitle", descKey: "home.trailersDescription" },
             { to: "/tractores", icon: <Tractor className={iconClass} />, titleKey: "home.tractorsTitle", descKey: "home.tractorsDescription" },
             // Hidden temporarily — re-enable later (was: HandCoins icon → /contactos, "home.wantToSellTitle")
           ].map((item) => (
