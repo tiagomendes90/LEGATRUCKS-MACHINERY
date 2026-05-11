@@ -18,15 +18,27 @@ const lucideSvgProps = {
   className: iconClass,
 };
 
-// Minimal excavator arm (side profile): boom + stick + bucket — fills viewBox
+// Excavator arm (side profile): pivot, boom, hydraulic cylinder, stick, bucket
 const ExcavatorArmIcon = () => (
   <svg {...lucideSvgProps}>
-    {/* boom from pivot up to elbow */}
+    {/* pivot at base */}
+    <circle cx="3" cy="21" r="1" />
+    {/* boom */}
     <path d="M3 21L13 4" />
-    {/* stick from elbow down to bucket pin */}
+    {/* elbow joint */}
+    <circle cx="13" cy="4" r="1" />
+    {/* stick */}
     <path d="M13 4l8 9" />
+    {/* hydraulic cylinder */}
+    <path d="M6 16l9 -3" />
+    {/* bucket pin */}
+    <circle cx="21" cy="13" r="1" />
     {/* bucket */}
     <path d="M21 13l-2 7h-7l2-6z" />
+    {/* bucket teeth */}
+    <path d="M13 20.2v1" />
+    <path d="M16 20.2v1" />
+    <path d="M19 20.2v1" />
   </svg>
 );
 
