@@ -18,23 +18,30 @@ const lucideSvgProps = {
   className: iconClass,
 };
 
-// Excavator arm (inverted-V side profile): boom up from bucket, stick down to base
+// Excavator arm (side profile): bent boom from base, stick down to bucket
 const ExcavatorArmIcon = () => (
   <svg {...lucideSvgProps}>
-    {/* boom: from bucket pivot up to elbow */}
-    <path d="M5 19L12 3" />
-    {/* stick: from elbow down to base */}
-    <path d="M12 3l8 18" />
+    {/* boom: from base pivot up to elbow */}
+    <path d="M20 20L13 5" />
+    {/* stick: from elbow down to bucket pivot */}
+    <path d="M13 5L5 17" />
     {/* elbow joint */}
-    <circle cx="12" cy="3" r="1" />
+    <circle cx="13" cy="5" r="1" />
     {/* base pin */}
-    <circle cx="20" cy="21" r="0.6" />
-    {/* hydraulic cylinder along boom */}
-    <path d="M7 14l6 -10" />
-    {/* hydraulic cylinder along stick */}
-    <path d="M13 5l6 13" />
+    <circle cx="20" cy="20" r="0.8" />
     {/* bucket */}
-    <path d="M5 19c-2 0 -3 -1.5 -2.5 -3l4 -1.5z" />
+    <path d="M5 17c-1.5 1.5 -1 4 1.5 4.5l5 -2.5z" />
+  </svg>
+);
+
+// Parts icon (wrench + gear)
+const PartsIcon = () => (
+  <svg {...lucideSvgProps}>
+    {/* gear */}
+    <circle cx="8" cy="15" r="3" />
+    <path d="M8 10v1.5M8 18.5V20M3 15h1.5M11.5 15H13M4.5 11.5l1 1M10.5 17.5l1 1M4.5 18.5l1 -1M10.5 12.5l1 -1" />
+    {/* wrench */}
+    <path d="M21 6.5a3 3 0 0 1 -4 2.83l-5.5 5.5 -1.83 -1.83 5.5 -5.5A3 3 0 0 1 18 3.5l-1.8 1.8 1.5 1.5L19.5 5z" />
   </svg>
 );
 
@@ -68,7 +75,7 @@ const FeaturesSection = () => {
             { to: "/tractores", icon: <Tractor className={iconClass} />, titleKey: "home.tractorsTitle", descKey: "home.tractorsDescription" },
             { to: "/contactos", icon: <HandCoins className={iconClass} />, titleKey: "home.wantToSellTitle", descKey: "home.wantToSellDescription" },
             // Hidden temporarily — re-enable later:
-            // { to: "/pecas", icon: <Wrench className={iconClass} />, titleKey: "home.partsTitle", descKey: "home.partsDescription" },
+            // { to: "/pecas", icon: <PartsIcon />, titleKey: "home.partsTitle", descKey: "home.partsDescription" },
           ].map((item) => (
             <Link key={item.to} to={item.to} className="text-center group cursor-pointer">
               <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-orange-100 transition-all duration-300 ease-out group-hover:bg-orange-200 group-hover:scale-105 group-hover:shadow-lg">
