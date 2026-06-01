@@ -33,7 +33,6 @@ const Navbar = () => {
   // Desired order for known slugs
   const order = ['camioes', 'maquinas', 'reboques', 'tractores', 'pecas'];
   const categoryItems = (categories as any[])
-    .filter((cat) => !hiddenSlugs.has(cat.slug))
     .slice()
     .sort((a, b) => {
       const ai = order.indexOf(a.slug);
