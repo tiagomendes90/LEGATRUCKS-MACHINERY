@@ -30,12 +30,9 @@ const Navbar = () => {
   };
 
   // Build nav items dynamically from categories with translations
-  // Temporarily hidden categories — remove from this list to re-enable
-  const hiddenSlugs = new Set(['pecas']);
   // Desired order for known slugs
-  const order = ['camioes', 'maquinas', 'reboques', 'tractores'];
+  const order = ['camioes', 'maquinas', 'reboques', 'tractores', 'pecas'];
   const categoryItems = (categories as any[])
-    .filter((cat) => !hiddenSlugs.has(cat.slug))
     .slice()
     .sort((a, b) => {
       const ai = order.indexOf(a.slug);

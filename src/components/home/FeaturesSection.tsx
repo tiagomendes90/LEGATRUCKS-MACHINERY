@@ -73,9 +73,8 @@ const FeaturesSection = () => {
             { to: "/maquinas", icon: <ExcavatorArmIcon />, titleKey: "home.machineryTitle", descKey: "home.machineryDescription" },
             { to: "/reboques", icon: <TrailerIcon />, titleKey: "home.trailersTitle", descKey: "home.trailersDescription" },
             { to: "/tractores", icon: <Tractor className={iconClass} />, titleKey: "home.tractorsTitle", descKey: "home.tractorsDescription" },
+            { to: "/pecas", icon: <PartsIcon />, titleKey: "home.partsTitle", descKey: "home.partsDescription" },
             { to: "/contactos", icon: <HandCoins className={iconClass} />, titleKey: "home.wantToSellTitle", descKey: "home.wantToSellDescription" },
-            // Hidden temporarily — re-enable later:
-            // { to: "/pecas", icon: <PartsIcon />, titleKey: "home.partsTitle", descKey: "home.partsDescription" },
           ].map((item) => (
             <Link key={item.to} to={item.to} className="text-center group cursor-pointer">
               <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-orange-100 transition-all duration-300 ease-out group-hover:bg-orange-200 group-hover:scale-105 group-hover:shadow-lg">
