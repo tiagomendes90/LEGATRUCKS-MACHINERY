@@ -30,10 +30,25 @@ const Navbar = () => {
   };
 
   // Build nav items dynamically from categories with translations
-  const categoryItems = (categories as any[]).map((cat) => ({
-    name: slugToNavKey[cat.slug] ? t(slugToNavKey[cat.slug]) : cat.name,
-    path: `/${cat.slug}`,
-  }));
+  // Temporarily hidden categories — remove from this list to re-enable
+  const hiddenSlugs = new Set(['pecas']);
+  // Desired order for known slugs
+  const order = ['camioes', 'maquinas', 'reboques', 'tractores'];
+  const categoryItems = (categories as any[])
+    .filter((cat) => !hiddenSlugs.has(cat.slug))
+    .slice()
+    .sort((a, b) => {
+      const ai = order.indexOf(a.slug);
+      const bi = order.indexOf(b.slug);
+      if (ai === -1 && bi === -1) return 0;
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    })
+    .map((cat) => ({
+      name: slugToNavKey[cat.slug] ? t(slugToNavKey[cat.slug]) : cat.name,
+      path: `/${cat.slug}`,
+    }));
 
   const navItems = [
     ...categoryItems,
