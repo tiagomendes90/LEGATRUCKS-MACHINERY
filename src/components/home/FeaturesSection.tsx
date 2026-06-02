@@ -34,14 +34,18 @@ const ExcavatorArmIcon = () => (
   </svg>
 );
 
-// Parts icon (wrench + gear)
+// Parts icon: gear (bottom-left) + wrench (diagonal) + wheel/cog (top-right)
 const PartsIcon = () => (
-  <svg {...lucideSvgProps}>
-    {/* gear */}
-    <circle cx="8" cy="15" r="3" />
-    <path d="M8 10v1.5M8 18.5V20M3 15h1.5M11.5 15H13M4.5 11.5l1 1M10.5 17.5l1 1M4.5 18.5l1 -1M10.5 12.5l1 -1" />
-    {/* wrench */}
-    <path d="M21 6.5a3 3 0 0 1 -4 2.83l-5.5 5.5 -1.83 -1.83 5.5 -5.5A3 3 0 0 1 18 3.5l-1.8 1.8 1.5 1.5L19.5 5z" />
+  <svg {...lucideSvgProps} strokeWidth={1.6}>
+    {/* gear bottom-left */}
+    <circle cx="6.5" cy="17" r="2" />
+    <path d="M6.5 13.5v1.2M6.5 19.3v1.2M3 17h1.2M8.8 17h1.2M4.05 14.55l.85.85M8.1 18.6l.85.85M4.05 19.45l.85-.85M8.1 15.4l.85-.85" />
+    {/* wheel/cog top-right */}
+    <circle cx="17.5" cy="6.5" r="3.5" />
+    <circle cx="17.5" cy="6.5" r="0.8" />
+    <path d="M17.5 2v1.5M17.5 9.5v1.5M13 6.5h1.5M20.5 6.5H22M14.3 3.3l1.05 1.05M19.65 8.65l1.05 1.05M14.3 9.7l1.05-1.05M19.65 4.35l1.05-1.05" />
+    {/* wrench diagonal connecting them */}
+    <path d="M14.5 9.5a2.2 2.2 0 0 0 -3 .3l-3.2 3.2a2.2 2.2 0 0 0 .3 3l.8 .8a2.2 2.2 0 0 0 3 -.3l3.2 -3.2a2.2 2.2 0 0 0 -.3 -3z" />
   </svg>
 );
 
