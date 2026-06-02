@@ -34,18 +34,20 @@ const ExcavatorArmIcon = () => (
   </svg>
 );
 
-// Parts icon: gear (bottom-left) + wrench (diagonal) + wheel/cog (top-right)
+// Parts icon: shopping cart with two small gears inside
 const PartsIcon = () => (
-  <svg {...lucideSvgProps} strokeWidth={1.6}>
-    {/* gear bottom-left */}
-    <circle cx="6.5" cy="17" r="2" />
-    <path d="M6.5 13.5v1.2M6.5 19.3v1.2M3 17h1.2M8.8 17h1.2M4.05 14.55l.85.85M8.1 18.6l.85.85M4.05 19.45l.85-.85M8.1 15.4l.85-.85" />
-    {/* wheel/cog top-right */}
-    <circle cx="17.5" cy="6.5" r="3.5" />
-    <circle cx="17.5" cy="6.5" r="0.8" />
-    <path d="M17.5 2v1.5M17.5 9.5v1.5M13 6.5h1.5M20.5 6.5H22M14.3 3.3l1.05 1.05M19.65 8.65l1.05 1.05M14.3 9.7l1.05-1.05M19.65 4.35l1.05-1.05" />
-    {/* wrench diagonal connecting them */}
-    <path d="M14.5 9.5a2.2 2.2 0 0 0 -3 .3l-3.2 3.2a2.2 2.2 0 0 0 .3 3l.8 .8a2.2 2.2 0 0 0 3 -.3l3.2 -3.2a2.2 2.2 0 0 0 -.3 -3z" />
+  <svg {...lucideSvgProps}>
+    {/* cart frame: handle -> top rail -> right side down to wheel axis */}
+    <path d="M2 3h2l2 3M6 6h15l-2 9H8L6 6z" />
+    {/* wheels */}
+    <circle cx="9" cy="19" r="1.4" />
+    <circle cx="17" cy="19" r="1.4" />
+    {/* gear 1 inside cart (left) */}
+    <circle cx="11" cy="10.5" r="1.6" />
+    <path d="M11 8.2v.8M11 12v.8M8.7 10.5h.8M12.5 10.5h.8M9.4 8.9l.55.55M12.05 11.55l.55.55M9.4 12.1l.55-.55M12.05 9.45l.55-.55" />
+    {/* gear 2 inside cart (right) */}
+    <circle cx="16" cy="11.5" r="1.3" />
+    <path d="M16 9.6v.6M16 12.8v.6M14.1 11.5h.6M17.3 11.5h.6M14.75 10.25l.45.45M16.8 12.3l.45.45M14.75 12.75l.45-.45M16.8 10.7l.45-.45" />
   </svg>
 );
 
