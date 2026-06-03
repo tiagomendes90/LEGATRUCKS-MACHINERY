@@ -40,10 +40,10 @@ const Footer = () => {
           {/* Company Info with Newsletter */}
           <div>
             <div className="flex items-center mb-6">
-              <img 
-                src="/lovable-uploads/1a81f82c-9a4f-4f4f-8f58-da6ed2f213dc.png" 
-                alt="LEGA Logo" 
-                className="h-10 w-auto object-contain brightness-0 invert"
+              <img
+                src="/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png"
+                alt="LEGA Logo"
+                className="h-10 w-auto object-contain"
                 loading="lazy"
                 width={120}
                 height={40}
