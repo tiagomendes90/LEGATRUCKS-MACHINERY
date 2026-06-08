@@ -45,6 +45,11 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="About LEGA | Used Trucks, Machinery & Parts Specialists"
+        description="Learn about LEGA — over 20 years specialising in used trucks, machinery, trailers, tractors and parts for clients across Europe."
+        path="/sobre"
+      />
       <Navbar />
       
       {/* Hero Section */}
