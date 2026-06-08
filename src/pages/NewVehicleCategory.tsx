@@ -12,6 +12,30 @@ import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { useVehicles, VehicleFilters } from "@/hooks/useVehicles";
 import { useCategories } from "@/hooks/useCategories";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
+
+const CATEGORY_SEO: Record<string, { title: string; description: string }> = {
+  camioes: {
+    title: "Used Trucks for Sale | LEGA",
+    description: "Browse LEGA's selection of quality used trucks available for immediate delivery across Europe.",
+  },
+  maquinas: {
+    title: "Construction Machinery for Sale | LEGA",
+    description: "Explore LEGA's range of used construction and industrial machinery available across Europe.",
+  },
+  tractores: {
+    title: "Used Tractors for Sale | LEGA",
+    description: "Discover LEGA's selection of used agricultural tractors, ready for delivery across Europe.",
+  },
+  reboques: {
+    title: "Trailers for Sale | LEGA",
+    description: "Browse LEGA's range of trailers for trucks and transport, available across Europe.",
+  },
+  pecas: {
+    title: "Truck & Machinery Parts | LEGA",
+    description: "Quality parts and components for trucks, machinery, trailers and tractors — in stock at LEGA.",
+  },
+};
 
 const VEHICLES_PER_PAGE = 12;
 
@@ -107,10 +131,15 @@ const NewVehicleCategory = () => {
   );
 
   const categoryTitle = currentCategory?.name || category;
+  const seo = CATEGORY_SEO[category] || {
+    title: `${categoryTitle} | LEGA`,
+    description: `Browse ${categoryTitle} available at LEGA — quality stock delivered across Europe.`,
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <SEO title={seo.title} description={seo.description} path={`/${category}`} />
         <Navbar />
         <section className="relative py-[150px] bg-slate-800">
           <div className="relative z-10 container mx-auto px-6">
@@ -129,6 +158,7 @@ const NewVehicleCategory = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <SEO title={seo.title} description={seo.description} path={`/${category}`} />
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -143,6 +173,7 @@ const NewVehicleCategory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO title={seo.title} description={seo.description} path={`/${category}`} />
       <Navbar />
       
       <section className="relative py-[150px] bg-slate-800">

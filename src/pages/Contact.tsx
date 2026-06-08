@@ -10,6 +10,7 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 
 const Contact = () => {
@@ -49,6 +50,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title="Contact LEGA | Request a Quote for Trucks, Machinery & Parts"
+        description="Get in touch with LEGA for quotes on used trucks, construction machinery, trailers, tractors and parts. Fast response across Europe."
+        path="/contactos"
+      />
       <Navbar />
       
       {/* Hero Section */}

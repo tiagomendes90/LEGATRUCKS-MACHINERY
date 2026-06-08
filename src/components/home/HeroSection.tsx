@@ -16,6 +16,8 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-black/50" />
       <div className="relative flex items-center justify-center h-full px-6">
         <div className="flex flex-col items-center text-center">
+          {/* SEO H1 — visually hidden, semantic for crawlers */}
+          <h1 className="sr-only">LEGA – Used Trucks, Machinery, Trailers, Tractors and Parts</h1>
           {/* Logo — primary visual element */}
           <div className="logo-wrapper animate-logo-entry">
             <img
