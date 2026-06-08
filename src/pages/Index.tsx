@@ -16,10 +16,16 @@ import FinalCTA from "@/components/home/FinalCTA";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import SEO from "@/components/SEO";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="LEGA | Used Trucks, Machinery, Trailers, Tractors and Parts"
+        description="LEGA specialises in quality used trucks, construction machinery, trailers, tractors and parts for customers across Europe."
+        path="/"
+      />
       <Navbar />
       
       <HeroSection />

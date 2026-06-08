@@ -5,6 +5,7 @@ import { Users, Award, Wrench, Globe } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 
 const About = () => {
