@@ -324,6 +324,18 @@ const resources = {
           machinery: "Machines",
           agriculture: "Agriculture",
           default: "Vehicles"
+        },
+        vehiclesAvailable_one: "{{count}} vehicle available",
+        vehiclesAvailable_other: "{{count}} vehicles available",
+        filtersButton: "Filters",
+        closeFilters: "Close",
+        categoryDescriptions: {
+          camioes: "Quality used trucks ready for immediate delivery across Europe.",
+          maquinas: "Industrial and construction machinery available for delivery across Europe.",
+          tractores: "Agricultural tractors and equipment ready for delivery across Europe.",
+          reboques: "Trailers and semi-trailers for trucks and transport, available across Europe.",
+          pecas: "Quality parts and components for trucks, machinery, trailers and tractors.",
+          default: "Browse our stock, ready for delivery across Europe."
         }
       },
       featured: {
@@ -848,6 +860,18 @@ const resources = {
           machinery: "Máquinas",
           agriculture: "Agricultura",
           default: "Veículos"
+        },
+        vehiclesAvailable_one: "{{count}} veículo disponível",
+        vehiclesAvailable_other: "{{count}} veículos disponíveis",
+        filtersButton: "Filtros",
+        closeFilters: "Fechar",
+        categoryDescriptions: {
+          camioes: "Camiões usados de qualidade, prontos para entrega em toda a Europa.",
+          maquinas: "Maquinaria industrial e de construção disponível para entrega em toda a Europa.",
+          tractores: "Tractores agrícolas e equipamento prontos para entrega em toda a Europa.",
+          reboques: "Reboques e semi-reboques para camiões e transporte, disponíveis em toda a Europa.",
+          pecas: "Peças e componentes de qualidade para camiões, maquinaria, reboques e tractores.",
+          default: "Veja o nosso stock, pronto para entrega em toda a Europa."
         }
       },
       featured: {
@@ -1372,6 +1396,18 @@ const resources = {
           machinery: "Machines",
           agriculture: "Agriculture",
           default: "Véhicules"
+        },
+        vehiclesAvailable_one: "{{count}} véhicule disponible",
+        vehiclesAvailable_other: "{{count}} véhicules disponibles",
+        filtersButton: "Filtres",
+        closeFilters: "Fermer",
+        categoryDescriptions: {
+          camioes: "Camions d'occasion de qualité, prêts à être livrés dans toute l'Europe.",
+          maquinas: "Machines industrielles et de construction disponibles dans toute l'Europe.",
+          tractores: "Tracteurs agricoles et équipement prêts à être livrés dans toute l'Europe.",
+          reboques: "Remorques et semi-remorques pour camions et transport, disponibles en Europe.",
+          pecas: "Pièces et composants de qualité pour camions, machines, remorques et tracteurs.",
+          default: "Découvrez notre stock, prêt à être livré dans toute l'Europe."
         }
       },
       featured: {
