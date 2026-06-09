@@ -279,7 +279,7 @@ const NewVehicleCategory = () => {
                               <>
                                 <span>•</span>
                                 <span className="capitalize">
-                                  {t(`filterPanel.${vehicle.condition}`, vehicle.condition)}
+                                  {t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}
                                 </span>
                               </>
                             )}
