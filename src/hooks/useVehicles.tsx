@@ -109,14 +109,18 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
       }
 
       if (filters?.brand) {
-        const { data: brandData } = await supabase
-          .from('brands')
-          .select('id')
-          .eq('slug', filters.brand)
-          .single();
-        
-        if (brandData) {
-          query = query.eq('brand_id', brandData.id);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(filters.brand);
+        if (isUuid) {
+          query = query.eq('brand_id', filters.brand);
+        } else {
+          const { data: brandData } = await supabase
+            .from('brands')
+            .select('id')
+            .eq('slug', filters.brand)
+            .maybeSingle();
+          if (brandData) {
+            query = query.eq('brand_id', brandData.id);
+          }
         }
       }
 
