@@ -58,23 +58,28 @@ const CategorySidebarFilter: React.FC<Props> = ({ category, filters, onChange })
   const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
   return (
-    <aside className="w-full bg-white border border-gray-200 rounded-lg p-5 space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">
-          {t("common.filter")}
+    <aside className="w-full bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50">
+        <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+          {t("filterPanel.filtersButton")}
+          {activeCount > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center text-[10px] font-bold bg-orange-500 text-white rounded-full h-5 min-w-5 px-1.5">
+              {activeCount}
+            </span>
+          )}
         </h2>
-        {activeCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={reset}
-            className="text-gray-600 h-7 px-2"
-          >
-            <RotateCcw className="h-3.5 w-3.5 mr-1" />
-            {t("filterPanel.clearFilters")}
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={reset}
+          disabled={activeCount === 0}
+          className="text-gray-600 hover:text-orange-600 h-7 px-2 text-xs disabled:opacity-40"
+        >
+          <RotateCcw className="h-3.5 w-3.5 mr-1" />
+          {t("filterPanel.clearFilters")}
+        </Button>
       </div>
+      <div className="p-5 space-y-5">
 
       {subcategories.length > 0 && (
         <div>
@@ -233,6 +238,7 @@ const CategorySidebarFilter: React.FC<Props> = ({ category, filters, onChange })
             <SelectItem value="year-old">{t("filterPanel.yearAsc")}</SelectItem>
           </SelectContent>
         </Select>
+      </div>
       </div>
     </aside>
   );
