@@ -239,24 +239,7 @@ const NewVehicleCategory = () => {
               {isLoading ? (
                 <LoadingSkeleton />
               ) : vehicles && vehicles.length > 0 ? (
-                <>{(() => {
-                  // Adaptive grid based on result count
-                  const count = paginationData.currentVehicles.length;
-                  const gridClass =
-                    count === 1
-                      ? "grid grid-cols-1 gap-6 mb-8"
-                      : count <= 3
-                      ? "grid sm:grid-cols-2 gap-6 mb-8"
-                      : "grid sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8";
-                  const aspectClass =
-                    count === 1 ? "aspect-[16/9]" : "aspect-[4/3]";
-                  const titleClass =
-                    count === 1
-                      ? "text-2xl md:text-3xl leading-tight line-clamp-2"
-                      : "text-lg leading-snug line-clamp-2 min-h-[3rem]";
-                  const priceClass =
-                    count === 1 ? "text-3xl md:text-4xl" : "text-xl";
-                  return (
+                <>
                   <div className="mb-4 hidden lg:flex justify-between items-center">
                     <p className="text-sm text-gray-600">
                       {t("category.showing", {
@@ -265,8 +248,7 @@ const NewVehicleCategory = () => {
                         total: totalCount,
                       })}
                     </p>
-                  </div>);
-                })()}
+                  </div>
                 {(() => {
                   const count = paginationData.currentVehicles.length;
                   const gridClass =
