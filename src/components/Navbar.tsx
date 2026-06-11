@@ -92,9 +92,9 @@ const Navbar = () => {
       className={`fixed top-0 w-full z-50 transition-transform duration-300 ease-in-out will-change-transform ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       } ${
-        isScrolled
-          ? 'bg-orange-500/95 backdrop-blur-md shadow-lg border-b border-orange-600'
-          : 'bg-transparent'
+        isScrolled || !isHomepage
+          ? 'bg-orange-500 backdrop-blur-md shadow-md border-b border-orange-600'
+          : 'bg-gradient-to-b from-black/40 to-transparent'
       }`}
       style={{ backfaceVisibility: 'hidden' }}
     >
@@ -118,14 +118,10 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] ${
+                className={`px-4 py-2 rounded-md font-semibold text-sm tracking-wide transition-all duration-200 ${
                   isActive(item.path)
-                    ? isScrolled
-                      ? "bg-orange-600 text-white"
-                      : "bg-white/20 text-white"
-                    : isScrolled
-                    ? "text-white hover:bg-orange-600 hover:text-white"
-                    : "text-white hover:bg-white/10 hover:text-white"
+                    ? "bg-white text-orange-600 shadow-sm"
+                    : "text-white hover:bg-white/15"
                 }`}
               >
                 {item.name}
