@@ -48,6 +48,15 @@ const CATEGORY_SEO: Record<string, { title: string; description: string }> = {
 
 const VEHICLES_PER_PAGE = 12;
 
+// Map URL slug to nav i18n key so category titles follow the active language
+const SLUG_TO_NAV_KEY: Record<string, string> = {
+  camioes: "nav.trucks",
+  maquinas: "nav.machinery",
+  tractores: "nav.tractors",
+  reboques: "nav.trailers",
+  pecas: "nav.parts",
+};
+
 const NewVehicleCategory = () => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -131,7 +140,8 @@ const NewVehicleCategory = () => {
     </div>
   );
 
-  const categoryTitle = currentCategory?.name || category;
+  const navKey = SLUG_TO_NAV_KEY[category];
+  const categoryTitle = navKey ? t(navKey) : currentCategory?.name || category;
   const categoryDescription = t(`filterPanel.categoryDescriptions.${category}`, {
     defaultValue: t("filterPanel.categoryDescriptions.default"),
   });
