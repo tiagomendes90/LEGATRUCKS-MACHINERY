@@ -172,10 +172,10 @@ const NewVehicleFilter: React.FC<NewVehicleFilterProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-gray-900">{getCategoryName(category)}</h2>
-            <span className="text-gray-600 font-medium">{totalCount} oferta{totalCount !== 1 ? 's' : ''}</span>
-
-             <span className="text-gray-600 font-medium">{totalCount} {totalCount !== 1 ? t('filterPanel.offers') : t('filterPanel.offer')}</span>
-           </div>
+            <span className="text-gray-600 font-medium">
+              {totalCount} {totalCount !== 1 ? t('filterPanel.offers') : t('filterPanel.offer')}
+            </span>
+          </div>
         </div>
       </div>
 
