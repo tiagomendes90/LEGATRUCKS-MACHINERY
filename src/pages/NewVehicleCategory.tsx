@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, MapPin, Calendar, Gauge } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
@@ -174,22 +174,26 @@ const NewVehicleCategory = () => {
       <Navbar />
 
       {/* Slim category header */}
-      <section className="bg-white border-b border-gray-200 pt-24 pb-6">
+      <section className="bg-white border-b border-gray-200 pt-16 pb-3">
         <div className="container mx-auto px-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 uppercase tracking-tight">
-            {categoryTitle}
-          </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1 max-w-2xl">
-            {categoryDescription}
-          </p>
-          <p className="text-sm font-medium text-orange-600 mt-2">
-            {t("filterPanel.vehiclesAvailable", { count: totalCount })}
-          </p>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-1">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 uppercase tracking-tight leading-tight">
+                {categoryTitle}
+              </h1>
+              <p className="text-xs md:text-sm text-gray-600 mt-0.5 max-w-2xl">
+                {categoryDescription}
+              </p>
+            </div>
+            <p className="text-xs md:text-sm font-semibold text-orange-600 md:text-right">
+              {t("filterPanel.vehiclesAvailable", { count: totalCount })}
+            </p>
+          </div>
         </div>
       </section>
 
       {/* Main: sidebar + grid */}
-      <section className="py-8 flex-1">
+      <section className="py-6 flex-1">
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Desktop sidebar */}
@@ -235,7 +239,24 @@ const NewVehicleCategory = () => {
               {isLoading ? (
                 <LoadingSkeleton />
               ) : vehicles && vehicles.length > 0 ? (
-                <>
+                <>{(() => {
+                  // Adaptive grid based on result count
+                  const count = paginationData.currentVehicles.length;
+                  const gridClass =
+                    count === 1
+                      ? "grid grid-cols-1 gap-6 mb-8"
+                      : count <= 3
+                      ? "grid sm:grid-cols-2 gap-6 mb-8"
+                      : "grid sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8";
+                  const aspectClass =
+                    count === 1 ? "aspect-[16/9]" : "aspect-[4/3]";
+                  const titleClass =
+                    count === 1
+                      ? "text-2xl md:text-3xl leading-tight line-clamp-2"
+                      : "text-lg leading-snug line-clamp-2 min-h-[3rem]";
+                  const priceClass =
+                    count === 1 ? "text-3xl md:text-4xl" : "text-xl";
+                  return (
                   <div className="mb-4 hidden lg:flex justify-between items-center">
                     <p className="text-sm text-gray-600">
                       {t("category.showing", {
@@ -244,60 +265,96 @@ const NewVehicleCategory = () => {
                         total: totalCount,
                       })}
                     </p>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-                    {paginationData.currentVehicles.map((vehicle: any) => (
+                  </div>);
+                })()}
+                {(() => {
+                  const count = paginationData.currentVehicles.length;
+                  const gridClass =
+                    count === 1
+                      ? "grid grid-cols-1 gap-6 mb-8"
+                      : count <= 3
+                      ? "grid sm:grid-cols-2 gap-6 mb-8"
+                      : "grid sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8";
+                  const aspectClass =
+                    count === 1 ? "aspect-[16/9]" : "aspect-[4/3]";
+                  const titleClass =
+                    count === 1
+                      ? "text-2xl md:text-3xl leading-tight line-clamp-2 min-h-0"
+                      : "text-lg leading-snug line-clamp-2 min-h-[3rem]";
+                  const priceClass =
+                    count === 1 ? "text-3xl md:text-4xl" : "text-2xl";
+                  return (
+                  <div className={gridClass}>
+                    {paginationData.currentVehicles.map((vehicle: any) => {
+                      const mileage = vehicle.mileage ?? vehicle.km;
+                      const hours = vehicle.operating_hours ?? vehicle.hours;
+                      const location = [vehicle.location_city, vehicle.location_country]
+                        .filter(Boolean)
+                        .join(", ");
+                      return (
                       <Card
                         key={vehicle.id}
-                        className="group hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer flex flex-col"
+                        className="group hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col border-gray-200"
                         onClick={() => handleVehicleClick(vehicle)}
                       >
-                        <div className="relative overflow-hidden aspect-[4/3] bg-gray-100">
+                        <div className={`relative overflow-hidden ${aspectClass} bg-gray-100`}>
                           <img
                             src={
                               vehicle.images?.[0]?.image_url ||
-                              "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=500&h=300&fit=crop"
+                              "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=900&h=600&fit=crop"
                             }
                             alt={vehicle.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             loading="lazy"
-                            width={500}
-                            height={375}
                           />
-                          {vehicle.subcategory?.name && (
-                            <Badge className="absolute top-3 left-3 bg-blue-600 hover:bg-blue-600">
-                              {vehicle.subcategory.name}
+                          {vehicle.condition && (
+                            <Badge className="absolute top-3 right-3 bg-orange-500 hover:bg-orange-500 text-white font-semibold uppercase text-[10px] tracking-wider">
+                              {t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}
                             </Badge>
                           )}
                         </div>
                         <CardHeader className="pb-2">
-                          <div className="text-xs text-gray-500 uppercase tracking-wide">
-                            {vehicle.brand?.name || ""}
+                          <div className="flex items-center justify-between text-[11px] text-gray-500 uppercase tracking-wider font-medium">
+                            <span>{vehicle.brand?.name || ""}</span>
+                            {vehicle.year && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {vehicle.year}
+                              </span>
+                            )}
                           </div>
-                          <CardTitle className="text-lg leading-snug line-clamp-2 min-h-[3rem]">
+                          <CardTitle className={`${titleClass} text-gray-900`}>
                             {vehicle.title}
                           </CardTitle>
-                          <div className="text-xl font-bold text-orange-600">
+                          <div className={`${priceClass} font-bold text-orange-600 mt-1`}>
                             {vehicle.price
                               ? `€${Number(vehicle.price).toLocaleString()}`
                               : t("featured.onRequest")}
                           </div>
-                          <div className="text-xs text-gray-500 flex gap-2">
-                            {vehicle.year && <span>{vehicle.year}</span>}
-                            {vehicle.condition && (
-                              <>
-                                <span>•</span>
-                                <span className="capitalize">
-                                  {t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}
-                                </span>
-                              </>
+                        </CardHeader>
+                        <CardContent className="mt-auto pt-0 pb-4">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600 mb-3 min-h-5">
+                            {mileage && (
+                              <span className="flex items-center gap-1">
+                                <Gauge className="h-3.5 w-3.5" />
+                                {Number(mileage).toLocaleString()} km
+                              </span>
+                            )}
+                            {hours && (
+                              <span className="flex items-center gap-1">
+                                <Gauge className="h-3.5 w-3.5" />
+                                {Number(hours).toLocaleString()} h
+                              </span>
+                            )}
+                            {location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3.5 w-3.5" />
+                                {location}
+                              </span>
                             )}
                           </div>
-                        </CardHeader>
-                        <CardContent className="mt-auto pt-2">
                           <Button
-                            className="w-full bg-slate-800 hover:bg-slate-700"
+                            className="w-full bg-slate-900 hover:bg-orange-500 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleVehicleClick(vehicle);
@@ -307,8 +364,10 @@ const NewVehicleCategory = () => {
                           </Button>
                         </CardContent>
                       </Card>
-                    ))}
-                  </div>
+                      );
+                    })}
+                  </div>);
+                })()}
 
                   {paginationData.totalPages > 1 && (
                     <Pagination>
