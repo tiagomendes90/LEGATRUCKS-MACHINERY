@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -8,6 +7,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
+import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+
+const Footer = () => {
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -94,10 +96,10 @@ const Footer = () => {
             {/* Social Media Icons */}
             <div className="flex space-x-2">
               <a
-                href="https://wa.me/351123456789"
+                href={getWhatsAppUrl(t('whatsapp.message'))}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="WhatsApp"
+                aria-label={t('whatsapp.ariaLabel')}
                 className="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm transition-transform duration-300 hover:scale-110 cursor-pointer"
               >
                 <svg className="h-5 w-5 fill-[#25D366]" viewBox="0 0 24 24">
@@ -172,7 +174,9 @@ const Footer = () => {
             <div className="space-y-2 text-sm">
               <div className="flex items-center space-x-2 text-white">
                 <Phone className="h-4 w-4" />
-                <span className="font-normal text-white">+351 912 406 089</span>
+                <a href={`tel:${WHATSAPP_DISPLAY.replace(/\s/g, '')}`} className="font-normal text-white hover:text-gray-200">
+                  {WHATSAPP_DISPLAY}
+                </a>
               </div>
               <div className="flex items-center space-x-2 text-white">
                 <Mail className="h-4 w-4" />
