@@ -5,6 +5,7 @@ import { Phone, Mail, Share2, Printer, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ContactVehicleModal from "./ContactVehicleModal";
 import { Vehicle } from "@/hooks/useVehicles";
+import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 
 interface VehicleActionsProps {
   vehicle: Vehicle;
@@ -15,7 +16,7 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handleCallClick = () => {
-    window.location.href = `tel:${'351123456789'}`;
+    window.location.href = `tel:${WHATSAPP_DISPLAY.replace(/\s/g, '')}`;
   };
 
   const handleMailClick = () => {
