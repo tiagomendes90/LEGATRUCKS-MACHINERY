@@ -22,6 +22,7 @@ import { useVehicles } from "@/hooks/useVehicles";
 import { useCategories } from "@/hooks/useCategories";
 import { useTranslation } from "react-i18next";
 import SEO from "@/components/SEO";
+import PageHero from "@/components/PageHero";
 
 const CATEGORY_SEO: Record<string, { title: string; description: string }> = {
   camioes: {
@@ -173,24 +174,7 @@ const NewVehicleCategory = () => {
       <SEO title={seo.title} description={seo.description} path={`/${category}`} />
       <Navbar />
 
-      {/* Slim category header */}
-      <section className="bg-white border-b border-gray-200 pt-16 pb-3">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-1">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 uppercase tracking-tight leading-tight">
-                {categoryTitle}
-              </h1>
-              <p className="text-xs md:text-sm text-gray-600 mt-0.5 max-w-2xl">
-                {categoryDescription}
-              </p>
-            </div>
-            <p className="text-xs md:text-sm font-semibold text-orange-600 md:text-right">
-              {t("filterPanel.vehiclesAvailable", { count: totalCount })}
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero title={categoryTitle} subtitle={categoryDescription} />
 
       {/* Main: sidebar + grid */}
       <section className="py-6 flex-1">
@@ -247,6 +231,9 @@ const NewVehicleCategory = () => {
                         end: Math.min(paginationData.endIndex, totalCount),
                         total: totalCount,
                       })}
+                    </p>
+                    <p className="text-sm font-semibold text-orange-600">
+                      {t("filterPanel.vehiclesAvailable", { count: totalCount })}
                     </p>
                   </div>
                 {(() => {
