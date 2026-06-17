@@ -17,7 +17,7 @@ const AccessGate = ({ children }: { children: React.ReactNode }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (code.trim() === ACCESS_CODE) {
-      localStorage.setItem(STORAGE_KEY, "true");
+      sessionStorage.setItem(STORAGE_KEY, "true");
       setGranted(true);
     } else {
       setError(true);
