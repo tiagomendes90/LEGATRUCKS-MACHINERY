@@ -10,8 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 
 const Footer = () => {
-
-const Footer = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
