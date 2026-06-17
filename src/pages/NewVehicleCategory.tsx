@@ -26,24 +26,24 @@ import PageHero from "@/components/PageHero";
 
 const CATEGORY_SEO: Record<string, { title: string; description: string }> = {
   camioes: {
-    title: "Used Trucks for Sale | LEGA",
-    description: "Browse LEGA's selection of quality used trucks available for immediate delivery across Europe.",
+    title: "Camiões Usados e Comerciais em Portugal | Lega",
+    description: "Camiões usados e comerciais em Portugal: stock variado de veículos pesados para transporte e logística, com entrega rápida e financiamento disponível.",
   },
   maquinas: {
-    title: "Construction Machinery for Sale | LEGA",
-    description: "Explore LEGA's range of used construction and industrial machinery available across Europe.",
+    title: "Máquinas Industriais e Equipamentos Pesados | Lega",
+    description: "Máquinas industriais e equipamentos pesados para construção, obras públicas e indústria. Stock atualizado de máquinas usadas e seminovas em Portugal.",
   },
   tractores: {
-    title: "Used Tractors for Sale | LEGA",
-    description: "Discover LEGA's selection of used agricultural tractors, ready for delivery across Europe.",
+    title: "Tractores Agrícolas em Portugal | Lega",
+    description: "Tractores agrícolas usados e seminovos em Portugal. Soluções para agricultura, pecuária e exploração florestal com entrega em todo o país.",
   },
   reboques: {
-    title: "Trailers for Sale | LEGA",
-    description: "Browse LEGA's range of trailers for trucks and transport, available across Europe.",
+    title: "Reboques Comerciais e Pesados | Lega",
+    description: "Reboques comerciais e pesados para transporte de mercadorias, máquinas e veículos. Variedade de tipologias disponíveis em stock na Lega.",
   },
   pecas: {
-    title: "Truck & Machinery Parts | LEGA",
-    description: "Quality parts and components for trucks, machinery, trailers and tractors — in stock at LEGA.",
+    title: "Peças para Máquinas e Camiões em Portugal | Lega",
+    description: "Peças e componentes para camiões, máquinas, tractores e reboques. Stock alargado de peças novas e usadas com envio para todo o país.",
   },
 };
 

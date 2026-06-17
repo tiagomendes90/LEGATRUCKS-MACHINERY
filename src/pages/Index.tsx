@@ -22,8 +22,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="LEGA | Used Trucks, Machinery, Trailers, Tractors and Parts"
-        description="LEGA specialises in quality used trucks, construction machinery, trailers, tractors and parts for customers across Europe."
+        title="Lega | Equipamentos e Soluções Industriais em Portugal"
+        description="Lega é a plataforma portuguesa de referência para camiões, máquinas industriais, tractores, reboques e peças. Equipamentos de qualidade e soluções para empresas em todo o país."
         path="/"
       />
       <Navbar />
