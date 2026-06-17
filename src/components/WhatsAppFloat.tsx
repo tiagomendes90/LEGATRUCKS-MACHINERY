@@ -42,11 +42,10 @@ const WhatsAppFloat = () => {
   // Only show on mobile devices - moved after all hooks
   if (!isMobile) return null;
 
-  // Hide on homepage when not scrolled past hero, and hide on contact/admin/about pages
+  // Hide on homepage when not scrolled past hero, and hide on contact/admin pages
   const shouldHide = (location.pathname === "/" && !isScrolledPastHero) || 
                     location.pathname === "/contact" || 
-                    location.pathname === "/admin" ||
-                    location.pathname === "/about";
+                    location.pathname === "/admin";
 
   if (shouldHide) return null;
 

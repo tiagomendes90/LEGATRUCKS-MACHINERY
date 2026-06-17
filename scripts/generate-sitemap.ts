@@ -17,7 +17,6 @@ const entries: SitemapEntry[] = [
   { path: "/tractores", changefreq: "weekly", priority: "0.9" },
   { path: "/reboques", changefreq: "weekly", priority: "0.9" },
   { path: "/pecas", changefreq: "weekly", priority: "0.9" },
-  { path: "/sobre", changefreq: "monthly", priority: "0.6" },
   { path: "/contactos", changefreq: "monthly", priority: "0.6" },
   { path: "/terms", changefreq: "yearly", priority: "0.3" },
   { path: "/privacy", changefreq: "yearly", priority: "0.3" },
