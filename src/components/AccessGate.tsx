@@ -5,12 +5,21 @@ import { Input } from "@/components/ui/input";
 const ACCESS_CODE = "lega2026";
 const STORAGE_KEY = "site_access_granted";
 
+const isBot = () => {
+  const ua = navigator.userAgent.toLowerCase();
+  return /googlebot|bingbot|yandexbot|duckduckbot|slurp|facebookexternalhit|twitterbot|linkedinbot|applebot|whatsapp|telegrambot|ia_archiver/.test(ua);
+};
+
 const AccessGate = ({ children }: { children: React.ReactNode }) => {
   const [granted, setGranted] = useState<boolean | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (isBot()) {
+      setGranted(true);
+      return;
+    }
     setGranted(sessionStorage.getItem(STORAGE_KEY) === "true");
   }, []);
 
