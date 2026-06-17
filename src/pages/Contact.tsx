@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import contactBanner from "@/assets/contact-banner.jpg";
+import PageHero from "@/components/PageHero";
 
 const WHATSAPP_NUMBER = "351912406089";
 const PHONE_DISPLAY = "+351 912 406 089";
@@ -62,18 +63,7 @@ const Contact = () => {
       />
       <Navbar />
 
-      {/* Compact Hero */}
-      <section
-        className="bg-gradient-to-r from-blue-900 to-slate-800 text-white pt-28 pb-10"
-        style={{ minHeight: 220 }}
-      >
-        <div className="container mx-auto px-6">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-left">{t('contact.title')}</h1>
-          <p className="text-base md:text-lg text-blue-100 max-w-2xl text-left">
-            {t('contact.subtitle')}
-          </p>
-        </div>
-      </section>
+      <PageHero title={t('contact.title')} subtitle={t('contact.subtitle')} />
 
       {/* Image Banner */}
       <section className="relative w-full overflow-hidden" style={{ height: 250 }}>

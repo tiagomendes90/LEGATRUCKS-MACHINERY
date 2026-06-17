@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import PageHero from "@/components/PageHero";
 
 const Terms = () => {
   const { t } = useTranslation();
@@ -14,13 +15,8 @@ const Terms = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 container mx-auto max-w-4xl px-6 pt-28 pb-16">
-        <h1 className="text-4xl font-bold text-foreground mb-4">
-          {t("legal.terms.title")}
-        </h1>
-        <p className="text-muted-foreground mb-10">
-          {t("legal.terms.intro")}
-        </p>
+      <PageHero title={t("legal.terms.title")} subtitle={t("legal.terms.intro")} />
+      <main className="flex-1 container mx-auto max-w-4xl px-6 py-16">
         <div className="space-y-8">
           {Array.isArray(sections) &&
             sections.map((s, i) => (
