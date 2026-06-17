@@ -12,7 +12,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
-import contactBanner from "@/assets/contact-banner.jpg";
 import PageHero from "@/components/PageHero";
 
 const WHATSAPP_NUMBER = "351912406089";
@@ -64,24 +63,6 @@ const Contact = () => {
       <Navbar />
 
       <PageHero title={t('contact.title')} subtitle={t('contact.subtitle')} />
-
-      {/* Image Banner */}
-      <section className="relative w-full overflow-hidden" style={{ height: 250 }}>
-        <img
-          src={contactBanner}
-          alt="LEGA trucks and machinery yard"
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="lazy"
-          width={1920}
-          height={1080}
-        />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative container mx-auto px-6 h-full flex items-center">
-          <p className="text-white text-xl md:text-2xl font-semibold max-w-2xl drop-shadow">
-            {t('contact.bannerHeadline')}
-          </p>
-        </div>
-      </section>
 
       {/* Contact Content */}
       <section className="py-12 md:py-16">
