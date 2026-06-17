@@ -40,13 +40,11 @@ const App = () => (
             <Route path="/:slug" element={<NewVehicleCategory />} />
             
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
-            <Route path="/sobre" element={<About />} />
             <Route path="/contactos" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             
             {/* Legacy routes */}
-            <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<AdminLogin />} />
             <Route 
