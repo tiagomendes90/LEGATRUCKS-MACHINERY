@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import SEO from "@/components/SEO";
+import PageHero from "@/components/PageHero";
 import { useTranslation } from "react-i18next";
 
 const About = () => {
@@ -52,15 +53,7 @@ const About = () => {
       />
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 to-slate-800 text-white py-[150px] bg-blue-500">
-        <div className="container mx-auto px-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('about.title')}</h1>
-          <p className="text-xl text-blue-100 max-w-3xl">
-            {t('about.subtitle')}
-          </p>
-        </div>
-      </section>
+      <PageHero title={t('about.title')} subtitle={t('about.subtitle')} />
 
       {/* Stats Section */}
       <section className="py-16 bg-slate-50">
