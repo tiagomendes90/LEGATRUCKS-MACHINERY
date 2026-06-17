@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 
 const WhatsAppIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -10,17 +11,17 @@ const WhatsAppIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
 
 const QuickContactBar = () => {
   const { t } = useTranslation();
-  const whatsappUrl = `https://wa.me/351912406089?text=${encodeURIComponent(t('whatsapp.message'))}`;
+  const whatsappUrl = getWhatsAppUrl(t('whatsapp.message'));
 
   return (
     <section className="bg-orange-500 py-4">
       <div className="container mx-auto px-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
         <a
-          href="tel:+351912406089"
+          href={`tel:${WHATSAPP_DISPLAY.replace(/\s/g, '')}`}
           className="flex items-center gap-2 text-white font-semibold text-lg hover:text-orange-100 transition-colors"
         >
           <Phone className="h-5 w-5" />
-          +351 912 406 089
+          {WHATSAPP_DISPLAY}
         </a>
         <Button
           asChild

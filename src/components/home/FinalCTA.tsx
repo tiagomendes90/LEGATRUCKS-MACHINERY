@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 const WhatsAppIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -10,7 +11,7 @@ const WhatsAppIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
 
 const FinalCTA = () => {
   const { t } = useTranslation();
-  const whatsappUrl = `https://wa.me/351912406089?text=${encodeURIComponent(t('whatsapp.message'))}`;
+  const whatsappUrl = getWhatsAppUrl(t('whatsapp.message'));
 
   return (
     <section className="py-20 bg-gray-900 text-white">
