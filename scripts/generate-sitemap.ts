@@ -2,7 +2,7 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
-const BASE_URL = "https://lega-pt.lovable.app";
+const BASE_URL = "https://lega.pt";
 
 interface SitemapEntry {
   path: string;
