@@ -10,7 +10,6 @@ import CookieBanner from "@/components/CookieBanner";
 import Index from "./pages/Index";
 import NewVehicleCategory from "./pages/NewVehicleCategory";
 import VehicleDetails from "./pages/VehicleDetails";
-import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
