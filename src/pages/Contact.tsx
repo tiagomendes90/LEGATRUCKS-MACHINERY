@@ -56,8 +56,8 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <SEO
-        title="Contact LEGA | Request a Quote for Trucks, Machinery & Parts"
-        description="Get in touch with LEGA for quotes on used trucks, construction machinery, trailers, tractors and parts. Fast response across Europe."
+        title="Contactos | Lega"
+        description="Entre em contacto com a Lega para pedidos de orçamento sobre camiões, máquinas, tractores, reboques e peças. Resposta rápida em Portugal e Europa."
         path="/contactos"
       />
       <Navbar />
