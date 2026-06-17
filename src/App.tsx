@@ -10,7 +10,6 @@ import CookieBanner from "@/components/CookieBanner";
 import Index from "./pages/Index";
 import NewVehicleCategory from "./pages/NewVehicleCategory";
 import VehicleDetails from "./pages/VehicleDetails";
-import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -41,13 +40,11 @@ const App = () => (
             <Route path="/:slug" element={<NewVehicleCategory />} />
             
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
-            <Route path="/sobre" element={<About />} />
             <Route path="/contactos" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             
             {/* Legacy routes */}
-            <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<AdminLogin />} />
             <Route 
