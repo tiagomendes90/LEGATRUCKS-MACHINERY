@@ -11,13 +11,13 @@ const AccessGate = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    setGranted(localStorage.getItem(STORAGE_KEY) === "true");
+    setGranted(sessionStorage.getItem(STORAGE_KEY) === "true");
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (code.trim() === ACCESS_CODE) {
-      localStorage.setItem(STORAGE_KEY, "true");
+      sessionStorage.setItem(STORAGE_KEY, "true");
       setGranted(true);
     } else {
       setError(true);
