@@ -3,6 +3,7 @@ import { supabase } from '@/admin/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
+import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,18 +16,19 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user && isAdmin) {
       navigate('/admin');
     }
-  }, [user, navigate]);
+  }, [authLoading, user, isAdmin, navigate]);
 
-  const handleLogin = async () => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
 
@@ -51,22 +53,30 @@ export default function AdminLogin() {
           </div>
           <CardTitle className="text-2xl font-bold">{t('adminLogin.title')}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
+          <form className="space-y-4" onSubmit={handleLogin}>
           <Input
             type="email"
             placeholder={t('adminLogin.email')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            disabled={loading}
+            required
           />
           <Input
             type="password"
             placeholder={t('adminLogin.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            disabled={loading}
+            required
           />
-          <Button className="w-full" onClick={handleLogin} disabled={loading}>
+          <Button className="w-full" type="submit" disabled={loading}>
             {loading ? t('adminLogin.loggingIn') : t('adminLogin.login')}
           </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
