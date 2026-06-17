@@ -12,7 +12,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
-import contactBanner from "@/assets/contact-banner.jpg";
 import PageHero from "@/components/PageHero";
 
 const WHATSAPP_NUMBER = "351912406089";
