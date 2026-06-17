@@ -1630,9 +1630,29 @@ i18n
     },
     lng: (() => {
       try {
-        return localStorage.getItem('i18nextLng') || 'pt';
+        // 1) Manual choice always wins (persisted in localStorage)
+        const stored = localStorage.getItem('i18nextLng');
+        if (stored === 'pt' || stored === 'en' || stored === 'fr') {
+          return stored;
+        }
+        // 2) First visit: detect from browser language
+        const navLangs: string[] = [
+          ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+          navigator.language || '',
+        ].filter(Boolean);
+        const isPortuguese = navLangs.some((l) =>
+          l.toLowerCase().startsWith('pt')
+        );
+        const initial = isPortuguese ? 'pt' : 'en';
+        // Persist auto-detected choice so subsequent visits are stable
+        try {
+          localStorage.setItem('i18nextLng', initial);
+        } catch {
+          /* ignore */
+        }
+        return initial;
       } catch {
-        return 'pt';
+        return 'en';
       }
     })()
   });
