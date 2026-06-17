@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieBanner from "@/components/CookieBanner";
+import AccessGate from "@/components/AccessGate";
 import Index from "./pages/Index";
 import NewVehicleCategory from "./pages/NewVehicleCategory";
 import VehicleDetails from "./pages/VehicleDetails";
@@ -22,11 +23,12 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <AccessGate>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
@@ -61,6 +63,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+    </AccessGate>
   </QueryClientProvider>
 );
 
