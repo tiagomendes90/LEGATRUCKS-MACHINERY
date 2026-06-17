@@ -3,8 +3,8 @@ import { MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-
 import { useTranslation } from "react-i18next";
+import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 const WhatsAppFloat = () => {
   // Call all hooks at the top level, before any returns
@@ -50,10 +50,7 @@ const WhatsAppFloat = () => {
   if (shouldHide) return null;
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = "351912406089";
-    const message = t('whatsapp.message');
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    window.open(getWhatsAppUrl(t('whatsapp.message')), '_blank', 'noopener,noreferrer');
   };
 
   return (

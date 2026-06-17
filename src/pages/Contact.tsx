@@ -13,9 +13,9 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import PageHero from "@/components/PageHero";
+import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 
-const WHATSAPP_NUMBER = "351912406089";
-const PHONE_DISPLAY = "+351 912 406 089";
+const PHONE_DISPLAY = WHATSAPP_DISPLAY;
 const EMAIL = "info@lega.pt";
 
 const Contact = () => {
@@ -82,7 +82,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-800">{t('contact.phone')} / WhatsApp</h3>
-                      <a href={`tel:+${WHATSAPP_NUMBER}`} className="text-gray-700 hover:text-orange-600">
+                      <a href={`tel:${PHONE_DISPLAY.replace(/\s/g, '')}`} className="text-gray-700 hover:text-orange-600">
                         {PHONE_DISPLAY}
                       </a>
                     </div>
@@ -120,7 +120,7 @@ const Contact = () => {
                       className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-white"
                     >
                       <a
-                        href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                        href={getWhatsAppUrl(t('whatsapp.message'))}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
