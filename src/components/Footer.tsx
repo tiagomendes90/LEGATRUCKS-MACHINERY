@@ -94,10 +94,10 @@ const Footer = () => {
             {/* Social Media Icons */}
             <div className="flex space-x-2">
               <a
-                href={getWhatsAppUrl(t('whatsapp.message'))}
+                href="https://wa.me/351912406089"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={t('whatsapp.ariaLabel')}
+                aria-label="WhatsApp"
                 className="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm transition-transform duration-300 hover:scale-110 cursor-pointer"
               >
                 <svg className="h-5 w-5 fill-[#25D366]" viewBox="0 0 24 24">
