@@ -118,7 +118,7 @@ const Footer = () => {
               </a>
 
               <a
-                href="https://instagram.com/lega"
+                href="https://www.instagram.com/lega_trucks_and_machinery/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
