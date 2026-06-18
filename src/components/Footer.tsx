@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
-import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 
 const Footer = () => {
   const { t } = useTranslation();
