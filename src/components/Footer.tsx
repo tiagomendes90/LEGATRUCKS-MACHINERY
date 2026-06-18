@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
-import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -94,10 +94,10 @@ const Footer = () => {
             {/* Social Media Icons */}
             <div className="flex space-x-2">
               <a
-                href={getWhatsAppUrl(t('whatsapp.message'))}
+                href="https://wa.me/351912406089"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={t('whatsapp.ariaLabel')}
+                aria-label="WhatsApp"
                 className="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm transition-transform duration-300 hover:scale-110 cursor-pointer"
               >
                 <svg className="h-5 w-5 fill-[#25D366]" viewBox="0 0 24 24">
@@ -106,7 +106,7 @@ const Footer = () => {
               </a>
 
               <a
-                href="https://facebook.com/lega"
+                href="https://www.facebook.com/profile.php?id=61573724754152"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
@@ -118,7 +118,7 @@ const Footer = () => {
               </a>
 
               <a
-                href="https://instagram.com/lega"
+                href="https://www.instagram.com/lega_trucks_and_machinery/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
