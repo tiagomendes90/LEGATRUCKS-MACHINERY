@@ -183,7 +183,7 @@ const Footer = () => {
               <div className="flex items-start space-x-2 text-white">
                 <MapPin className="h-4 w-4 mt-1 shrink-0" />
                 <span className="text-white whitespace-pre-line text-xs leading-snug">
-                  {"Av. Dr. António Palha Nº25\n5º DIR FRT 4715-009\nBraga, Portugal"}
+                  {"Travessa do Monte\n4765-326 Oliveira Santa Maria\nVila Nova de Famalicão, Portugal"}
                 </span> 
               </div>
             </div>
@@ -197,11 +197,12 @@ const Footer = () => {
               <div className="text-center">
                 <MapPin className="h-5 w-5 text-white mx-auto mb-1" />
                 <p className="text-white text-xs leading-snug">
-  Av. Dr. António Palha 25<br />
-  4715-009 Braga, Portugal
+  Travessa do Monte<br />
+  4765-326 Oliveira Santa Maria<br />
+  Vila Nova de Famalicão, Portugal
 </p>
                 <a
-  href="https://www.google.com/maps/search/?api=1&query=Av.+Dr.+Ant%C3%B3nio+Palha+25+Braga+Portugal"
+  href="https://www.google.com/maps/search/?api=1&query=Travessa+do+Monte+4765-326+Oliveira+Santa+Maria+Vila+Nova+de+Famalic%C3%A3o+Portugal"
   target="_blank"
   rel="noopener noreferrer"
   className="text-white underline text-xs"

@@ -106,9 +106,10 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-800">{t('contact.location')}</h3>
-                      <p className="text-gray-700">Av. Dr. António Palha Nº25</p>
-                      <p className="text-gray-700">5º DIR FRT</p>
-                      <p className="text-gray-700">4715-009 Braga</p>
+                      <p className="text-gray-700">LEGA Trucks & Machinery</p>
+                      <p className="text-gray-700">Travessa do Monte</p>
+                      <p className="text-gray-700">4765-326 Oliveira Santa Maria</p>
+                      <p className="text-gray-700">Vila Nova de Famalicão</p>
                       <p className="text-gray-700">Portugal</p>
                     </div>
                   </div>
@@ -147,7 +148,7 @@ const Contact = () => {
               <Card className="shadow-lg overflow-hidden">
                 <iframe
                   title="LEGA location"
-                  src="https://www.google.com/maps?q=Av.+Dr.+Ant%C3%B3nio+Palha+25,+4715-009+Braga,+Portugal&output=embed"
+                  src="https://www.google.com/maps?q=Travessa+do+Monte,+4765-326+Oliveira+Santa+Maria,+Vila+Nova+de+Famalic%C3%A3o,+Portugal&output=embed"
                   width="100%"
                   height="300"
                   style={{ border: 0, display: "block" }}
