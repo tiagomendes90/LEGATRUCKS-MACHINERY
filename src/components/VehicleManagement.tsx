@@ -48,6 +48,10 @@ export const VehicleManagement = () => {
     window.location.reload();
   };
 
+  const canGenerateSocialAd = (vehicle: any) => {
+    return vehicle.is_active !== false && vehicle.is_published !== false;
+  };
+
   const getStatusBadge = (vehicle: any) => {
     if (!vehicle.is_active) {
       return <Badge variant="destructive">Inativo</Badge>;
@@ -170,14 +174,28 @@ export const VehicleManagement = () => {
                 <TableRow key={vehicle.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <img 
-                        src={vehicle.main_image_url || vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=100&h=100&fit=crop"} 
-                        alt={vehicle.title} 
-                        className="w-12 h-12 object-cover rounded"
-                        loading="lazy"
-                        width={48}
-                        height={48}
-                      />
+                      <div className="flex items-center gap-2">
+                        <img 
+                          src={vehicle.main_image_url || vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=100&h=100&fit=crop"} 
+                          alt={vehicle.title} 
+                          className="w-12 h-12 object-cover rounded"
+                          loading="lazy"
+                          width={48}
+                          height={48}
+                        />
+                        {canGenerateSocialAd(vehicle) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title="Gerar Anúncio para Redes Sociais"
+                            aria-label={`Gerar anúncio para redes sociais de ${vehicle.title}`}
+                            onClick={() => setSharingVehicle(vehicle)}
+                            className="h-10 w-10 p-0 shrink-0"
+                          >
+                            <ImageDown className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                       <div>
                         <p className="font-medium">{vehicle.title}</p>
                         <p className="text-sm text-muted-foreground">
@@ -211,16 +229,6 @@ export const VehicleManagement = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {vehicle.is_active && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          title="Gerar Anúncio para Redes Sociais"
-                          onClick={() => setSharingVehicle(vehicle)}
-                        >
-                          <ImageDown className="h-4 w-4" />
-                        </Button>
-                      )}
                       <Button 
                         variant="outline" 
                         size="sm"
