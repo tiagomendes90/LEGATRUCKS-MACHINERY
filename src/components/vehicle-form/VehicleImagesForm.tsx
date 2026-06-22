@@ -46,7 +46,10 @@ export const VehicleImagesForm = ({
       <div>
         <Label>Imagens de Detalhe</Label>
         <p className="text-sm text-gray-500 mb-2">
-          Galeria de imagens do veículo (máx. 20). Otimizadas automaticamente via ImageKit
+          Galeria de imagens do veículo (máx. 20). Otimizadas automaticamente via ImageKit.
+          <span className="block text-xs text-gray-400 mt-1">
+            💡 Arraste as imagens para reordenar a sequência de apresentação.
+          </span>
         </p>
         <SecondaryImagesUpload
           images={secondaryImages}
