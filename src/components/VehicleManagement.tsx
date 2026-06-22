@@ -48,7 +48,7 @@ export const VehicleManagement = () => {
     window.location.reload();
   };
 
-  const canGenerateSocialAd = (vehicle: any) => {
+  const canGenerateSocialAd = (vehicle: { is_active?: boolean | null; is_published?: boolean | null }) => {
     return vehicle.is_active !== false && vehicle.is_published !== false;
   };
 
