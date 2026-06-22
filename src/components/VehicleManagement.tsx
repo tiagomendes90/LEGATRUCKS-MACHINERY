@@ -6,11 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, Edit, Trash2, Filter } from "lucide-react";
+import { Eye, Edit, Trash2, Filter, Megaphone } from "lucide-react";
 import { useVehicles, useDeleteVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import AddVehicleForm from "@/components/AddVehicleForm";
+import SocialShareDialog from "@/components/SocialShareDialog";
 
 export const VehicleManagement = () => {
   // Use includeUnpublished=true to show all vehicles in admin panel
@@ -20,6 +21,7 @@ export const VehicleManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [editingVehicle, setEditingVehicle] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [sharingVehicle, setSharingVehicle] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -209,6 +211,16 @@ export const VehicleManagement = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                      {vehicle.is_published && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Publicar Redes Sociais"
+                          onClick={() => setSharingVehicle(vehicle)}
+                        >
+                          <Megaphone className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -248,6 +260,14 @@ export const VehicleManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {sharingVehicle && (
+        <SocialShareDialog
+          vehicle={sharingVehicle}
+          open={!!sharingVehicle}
+          onOpenChange={(o) => !o && setSharingVehicle(null)}
+        />
+      )}
     </div>
   );
 };
