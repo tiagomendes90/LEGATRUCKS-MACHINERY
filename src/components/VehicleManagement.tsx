@@ -6,12 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, Edit, Trash2, Filter, Megaphone } from "lucide-react";
+import { Eye, Edit, Trash2, Filter, ImageDown } from "lucide-react";
 import { useVehicles, useDeleteVehicle } from "@/hooks/useVehicles";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import AddVehicleForm from "@/components/AddVehicleForm";
-import SocialShareDialog from "@/components/SocialShareDialog";
+import SocialAdGenerator from "@/components/SocialAdGenerator";
 
 export const VehicleManagement = () => {
   // Use includeUnpublished=true to show all vehicles in admin panel
@@ -215,10 +215,10 @@ export const VehicleManagement = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          title="Publicar Redes Sociais"
+                          title="Gerar Anúncio para Redes Sociais"
                           onClick={() => setSharingVehicle(vehicle)}
                         >
-                          <Megaphone className="h-4 w-4" />
+                          <ImageDown className="h-4 w-4" />
                         </Button>
                       )}
                       <Button 
@@ -262,7 +262,7 @@ export const VehicleManagement = () => {
       </Dialog>
 
       {sharingVehicle && (
-        <SocialShareDialog
+        <SocialAdGenerator
           vehicle={sharingVehicle}
           open={!!sharingVehicle}
           onOpenChange={(o) => !o && setSharingVehicle(null)}
