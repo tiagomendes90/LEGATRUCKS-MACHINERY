@@ -123,7 +123,10 @@ const Admin = () => {
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
         </TabsList>
         <TabsContent value="inventory"><VehicleManagement /></TabsContent>
-        <TabsContent value="add-vehicle"><AddVehicleForm /></TabsContent>
+        {/* forceMount preserves form state when switching tabs */}
+        <TabsContent value="add-vehicle" forceMount className="data-[state=inactive]:hidden mt-2">
+          <AddVehicleForm />
+        </TabsContent>
         <TabsContent value="orders"><RealOrderManagement /></TabsContent>
       </Tabs>
     </div>

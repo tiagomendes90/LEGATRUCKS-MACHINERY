@@ -151,7 +151,13 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
       }
 
       console.log('Products fetched successfully:', data?.length || 0);
-      return data || [];
+      // Sort images by sort_order so the main image (sort_order=0) is always first
+      return (data || []).map((p: any) => ({
+        ...p,
+        images: Array.isArray(p.images)
+          ? [...p.images].sort((a: any, b: any) => (a.sort_order ?? 999) - (b.sort_order ?? 999))
+          : p.images,
+      }));
     },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
@@ -199,7 +205,11 @@ export const useVehicle = (id: string) => {
         `)
         .eq('product_id', id);
 
-      return { ...data, spec_values: specValues || [] };
+      const sortedImages = Array.isArray((data as any)?.images)
+        ? [...(data as any).images].sort((a: any, b: any) => (a.sort_order ?? 999) - (b.sort_order ?? 999))
+        : (data as any)?.images;
+
+      return { ...data, images: sortedImages, spec_values: specValues || [] };
     },
     enabled: !!id,
   });

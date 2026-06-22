@@ -1,11 +1,11 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Share2, Printer, MessageCircle } from "lucide-react";
+import { Mail, Share2, Printer, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ContactVehicleModal from "./ContactVehicleModal";
 import { Vehicle } from "@/hooks/useVehicles";
-import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+import { WHATSAPP_DISPLAY, openWhatsApp } from "@/lib/whatsapp";
 
 interface VehicleActionsProps {
   vehicle: Vehicle;
@@ -15,8 +15,9 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
   const { t } = useTranslation();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
-  const handleCallClick = () => {
-    window.location.href = `tel:${WHATSAPP_DISPLAY.replace(/\s/g, '')}`;
+  const handleWhatsAppClick = () => {
+    const message = `Olá! Tenho interesse no veículo "${vehicle.title}" (€${(vehicle.price || 0).toLocaleString()}). Pode dar-me mais informações?`;
+    openWhatsApp(message);
   };
 
   const handleMailClick = () => {
@@ -45,9 +46,9 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
           <MessageCircle className="h-5 w-5 mr-2" />
           {t('vehicleDetails.contactSeller', 'Contactar Vendedor')}
         </Button>
-        <Button onClick={handleCallClick} size="lg" className="w-full">
-          <Phone className="h-5 w-5 mr-2" />
-          {t('vehicleDetails.callNow')}
+        <Button onClick={handleWhatsAppClick} size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white">
+          <MessageCircle className="h-5 w-5 mr-2" />
+          WhatsApp
         </Button>
         <Button onClick={handleMailClick} variant="outline" size="lg" className="w-full">
           <Mail className="h-5 w-5 mr-2" />
