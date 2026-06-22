@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Loader2, GripVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SecondaryImagesUploadProps {
@@ -22,6 +22,8 @@ export const SecondaryImagesUpload = ({
   maxImages = 20 
 }: SecondaryImagesUploadProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +87,14 @@ export const SecondaryImagesUpload = ({
       onImagesChange(newImages);
     }
   }, [images, uploadedImages, onImagesChange, onUploadedImagesChange]);
+
+  const handleReorder = useCallback((from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= images.length || to >= images.length) return;
+    const next = [...images];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onImagesChange(next);
+  }, [images, onImagesChange]);
 
   const getImagePreview = (file: File): string => {
     return URL.createObjectURL(file);
@@ -177,7 +187,35 @@ export const SecondaryImagesUpload = ({
           
           {/* Pending images */}
           {images.map((file, index) => (
-            <Card key={`pending-${index}`} className="relative">
+            <Card
+              key={`pending-${index}`}
+              className={`relative cursor-move transition-all ${
+                overIndex === index ? 'ring-2 ring-primary' : ''
+              } ${dragIndex === index ? 'opacity-50' : ''}`}
+              draggable
+              onDragStart={(e) => {
+                setDragIndex(index);
+                e.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (overIndex !== index) setOverIndex(index);
+              }}
+              onDragLeave={() => {
+                if (overIndex === index) setOverIndex(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragIndex !== null) handleReorder(dragIndex, index);
+                setDragIndex(null);
+                setOverIndex(null);
+              }}
+              onDragEnd={() => {
+                setDragIndex(null);
+                setOverIndex(null);
+              }}
+            >
               <CardContent className="p-2">
                 <div className="aspect-square relative rounded-md overflow-hidden bg-gray-100">
                   <img
@@ -185,6 +223,9 @@ export const SecondaryImagesUpload = ({
                     alt={`Imagem de detalhe ${uploadedImages.length + index + 1}`}
                     className="w-full h-full object-cover"
                   />
+                  <div className="absolute top-1 left-1 bg-black/60 text-white rounded p-1 pointer-events-none">
+                    <GripVertical className="h-3 w-3" />
+                  </div>
                   <Button
                     type="button"
                     variant="destructive"
