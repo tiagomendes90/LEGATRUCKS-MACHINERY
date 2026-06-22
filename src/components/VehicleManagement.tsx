@@ -56,7 +56,7 @@ export const VehicleManagement = () => {
     if (!vehicle.is_active) {
       return <Badge variant="destructive">Inativo</Badge>;
     }
-    if (!vehicle.is_published) {
+    if (vehicle.is_published === false) {
       return <Badge variant="secondary">Rascunho</Badge>;
     }
     if (vehicle.is_featured) {
@@ -70,9 +70,9 @@ export const VehicleManagement = () => {
     : vehicles.filter(vehicle => {
         switch (statusFilter) {
           case "published":
-            return vehicle.is_published && vehicle.is_active;
+            return canGenerateSocialAd(vehicle);
           case "draft":
-            return !vehicle.is_published;
+            return vehicle.is_published === false;
           case "inactive":
             return !vehicle.is_active;
           case "featured":
@@ -106,7 +106,7 @@ export const VehicleManagement = () => {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-primary">
-                {vehicles.filter(v => v.is_published && v.is_active).length}
+                {vehicles.filter(canGenerateSocialAd).length}
               </p>
               <p className="text-sm text-muted-foreground">Publicados</p>
             </div>
@@ -116,7 +116,7 @@ export const VehicleManagement = () => {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-accent-foreground">
-                {vehicles.filter(v => !v.is_published).length}
+                {vehicles.filter(v => v.is_published === false).length}
               </p>
               <p className="text-sm text-muted-foreground">Rascunhos</p>
             </div>
