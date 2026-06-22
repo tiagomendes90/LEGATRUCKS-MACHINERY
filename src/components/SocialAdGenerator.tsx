@@ -1,21 +1,32 @@
 import { useMemo, useRef, useState } from "react";
 import html2canvas from "html2canvas";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 
 const LEGA_BLUE = "#0B2545";
-const LEGA_BLUE_DEEP = "#081B33";
+const LEGA_BLUE_DARK = "#081B33";
 const LEGA_ORANGE = "#F39200";
+const LEGA_GRAY = "#F3F4F6";
 const LEGA_LOGO = "/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png";
+const SITE_URL = "lega.pt";
 
-type Format = {
-  id: "instagram" | "facebook" | "story";
+type FormatId = "instagram" | "facebook" | "story";
+
+interface Format {
+  id: FormatId;
   label: string;
   width: number;
   height: number;
-};
+}
 
 const FORMATS: Format[] = [
   { id: "instagram", label: "Instagram (1080×1080)", width: 1080, height: 1080 },
@@ -30,13 +41,18 @@ interface Props {
 }
 
 const formatPrice = (price?: number | null) => {
-  if (!price || Number(price) <= 0) return "Sob consulta";
-  return "€ " + Number(price).toLocaleString("pt-PT");
+  if (price === undefined || price === null || Number(price) <= 0) return "Sob consulta";
+  return `€ ${Number(price).toLocaleString("pt-PT")}`;
 };
 
-const collectFeatures = (vehicle: any): string[] => {
+const formatNumber = (value?: number | null) => {
+  if (value === undefined || value === null) return "";
+  return Number(value).toLocaleString("pt-PT");
+};
+
+const collectHighlights = (vehicle: any): string[] => {
   const out: string[] = [];
-  const cond = (vehicle?.condition || "").toLowerCase();
+  const cond = String(vehicle?.condition || "").toLowerCase();
   if (cond === "new") out.push("Novo");
   else if (cond === "restored") out.push("Restaurado");
   else if (cond === "used") out.push("Excelente estado");
@@ -44,13 +60,12 @@ const collectFeatures = (vehicle: any): string[] => {
   out.push("Exportação para toda a Europa");
   out.push("Documentação em ordem");
   out.push("Inspeção técnica disponível");
-  out.push("Financiamento disponível");
-  return out.slice(0, 6);
+  return out.slice(0, 5);
 };
 
 export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
   const { toast } = useToast();
-  const [generating, setGenerating] = useState<string | null>(null);
+  const [generating, setGenerating] = useState<FormatId | "all" | null>(null);
   const refs = {
     instagram: useRef<HTMLDivElement>(null),
     facebook: useRef<HTMLDivElement>(null),
@@ -64,7 +79,6 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
       .map((i: any) => i.image_url)
       .filter(Boolean);
     const main = vehicle?.main_image_url || images[0] || "";
-    const secondary = images.filter((u) => u !== main).slice(0, 3);
     const brand = vehicle?.brand?.name || "";
     const title: string = vehicle?.title || "";
     const model = vehicle?.model || title.replace(new RegExp(`^${brand}\\s*`, "i"), "").trim();
@@ -74,15 +88,16 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
     const hours = vehicle?.operating_hours ?? null;
     const power = vehicle?.power_hp ?? null;
     const category = vehicle?.subcategory?.category?.name || "";
-    return { images, main, secondary, brand, title, model, year, price, km, hours, power, category };
+    const condition = vehicle?.condition || "";
+    return { main, brand, title, model, year, price, km, hours, power, category, condition };
   }, [vehicle]);
 
-  const features = useMemo(() => collectFeatures(vehicle), [vehicle]);
+  const highlights = useMemo(() => collectHighlights(vehicle), [vehicle]);
 
-  const handleDownload = async (fmt: Format) => {
+  const handleDownload = async (fmt: Format, { silent = false }: { silent?: boolean } = {}) => {
     const el = refs[fmt.id].current;
     if (!el) return;
-    setGenerating(fmt.id);
+    if (!silent) setGenerating(fmt.id);
     try {
       const canvas = await html2canvas(el, {
         useCORS: true,
@@ -95,45 +110,103 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
         windowHeight: fmt.height,
       });
       const link = document.createElement("a");
-      const safeTitle = (data.title || "lega-anuncio").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const safeTitle = (data.title || "lega-anuncio")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
       link.download = `lega-${fmt.id}-${safeTitle}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
-      toast({ title: "Imagem gerada", description: `${fmt.label} descarregada com sucesso.` });
+      if (!silent) {
+        toast({ title: "Imagem gerada", description: `${fmt.label} descarregada com sucesso.` });
+      }
     } catch (e: any) {
       console.error(e);
-      toast({
-        title: "Erro ao gerar imagem",
-        description: e?.message || "Verifique a imagem principal do veículo (CORS).",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Erro ao gerar imagem",
+          description: e?.message || "Verifique a imagem principal do veículo (CORS).",
+          variant: "destructive",
+        });
+      }
+      throw e;
+    } finally {
+      if (!silent) setGenerating(null);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    setGenerating("all");
+    let errorCount = 0;
+    try {
+      for (const f of FORMATS) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          await handleDownload(f, { silent: true });
+        } catch {
+          errorCount++;
+        }
+      }
+      if (errorCount === 0) {
+        toast({ title: "Imagens geradas", description: "Todos os formatos foram descarregados com sucesso." });
+      } else {
+        toast({
+          title: "Aviso",
+          description: `${errorCount} formato(s) falharam. Verifique as imagens do veículo.`,
+          variant: "destructive",
+        });
+      }
     } finally {
       setGenerating(null);
     }
   };
 
-  const handleDownloadAll = async () => {
-    for (const f of FORMATS) {
-      // eslint-disable-next-line no-await-in-loop
-      await handleDownload(f);
-    }
-  };
+  const vehicleName = (data.brand + " " + data.model).trim() || data.title;
 
-  /** Single template, parameterized by overall dimensions. */
-  const Template = ({ w, h }: { w: number; h: number }) => {
-    const isStory = h > w;
-    const pad = Math.round(w * 0.05);
-    const headerH = Math.round(h * (isStory ? 0.08 : 0.1));
-    const imgH = Math.round(h * (isStory ? 0.42 : 0.42));
-    const footerH = Math.round(h * (isStory ? 0.08 : 0.09));
+  const SpecRow = ({ label, value }: { label: string; value: string }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #E5E7EB" }}>
+      <span style={{ color: "#6B7280", fontWeight: 600, fontSize: "0.9em", textTransform: "uppercase" }}>{label}</span>
+      <span style={{ color: "#111827", fontWeight: 700, fontSize: "0.95em", textAlign: "right" }}>{value}</span>
+    </div>
+  );
+
+  const SectionHeader = ({ children }: { children: React.ReactNode }) => (
+    <div
+      style={{
+        background: LEGA_BLUE,
+        color: "#fff",
+        padding: "8px 12px",
+        fontWeight: 800,
+        fontSize: "0.95em",
+        letterSpacing: 1,
+        textTransform: "uppercase",
+        marginBottom: 8,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
+      {children}
+    </div>
+  );
+
+  const SquareTemplate = ({ w, h }: { w: number; h: number }) => {
+    const pad = Math.round(w * 0.025);
+    const headerH = Math.round(h * 0.14);
+    const footerH = Math.round(h * 0.16);
+    const bottomBarH = Math.round(h * 0.045);
+    const orangeH = footerH - bottomBarH;
+    const bodyH = h - headerH - footerH;
+    const leftW = Math.round(w * 0.62);
+    const rightW = w - leftW;
 
     return (
       <div
         style={{
           width: w,
           height: h,
-          background: `linear-gradient(160deg, ${LEGA_BLUE} 0%, ${LEGA_BLUE_DEEP} 100%)`,
-          color: "#fff",
+          background: LEGA_GRAY,
+          color: "#111827",
           fontFamily: "Inter, system-ui, sans-serif",
           display: "flex",
           flexDirection: "column",
@@ -141,94 +214,272 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
           overflow: "hidden",
         }}
       >
-        {/* Accent corner */}
-        <div
-          style={{
-            position: "absolute",
-            top: -w * 0.15,
-            right: -w * 0.15,
-            width: w * 0.55,
-            height: w * 0.55,
-            background: LEGA_ORANGE,
-            transform: "rotate(45deg)",
-            opacity: 0.12,
-          }}
-        />
-
         {/* Header */}
         <div
           style={{
             height: headerH,
+            background: LEGA_BLUE,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: `0 ${pad}px`,
-            zIndex: 2,
+            padding: `0 ${pad * 1.5}px`,
           }}
         >
           <img
             src={LEGA_LOGO}
-            alt="LEGA"
+            alt="LEGA Trucks & Machinery"
             crossOrigin="anonymous"
-            style={{ height: headerH * 0.6, objectFit: "contain" }}
+            style={{ height: headerH * 0.55, objectFit: "contain" }}
           />
+          <div style={{ textAlign: "right" }}>
+            <div
+              style={{
+                color: "#fff",
+                fontSize: headerH * 0.22,
+                fontWeight: 700,
+                letterSpacing: 4,
+                textTransform: "uppercase",
+              }}
+            >
+              PARA VENDA
+            </div>
+            <div style={{ color: LEGA_ORANGE, fontSize: headerH * 0.28, fontWeight: 900, lineHeight: 1.1 }}>
+              {data.brand || "LEGA"}
+            </div>
+            <div style={{ color: "#fff", fontSize: headerH * 0.24, fontWeight: 700, lineHeight: 1.1 }}>
+              {data.model || data.title}
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ height: bodyH, display: "flex" }}>
+          {/* Main image */}
           <div
             style={{
-              background: LEGA_ORANGE,
-              color: "#fff",
-              fontWeight: 900,
-              letterSpacing: 4,
-              fontSize: headerH * 0.32,
-              padding: `${headerH * 0.18}px ${headerH * 0.55}px`,
-              borderRadius: 4,
+              width: leftW,
+              height: bodyH,
+              background: "#000",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            FOR SALE
+            {data.main ? (
+              <img
+                src={data.main}
+                alt={data.title}
+                crossOrigin="anonymous"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#9CA3AF",
+                  fontSize: w * 0.03,
+                  fontWeight: 700,
+                }}
+              >
+                Sem imagem
+              </div>
+            )}
+          </div>
+
+          {/* Specs panel */}
+          <div
+            style={{
+              width: rightW,
+              height: bodyH,
+              background: LEGA_GRAY,
+              padding: `${pad}px`,
+              display: "flex",
+              flexDirection: "column",
+              gap: pad * 0.8,
+              overflow: "hidden",
+            }}
+          >
+            <div>
+              <SectionHeader>Características técnicas</SectionHeader>
+              <div style={{ fontSize: w * 0.022 }}>
+                {data.brand && <SpecRow label="Marca" value={data.brand} />}
+                {data.model && <SpecRow label="Modelo" value={data.model} />}
+                {data.year && <SpecRow label="Ano" value={String(data.year)} />}
+                {data.km !== null && data.km !== undefined && <SpecRow label="Quilómetros" value={`${formatNumber(data.km)} km`} />}
+                {data.hours !== null && data.hours !== undefined && <SpecRow label="Horas" value={`${formatNumber(data.hours)} h`} />}
+                {data.power !== null && data.power !== undefined && <SpecRow label="Potência" value={`${data.power} cv`} />}
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader>Destaques</SectionHeader>
+              <div style={{ fontSize: w * 0.022, display: "flex", flexDirection: "column", gap: 6 }}>
+                {highlights.map((h) => (
+                  <div key={h} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                    <span style={{ color: LEGA_ORANGE, fontWeight: 900, lineHeight: 1.2 }}>✓</span>
+                    <span style={{ color: "#111827", fontWeight: 600, lineHeight: 1.2 }}>{h}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ height: footerH, display: "flex", flexDirection: "column" }}>
+          {/* Orange price/contact bar */}
+          <div
+            style={{
+              height: orangeH,
+              background: LEGA_ORANGE,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: `0 ${pad * 1.5}px`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  background: "#fff",
+                  color: LEGA_ORANGE,
+                  borderRadius: "50%",
+                  width: orangeH * 0.55,
+                  height: orangeH * 0.55,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 900,
+                  fontSize: orangeH * 0.32,
+                }}
+              >
+                €
+              </div>
+              <div>
+                <div style={{ fontSize: orangeH * 0.22, fontWeight: 700, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>
+                  Preço
+                </div>
+                <div style={{ fontSize: orangeH * 0.45, fontWeight: 900, color: "#fff", lineHeight: 1 }}>
+                  {formatPrice(data.price)}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: "right", color: "#fff" }}>
+              <div style={{ fontSize: orangeH * 0.22, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                <svg width={orangeH * 0.22} height={orangeH * 0.22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.56 12.56 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.56 12.56 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                {WHATSAPP_DISPLAY}
+              </div>
+              <div style={{ fontSize: orangeH * 0.24, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                <svg width={orangeH * 0.22} height={orangeH * 0.22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+                {SITE_URL}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom blue bar */}
+          <div
+            style={{
+              height: bottomBarH,
+              background: LEGA_BLUE_DARK,
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: `0 ${pad}px`,
+              fontSize: bottomBarH * 0.45,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+          >
+            Veículo pronto a trabalhar · Entrega imediata em toda a Europa
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const StoryTemplate = ({ w, h }: { w: number; h: number }) => {
+    const pad = Math.round(w * 0.04);
+    const headerH = Math.round(h * 0.08);
+    const titleH = Math.round(h * 0.11);
+    const imgH = Math.round(h * 0.34);
+    const footerH = Math.round(h * 0.13);
+    const bottomBarH = Math.round(h * 0.04);
+    const specsH = h - headerH - titleH - imgH - footerH - bottomBarH;
+
+    return (
+      <div
+        style={{
+          width: w,
+          height: h,
+          background: LEGA_GRAY,
+          color: "#111827",
+          fontFamily: "Inter, system-ui, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            height: headerH,
+            background: LEGA_BLUE,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: `0 ${pad}px`,
+          }}
+        >
+          <img
+            src={LEGA_LOGO}
+            alt="LEGA Trucks & Machinery"
+            crossOrigin="anonymous"
+            style={{ height: headerH * 0.55, objectFit: "contain" }}
+          />
+          <div style={{ textAlign: "right" }}>
+            <div style={{ color: "#fff", fontSize: headerH * 0.25, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>
+              PARA VENDA
+            </div>
+            <div style={{ color: LEGA_ORANGE, fontSize: headerH * 0.3, fontWeight: 900, lineHeight: 1 }}>
+              {data.brand || "LEGA"}
+            </div>
           </div>
         </div>
 
         {/* Title */}
-        <div style={{ padding: `${pad * 0.2}px ${pad}px`, zIndex: 2 }}>
-          {data.category && (
-            <div
-              style={{
-                fontSize: w * 0.022,
-                letterSpacing: 6,
-                color: LEGA_ORANGE,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                marginBottom: w * 0.01,
-              }}
-            >
-              {data.category}
-            </div>
-          )}
-          <div
-            style={{
-              fontSize: w * (isStory ? 0.07 : 0.062),
-              fontWeight: 900,
-              lineHeight: 1,
-              textTransform: "uppercase",
-              letterSpacing: -1,
-            }}
-          >
-            {(data.brand + " " + data.model).trim() || data.title}
-          </div>
-        </div>
-
-        {/* Main image */}
         <div
           style={{
-            margin: `${pad * 0.4}px ${pad}px 0`,
-            height: imgH,
-            background: "#000",
-            borderRadius: 12,
-            overflow: "hidden",
-            position: "relative",
-            zIndex: 2,
-            border: `3px solid ${LEGA_ORANGE}`,
+            height: titleH,
+            padding: `${pad}px ${pad}px 0`,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
+          <div style={{ color: LEGA_BLUE, fontSize: titleH * 0.4, fontWeight: 900, lineHeight: 1.05, textTransform: "uppercase" }}>
+            {vehicleName}
+          </div>
+          {data.year && (
+            <div style={{ color: LEGA_ORANGE, fontSize: titleH * 0.22, fontWeight: 800, marginTop: 4 }}>
+              Ano {data.year}
+            </div>
+          )}
+        </div>
+
+        {/* Image */}
+        <div style={{ height: imgH, background: "#000", position: "relative", overflow: "hidden" }}>
           {data.main ? (
             <img
               src={data.main}
@@ -237,129 +488,122 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           ) : (
-            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#9CA3AF",
+                fontSize: w * 0.05,
+                fontWeight: 700,
+              }}
+            >
               Sem imagem
             </div>
           )}
         </div>
 
-        {/* Specs + Features row */}
+        {/* Specs */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: pad * 0.6,
-            padding: `${pad * 0.6}px ${pad}px 0`,
-            zIndex: 2,
-            flex: 1,
+            height: specsH,
+            padding: `${pad}px`,
+            display: "flex",
+            flexDirection: "column",
+            gap: pad * 0.8,
+            overflow: "hidden",
           }}
         >
-          {/* Specs */}
-          <div style={{ display: "flex", flexDirection: "column", gap: w * 0.012 }}>
-            {[
-              data.brand && ["MARCA", data.brand],
-              data.model && ["MODELO", data.model],
-              data.year && ["ANO", String(data.year)],
-              data.km && ["KM", Number(data.km).toLocaleString("pt-PT")],
-              data.hours && ["HORAS", Number(data.hours).toLocaleString("pt-PT") + " h"],
-              data.power && ["POTÊNCIA", `${data.power} HP`],
-            ]
-              .filter(Boolean)
-              .slice(0, 6)
-              .map((row: any) => (
-                <div key={row[0]} style={{ borderLeft: `3px solid ${LEGA_ORANGE}`, paddingLeft: w * 0.015 }}>
-                  <div style={{ fontSize: w * 0.018, color: "#9DB4D1", letterSpacing: 2, fontWeight: 700 }}>{row[0]}</div>
-                  <div style={{ fontSize: w * 0.028, fontWeight: 700, lineHeight: 1.1 }}>{row[1]}</div>
-                </div>
-              ))}
-          </div>
-
-          {/* Features */}
-          <div style={{ display: "flex", flexDirection: "column", gap: w * 0.012 }}>
-            {features.map((f) => (
-              <div key={f} style={{ display: "flex", alignItems: "center", gap: w * 0.012, fontSize: w * 0.024, fontWeight: 600 }}>
-                <span style={{ color: LEGA_ORANGE, fontWeight: 900, fontSize: w * 0.028 }}>✓</span>
-                <span>{f}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Thumbnails + Price */}
-        <div style={{ padding: `${pad * 0.5}px ${pad}px`, zIndex: 2 }}>
-          {data.secondary.length > 0 && (
-            <div style={{ display: "flex", gap: pad * 0.3, marginBottom: pad * 0.4 }}>
-              {data.secondary.map((url, i) => (
-                <div
-                  key={i}
-                  style={{
-                    flex: 1,
-                    height: w * 0.13,
-                    borderRadius: 8,
-                    overflow: "hidden",
-                    border: "2px solid rgba(255,255,255,0.15)",
-                    background: "#000",
-                  }}
-                >
-                  <img src={url} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} alt="" />
-                </div>
-              ))}
+          <div>
+            <SectionHeader>Características técnicas</SectionHeader>
+            <div style={{ fontSize: specsH * 0.11 }}>
+              {data.km !== null && data.km !== undefined && <SpecRow label="Quilómetros" value={`${formatNumber(data.km)} km`} />}
+              {data.hours !== null && data.hours !== undefined && <SpecRow label="Horas" value={`${formatNumber(data.hours)} h`} />}
+              {data.power !== null && data.power !== undefined && <SpecRow label="Potência" value={`${data.power} cv`} />}
+              {data.model && <SpecRow label="Modelo" value={data.model} />}
             </div>
-          )}
-
-          <div
-            style={{
-              background: LEGA_ORANGE,
-              borderRadius: 10,
-              padding: `${w * 0.025}px ${pad}px`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ fontSize: w * 0.022, fontWeight: 800, letterSpacing: 4, color: "#fff" }}>PREÇO</div>
-            <div style={{ fontSize: w * (isStory ? 0.08 : 0.07), fontWeight: 900, color: "#fff", lineHeight: 1 }}>
-              {formatPrice(data.price)}
+          </div>
+          <div>
+            <SectionHeader>Destaques</SectionHeader>
+            <div style={{ fontSize: specsH * 0.11, display: "flex", flexDirection: "column", gap: 6 }}>
+              {highlights.slice(0, 4).map((h) => (
+                <div key={h} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <span style={{ color: LEGA_ORANGE, fontWeight: 900, lineHeight: 1.2 }}>✓</span>
+                  <span style={{ color: "#111827", fontWeight: 600, lineHeight: 1.2 }}>{h}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            height: footerH,
-            background: LEGA_BLUE_DEEP,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: `0 ${pad}px`,
-            borderTop: `3px solid ${LEGA_ORANGE}`,
-            zIndex: 2,
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <div style={{ fontSize: footerH * 0.28, fontWeight: 800 }}>WhatsApp · +351 912 406 089</div>
-            <div style={{ fontSize: footerH * 0.22, color: "#9DB4D1", letterSpacing: 2 }}>www.lega.pt</div>
+        <div style={{ height: footerH, display: "flex", flexDirection: "column" }}>
+          <div
+            style={{
+              height: footerH - bottomBarH,
+              background: LEGA_ORANGE,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: `0 ${pad}px`,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.2, fontWeight: 700, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>
+                Preço
+              </div>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.42, fontWeight: 900, color: "#fff", lineHeight: 1 }}>
+                {formatPrice(data.price)}
+              </div>
+            </div>
+            <div style={{ textAlign: "right", color: "#fff" }}>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.2, fontWeight: 800 }}>{WHATSAPP_DISPLAY}</div>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.24, fontWeight: 900 }}>{SITE_URL}</div>
+            </div>
           </div>
-          <img src={LEGA_LOGO} alt="LEGA" crossOrigin="anonymous" style={{ height: footerH * 0.55, objectFit: "contain" }} />
+
+          <div
+            style={{
+              height: bottomBarH,
+              background: LEGA_BLUE_DARK,
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: `0 ${pad}px`,
+              fontSize: bottomBarH * 0.5,
+              fontWeight: 700,
+              textAlign: "center",
+              textTransform: "uppercase",
+            }}
+          >
+            Entrega imediata em toda a Europa
+          </div>
         </div>
       </div>
     );
   };
 
+  const Template = ({ fmt }: { fmt: Format }) => {
+    if (fmt.id === "story") return <StoryTemplate w={fmt.width} h={fmt.height} />;
+    return <SquareTemplate w={fmt.width} h={fmt.height} />;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>📢 Gerar Anúncio para Redes Sociais</DialogTitle>
           <DialogDescription>
-            Pré-visualização do anúncio gerado automaticamente a partir dos dados do veículo. Descarregue nos formatos
-            otimizados para cada plataforma.
+            Pré-visualização do anúncio gerado a partir dos dados do veículo. Descarregue nos formatos otimizados para
+            cada plataforma.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Action buttons */}
+          {/* Actions */}
           <div className="flex flex-wrap gap-2 pb-4 border-b">
             {FORMATS.map((f) => (
               <Button key={f.id} onClick={() => handleDownload(f)} disabled={!!generating}>
@@ -372,15 +616,15 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
               </Button>
             ))}
             <Button variant="outline" onClick={handleDownloadAll} disabled={!!generating}>
-              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              {generating === "all" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
               Descarregar todos
             </Button>
           </div>
 
-          {/* Previews — visually scaled down; original size used for rendering */}
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* Previews */}
+          <div className="grid md:grid-cols-3 gap-6 items-start">
             {FORMATS.map((f) => {
-              const previewW = f.id === "story" ? 220 : 280;
+              const previewW = f.id === "story" ? 200 : 280;
               const scale = previewW / f.width;
               return (
                 <div key={f.id} className="space-y-2">
@@ -389,9 +633,16 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
                     className="mx-auto border rounded shadow-sm overflow-hidden bg-muted"
                     style={{ width: previewW, height: f.height * scale }}
                   >
-                    <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: f.width, height: f.height }}>
+                    <div
+                      style={{
+                        transform: `scale(${scale})`,
+                        transformOrigin: "top left",
+                        width: f.width,
+                        height: f.height,
+                      }}
+                    >
                       <div ref={refs[f.id]}>
-                        <Template w={f.width} h={f.height} />
+                        <Template fmt={f} />
                       </div>
                     </div>
                   </div>
@@ -401,8 +652,8 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Dica: se a imagem principal do veículo bloquear a geração por CORS, abra-a no navegador para confirmar que
-            está acessível, ou faça novo upload através do painel.
+            Dica: se a imagem principal bloquear a geração por CORS, abra-a no navegador para confirmar que está
+            acessível, ou faça novo upload através do painel.
           </p>
         </div>
       </DialogContent>
