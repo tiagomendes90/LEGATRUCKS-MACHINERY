@@ -192,8 +192,10 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
 
   const SquareTemplate = ({ w, h }: { w: number; h: number }) => {
     const pad = Math.round(w * 0.025);
-    const headerH = Math.round(h * 0.16);
+    const headerH = Math.round(h * 0.14);
     const footerH = Math.round(h * 0.16);
+    const bottomBarH = Math.round(h * 0.045);
+    const orangeH = footerH - bottomBarH;
     const bodyH = h - headerH - footerH;
     const leftW = Math.round(w * 0.62);
     const rightW = w - leftW;
@@ -326,75 +328,81 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
           </div>
         </div>
 
-        {/* Footer orange */}
-        <div
-          style={{
-            height: footerH,
-            background: LEGA_ORANGE,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: `0 ${pad * 1.5}px`,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div
-              style={{
-                background: "#fff",
-                color: LEGA_ORANGE,
-                borderRadius: "50%",
-                width: footerH * 0.5,
-                height: footerH * 0.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 900,
-                fontSize: footerH * 0.3,
-              }}
-            >
-              €
-            </div>
-            <div>
-              <div style={{ fontSize: footerH * 0.2, fontWeight: 700, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>
-                Preço
+        {/* Footer */}
+        <div style={{ height: footerH, display: "flex", flexDirection: "column" }}>
+          {/* Orange price/contact bar */}
+          <div
+            style={{
+              height: orangeH,
+              background: LEGA_ORANGE,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: `0 ${pad * 1.5}px`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  background: "#fff",
+                  color: LEGA_ORANGE,
+                  borderRadius: "50%",
+                  width: orangeH * 0.55,
+                  height: orangeH * 0.55,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 900,
+                  fontSize: orangeH * 0.32,
+                }}
+              >
+                €
               </div>
-              <div style={{ fontSize: footerH * 0.42, fontWeight: 900, color: "#fff", lineHeight: 1 }}>
-                {formatPrice(data.price)}
+              <div>
+                <div style={{ fontSize: orangeH * 0.22, fontWeight: 700, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>
+                  Preço
+                </div>
+                <div style={{ fontSize: orangeH * 0.45, fontWeight: 900, color: "#fff", lineHeight: 1 }}>
+                  {formatPrice(data.price)}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: "right", color: "#fff" }}>
+              <div style={{ fontSize: orangeH * 0.22, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                <svg width={orangeH * 0.22} height={orangeH * 0.22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.56 12.56 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.56 12.56 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                {WHATSAPP_DISPLAY}
+              </div>
+              <div style={{ fontSize: orangeH * 0.24, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                <svg width={orangeH * 0.22} height={orangeH * 0.22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+                {SITE_URL}
               </div>
             </div>
           </div>
 
-          <div style={{ textAlign: "right", color: "#fff" }}>
-            <div style={{ fontSize: footerH * 0.22, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
-              <svg width={footerH * 0.22} height={footerH * 0.22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.56 12.56 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.56 12.56 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-              </svg>
-              {WHATSAPP_DISPLAY}
-            </div>
-            <div style={{ fontSize: footerH * 0.24, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
-              <svg width={footerH * 0.22} height={footerH * 0.22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              {SITE_URL}
-            </div>
+          {/* Bottom blue bar */}
+          <div
+            style={{
+              height: bottomBarH,
+              background: LEGA_BLUE_DARK,
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: `0 ${pad}px`,
+              fontSize: bottomBarH * 0.45,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+          >
+            Veículo pronto a trabalhar · Entrega imediata em toda a Europa
           </div>
-        </div>
-
-        {/* Bottom blue bar */}
-        <div
-          style={{
-            background: LEGA_BLUE_DARK,
-            color: "#fff",
-            padding: `${pad * 0.6}px ${pad * 1.5}px`,
-            fontSize: w * 0.022,
-            fontWeight: 700,
-            textAlign: "center",
-            textTransform: "uppercase",
-            letterSpacing: 1,
-          }}
-        >
-          Veículo pronto a trabalhar · Entrega imediata em toda a Europa
         </div>
       </div>
     );
@@ -402,9 +410,12 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
 
   const StoryTemplate = ({ w, h }: { w: number; h: number }) => {
     const pad = Math.round(w * 0.04);
-    const headerH = Math.round(h * 0.1);
-    const imgH = Math.round(h * 0.38);
-    const footerH = Math.round(h * 0.14);
+    const headerH = Math.round(h * 0.08);
+    const titleH = Math.round(h * 0.11);
+    const imgH = Math.round(h * 0.34);
+    const footerH = Math.round(h * 0.13);
+    const bottomBarH = Math.round(h * 0.04);
+    const specsH = h - headerH - titleH - imgH - footerH - bottomBarH;
 
     return (
       <div
@@ -435,7 +446,7 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
             src={LEGA_LOGO}
             alt="LEGA Trucks & Machinery"
             crossOrigin="anonymous"
-            style={{ height: headerH * 0.5, objectFit: "contain" }}
+            style={{ height: headerH * 0.55, objectFit: "contain" }}
           />
           <div style={{ textAlign: "right" }}>
             <div style={{ color: "#fff", fontSize: headerH * 0.25, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>
@@ -445,6 +456,26 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
               {data.brand || "LEGA"}
             </div>
           </div>
+        </div>
+
+        {/* Title */}
+        <div
+          style={{
+            height: titleH,
+            padding: `${pad}px ${pad}px 0`,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <div style={{ color: LEGA_BLUE, fontSize: titleH * 0.4, fontWeight: 900, lineHeight: 1.05, textTransform: "uppercase" }}>
+            {vehicleName}
+          </div>
+          {data.year && (
+            <div style={{ color: LEGA_ORANGE, fontSize: titleH * 0.22, fontWeight: 800, marginTop: 4 }}>
+              Ano {data.year}
+            </div>
+          )}
         </div>
 
         {/* Image */}
@@ -474,23 +505,20 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
           )}
         </div>
 
-        {/* Title */}
-        <div style={{ padding: `${pad}px ${pad}px 0` }}>
-          <div style={{ color: LEGA_BLUE, fontSize: w * 0.07, fontWeight: 900, lineHeight: 1.05, textTransform: "uppercase" }}>
-            {vehicleName}
-          </div>
-          {data.year && (
-            <div style={{ color: LEGA_ORANGE, fontSize: w * 0.05, fontWeight: 800, marginTop: 4 }}>
-              Ano {data.year}
-            </div>
-          )}
-        </div>
-
         {/* Specs */}
-        <div style={{ flex: 1, padding: `${pad}px`, display: "flex", flexDirection: "column", gap: pad * 0.8 }}>
+        <div
+          style={{
+            height: specsH,
+            padding: `${pad}px`,
+            display: "flex",
+            flexDirection: "column",
+            gap: pad * 0.8,
+            overflow: "hidden",
+          }}
+        >
           <div>
             <SectionHeader>Características técnicas</SectionHeader>
-            <div style={{ fontSize: w * 0.035 }}>
+            <div style={{ fontSize: specsH * 0.11 }}>
               {data.km !== null && data.km !== undefined && <SpecRow label="Quilómetros" value={`${formatNumber(data.km)} km`} />}
               {data.hours !== null && data.hours !== undefined && <SpecRow label="Horas" value={`${formatNumber(data.hours)} h`} />}
               {data.power !== null && data.power !== undefined && <SpecRow label="Potência" value={`${data.power} cv`} />}
@@ -499,7 +527,7 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
           </div>
           <div>
             <SectionHeader>Destaques</SectionHeader>
-            <div style={{ fontSize: w * 0.035, display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ fontSize: specsH * 0.11, display: "flex", flexDirection: "column", gap: 6 }}>
               {highlights.slice(0, 4).map((h) => (
                 <div key={h} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                   <span style={{ color: LEGA_ORANGE, fontWeight: 900, lineHeight: 1.2 }}>✓</span>
@@ -511,42 +539,48 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            height: footerH,
-            background: LEGA_ORANGE,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: `0 ${pad}px`,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: footerH * 0.2, fontWeight: 700, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>
-              Preço
+        <div style={{ height: footerH, display: "flex", flexDirection: "column" }}>
+          <div
+            style={{
+              height: footerH - bottomBarH,
+              background: LEGA_ORANGE,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: `0 ${pad}px`,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.2, fontWeight: 700, color: "#fff", letterSpacing: 2, textTransform: "uppercase" }}>
+                Preço
+              </div>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.42, fontWeight: 900, color: "#fff", lineHeight: 1 }}>
+                {formatPrice(data.price)}
+              </div>
             </div>
-            <div style={{ fontSize: footerH * 0.4, fontWeight: 900, color: "#fff", lineHeight: 1 }}>
-              {formatPrice(data.price)}
+            <div style={{ textAlign: "right", color: "#fff" }}>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.2, fontWeight: 800 }}>{WHATSAPP_DISPLAY}</div>
+              <div style={{ fontSize: (footerH - bottomBarH) * 0.24, fontWeight: 900 }}>{SITE_URL}</div>
             </div>
           </div>
-          <div style={{ textAlign: "right", color: "#fff" }}>
-            <div style={{ fontSize: footerH * 0.2, fontWeight: 800 }}>{WHATSAPP_DISPLAY}</div>
-            <div style={{ fontSize: footerH * 0.24, fontWeight: 900 }}>{SITE_URL}</div>
-          </div>
-        </div>
 
-        <div
-          style={{
-            background: LEGA_BLUE_DARK,
-            color: "#fff",
-            padding: `${pad * 0.5}px ${pad}px`,
-            fontSize: w * 0.03,
-            fontWeight: 700,
-            textAlign: "center",
-            textTransform: "uppercase",
-          }}
-        >
-          Entrega imediata em toda a Europa
+          <div
+            style={{
+              height: bottomBarH,
+              background: LEGA_BLUE_DARK,
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: `0 ${pad}px`,
+              fontSize: bottomBarH * 0.5,
+              fontWeight: 700,
+              textAlign: "center",
+              textTransform: "uppercase",
+            }}
+          >
+            Entrega imediata em toda a Europa
+          </div>
         </div>
       </div>
     );
