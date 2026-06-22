@@ -260,6 +260,14 @@ export const VehicleManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {sharingVehicle && (
+        <SocialShareDialog
+          vehicle={sharingVehicle}
+          open={!!sharingVehicle}
+          onOpenChange={(o) => !o && setSharingVehicle(null)}
+        />
+      )}
     </div>
   );
 };
