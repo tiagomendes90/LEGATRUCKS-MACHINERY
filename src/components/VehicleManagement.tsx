@@ -211,7 +211,7 @@ export const VehicleManagement = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {vehicle.is_published && (
+                      {vehicle.is_active && (
                         <Button
                           variant="outline"
                           size="sm"
