@@ -8,14 +8,18 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { VehicleManagement } from "@/components/VehicleManagement";
 import AddVehicleForm from "@/components/AddVehicleForm";
 import { useVehicles } from "@/hooks/useVehicles";
-import { useOrders } from "@/hooks/useOrders";
-import { Plus, Package, Star, TrendingUp, BarChart3, ExternalLink, LogOut } from "lucide-react";
+import { Package, Star, TrendingUp, BarChart3, ExternalLink, LogOut } from "lucide-react";
 import { hasVehicleDraft, VEHICLE_DRAFT_EVENT } from "@/utils/vehicleDraftStorage";
+
+type VehicleSummary = {
+  price?: number | null;
+  condition?: string | null;
+  is_active?: boolean | null;
+};
 
 const Admin = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
   const { data: vehicles = [], isLoading: vehiclesLoading } = useVehicles({}, 1000);
-  const { data: orders = [], isLoading: ordersLoading } = useOrders();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => hasVehicleDraft() ? "add-vehicle" : "inventory");
 
@@ -51,10 +55,10 @@ const Admin = () => {
   const handleGoToWebsite = () => { navigate("/"); };
 
   const totalInventory = vehicles.length;
-  const totalValue = vehicles.reduce((sum: number, vehicle: any) => sum + (vehicle.price || 0), 0);
+  const totalValue = (vehicles as VehicleSummary[]).reduce((sum, vehicle) => sum + (vehicle.price || 0), 0);
   const averagePrice = totalInventory > 0 ? totalValue / totalInventory : 0;
-  const newVehicles = vehicles.filter((v: any) => v.condition === 'new').length;
-  const activeVehicles = vehicles.filter((v: any) => v.is_active).length;
+  const newVehicles = (vehicles as VehicleSummary[]).filter((v) => v.condition === 'new').length;
+  const activeVehicles = (vehicles as VehicleSummary[]).filter((v) => v.is_active).length;
 
   if (vehiclesLoading) {
     return (
