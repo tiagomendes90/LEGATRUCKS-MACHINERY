@@ -95,6 +95,28 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
     if (!el) return;
     if (!silent) setGenerating(fmt.id);
     try {
+      // Ensure all images inside the capture node are fully loaded
+      const imgs = Array.from(el.querySelectorAll("img"));
+      await Promise.all(
+        imgs.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete && img.naturalWidth > 0) return resolve();
+              img.addEventListener("load", () => resolve(), { once: true });
+              img.addEventListener("error", () => resolve(), { once: true });
+            }),
+        ),
+      );
+      // Ensure fonts are ready
+      if ((document as any).fonts?.ready) {
+        try {
+          await (document as any).fonts.ready;
+        } catch {
+          /* noop */
+        }
+      }
+      // Wait one paint frame so layout is fully flushed
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
       const canvas = await html2canvas(el, {
         useCORS: true,
         allowTaint: false,
@@ -104,6 +126,11 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
         height: fmt.height,
         windowWidth: fmt.width,
         windowHeight: fmt.height,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        logging: false,
       });
       const link = document.createElement("a");
       const safeTitle = (data.title || "lega-anuncio")
