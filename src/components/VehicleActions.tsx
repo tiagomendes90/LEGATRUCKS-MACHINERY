@@ -1,11 +1,12 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Mail, Share2, Printer, MessageCircle } from "lucide-react";
+import { Share2, MessageCircle, Phone, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ContactVehicleModal from "./ContactVehicleModal";
 import { Vehicle } from "@/hooks/useVehicles";
-import { WHATSAPP_DISPLAY, openWhatsApp } from "@/lib/whatsapp";
+import { openWhatsApp } from "@/lib/whatsapp";
+import { getPrimaryImageUrl } from "@/utils/productImages";
 
 interface VehicleActionsProps {
   vehicle: Vehicle;
@@ -16,53 +17,51 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handleWhatsAppClick = () => {
-    const message = `Olá! Tenho interesse no veículo "${vehicle.title}" (€${(vehicle.price || 0).toLocaleString()}). Pode dar-me mais informações?`;
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const message = `Olá! Tenho interesse no veículo "${vehicle.title}".\n${url}`;
     openWhatsApp(message);
   };
 
-  const handleMailClick = () => {
-    const subject = encodeURIComponent(vehicle.title);
-    const body = encodeURIComponent(`${vehicle.title} - €${(vehicle.price || 0).toLocaleString()}`);
-    window.location.href = `mailto:info@lega.pt?subject=${subject}&body=${body}`;
+  const handleCallClick = () => {
+    window.location.href = "tel:+351912406089";
   };
 
   const handleShareClick = () => {
+    const shareData: ShareData = {
+      title: vehicle.title,
+      text: `${vehicle.title}${vehicle.price ? ` - €${vehicle.price.toLocaleString()}` : ""}`,
+      url: typeof window !== "undefined" ? window.location.href : "",
+    };
     if (navigator.share) {
-      navigator.share({
-        title: vehicle.title,
-        text: `${vehicle.title} - €${(vehicle.price || 0).toLocaleString()}`,
-        url: window.location.href,
-      });
+      navigator.share(shareData).catch(() => {});
+    } else if (navigator.clipboard && shareData.url) {
+      navigator.clipboard.writeText(shareData.url).catch(() => {});
     }
   };
 
-  const handlePrintClick = () => { window.print(); };
   const handleContactClick = () => { setIsContactModalOpen(true); };
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Button onClick={handleContactClick} size="lg" className="w-full bg-orange-600 hover:bg-orange-700">
-          <MessageCircle className="h-5 w-5 mr-2" />
-          {t('vehicleDetails.contactSeller', 'Contactar Vendedor')}
-        </Button>
+      <h3 className="text-lg font-semibold text-foreground mb-4">
+        Interessado neste veículo?
+      </h3>
+      <div className="grid grid-cols-2 gap-3">
         <Button onClick={handleWhatsAppClick} size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white">
           <MessageCircle className="h-5 w-5 mr-2" />
           WhatsApp
         </Button>
-        <Button onClick={handleMailClick} variant="outline" size="lg" className="w-full">
-          <Mail className="h-5 w-5 mr-2" />
-          {t('vehicleDetails.sendEmail')}
+        <Button onClick={handleCallClick} size="lg" className="w-full bg-primary hover:bg-primary/90">
+          <Phone className="h-5 w-5 mr-2" />
+          Ligar Agora
+        </Button>
+        <Button onClick={handleContactClick} variant="outline" size="lg" className="w-full">
+          <Send className="h-5 w-5 mr-2" />
+          Enviar Mensagem
         </Button>
         <Button onClick={handleShareClick} variant="outline" size="lg" className="w-full">
           <Share2 className="h-5 w-5 mr-2" />
-          {t('vehicleDetails.shareVehicle')}
-        </Button>
-      </div>
-      <div className="mt-4 grid grid-cols-1 gap-2">
-        <Button onClick={handlePrintClick} variant="outline" size="sm" className="w-full">
-          <Printer className="h-5 w-5 mr-2" />
-          {t('vehicleDetails.printDetails')}
+          Partilhar
         </Button>
       </div>
       <ContactVehicleModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} vehicle={vehicle} />
