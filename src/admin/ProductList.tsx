@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, Edit, Trash2, Star } from 'lucide-react';
+import { Eye, Edit, Trash2, Star, ImageDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import ProductForm from '@/admin/ProductForm';
 import { getPrimaryImageUrl, sortProductImages } from '@/utils/productImages';
+import SocialAdGenerator from '@/components/SocialAdGenerator';
 
 export default function ProductList() {
   const [products, setProducts] = useState<any[]>([]);
@@ -17,6 +18,7 @@ export default function ProductList() {
   const [editing, setEditing] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [featuredIds, setFeaturedIds] = useState<Set<string>>(new Set());
+  const [sharingProduct, setSharingProduct] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -152,6 +154,17 @@ export default function ProductList() {
                       <Button variant="outline" size="sm" onClick={() => handleEdit(p)}>
                         <Edit className="h-4 w-4" />
                       </Button>
+                      {p.is_active && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Gerar Anúncio para Redes Sociais"
+                          aria-label={`Gerar anúncio para redes sociais de ${p.title}`}
+                          onClick={() => setSharingProduct(p)}
+                        >
+                          <ImageDown className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDelete(p.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -181,6 +194,14 @@ export default function ProductList() {
           )}
         </DialogContent>
       </Dialog>
+
+      {sharingProduct && (
+        <SocialAdGenerator
+          vehicle={sharingProduct}
+          open={!!sharingProduct}
+          onOpenChange={(o) => !o && setSharingProduct(null)}
+        />
+      )}
     </>
   );
 }
