@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X, Upload, Trash2, ImageIcon, GripVertical } from 'lucide-react';
+import { Save, X, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { sortProductImages } from '@/utils/productImages';
 
@@ -219,7 +219,6 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     for (let i = 0; i < pendingFiles.length; i++) {
       const file = pendingFiles[i];
       setUploadProgress(`A carregar ${i + 1}/${pendingFiles.length}...`);
-      const ext = file.name.split('.').pop();
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `${categorySlug}/${productId}/${Date.now()}-${safeName}`;
 
@@ -631,9 +630,9 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         </div>
 
         <div className="flex gap-2 pt-4">
-          <Button onClick={handleSave} disabled={loading}>
+          <Button onClick={handleSave} disabled={loading || uploading}>
             <Save className="h-4 w-4 mr-2" />
-            {loading ? 'A guardar...' : 'Guardar'}
+            {uploading ? 'A carregar imagens...' : loading ? 'A guardar...' : 'Guardar'}
           </Button>
           {onCancel && (
             <Button variant="outline" onClick={onCancel}>
