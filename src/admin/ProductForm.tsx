@@ -286,7 +286,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     if (productId) {
       setUploading(true);
       const newUrls = await uploadAllPendingFiles(productId);
-      const allImages = [...images, ...newUrls];
+      const allImages: StoredImage[] = [...images, ...newUrls.map((url) => ({ url }))];
       setUploading(false);
 
       // Delete existing images if editing
@@ -295,12 +295,12 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       }
 
       if (allImages.length > 0) {
-        // Adjust primaryIndex for the combined array
-        const adjustedPrimary = primaryIndex < images.length ? primaryIndex : images.length + (primaryIndex - images.length);
-        const imageRows = allImages.map((url, i) => ({
+        const safePrimaryIndex = primaryIndex >= 0 && primaryIndex < allImages.length ? primaryIndex : 0;
+        const orderedImages = [allImages[safePrimaryIndex], ...allImages.filter((_, i) => i !== safePrimaryIndex)];
+        const imageRows = orderedImages.map((image, i) => ({
           product_id: productId,
-          image_url: url,
-          is_primary: i === adjustedPrimary,
+          image_url: image.url,
+          is_primary: i === 0,
           sort_order: i,
         }));
 
@@ -308,7 +308,11 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         if (imgError) console.error('Error saving images:', imgError);
       }
 
-      setImages(allImages);
+      const safePrimaryIndex = primaryIndex >= 0 && primaryIndex < allImages.length ? primaryIndex : 0;
+      const orderedImages = [allImages[safePrimaryIndex], ...allImages.filter((_, i) => i !== safePrimaryIndex)]
+        .map((image, i) => ({ ...image, is_primary: i === 0, sort_order: i }));
+      setImages(orderedImages);
+      setPrimaryIndex(0);
       setPendingFiles([]);
     }
 
