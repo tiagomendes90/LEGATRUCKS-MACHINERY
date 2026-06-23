@@ -10,6 +10,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
 import { Save, X, Upload, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { sortProductImages } from '@/utils/productImages';
 
 type StoredImage = {
   id?: string | null;
@@ -77,7 +78,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         currency: editingProduct.currency || 'EUR',
       });
       if (editingProduct.images) {
-        const sortedImages = [...editingProduct.images].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        const sortedImages = sortProductImages(editingProduct.images);
         setImages(sortedImages.map((img: any) => ({
           id: img.id,
           url: img.image_url,
