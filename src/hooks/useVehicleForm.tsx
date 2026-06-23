@@ -179,6 +179,12 @@ export const useVehicleForm = () => {
           is_primary: true,
           sort_order: 0,
         });
+
+        // Also persist on products.main_image_url so cards/thumbnails respect the selection
+        await supabase
+          .from('products')
+          .update({ main_image_url: mainUrl } as any)
+          .eq('id', productId);
       }
 
       // Upload secondary images
