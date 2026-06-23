@@ -10,7 +10,6 @@ import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
 import { Save, X, Upload, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { sortProductImages } from '@/utils/productImages';
 
 type StoredImage = {
   id?: string | null;
@@ -79,7 +78,13 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       });
       if (editingProduct.images) {
         const sortedImages = [...editingProduct.images].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-        setImages(sortedImages.map((img: any) => img.image_url));
+        setImages(sortedImages.map((img: any) => ({
+          id: img.id,
+          url: img.image_url,
+          is_primary: img.is_primary,
+          sort_order: img.sort_order,
+        })));
+        setPrimaryIndex(Math.max(0, sortedImages.findIndex((img: any) => img.is_primary)));
       }
       // Load featured status
       const loadFeatured = async () => {
@@ -160,7 +165,10 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   };
 
   const removePendingFile = (index: number) => {
+    const globalIndex = images.length + index;
     setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+    if (primaryIndex === globalIndex) setPrimaryIndex(0);
+    else if (primaryIndex > globalIndex) setPrimaryIndex((p) => p - 1);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -170,6 +178,37 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     });
     if (primaryIndex === index) setPrimaryIndex(0);
     else if (primaryIndex > index) setPrimaryIndex((p) => p - 1);
+  };
+
+  const getMovedPrimaryIndex = (current: number, from: number, to: number) => {
+    if (current === from) return to;
+    if (from < to && current > from && current <= to) return current - 1;
+    if (from > to && current >= to && current < from) return current + 1;
+    return current;
+  };
+
+  const reorderStoredImages = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= images.length || to >= images.length) return;
+    setImages((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setPrimaryIndex((current) => getMovedPrimaryIndex(current, from, to));
+  };
+
+  const reorderPendingFiles = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= pendingFiles.length || to >= pendingFiles.length) return;
+    const globalFrom = images.length + from;
+    const globalTo = images.length + to;
+    setPendingFiles((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setPrimaryIndex((current) => getMovedPrimaryIndex(current, globalFrom, globalTo));
   };
 
   const uploadAllPendingFiles = async (productId: string): Promise<string[]> => {
