@@ -23,9 +23,9 @@ interface AddVehicleFormProps {
 const AddVehicleForm = ({ editingVehicle, onSuccess, onCancel }: AddVehicleFormProps) => {
   const { toast } = useToast();
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
-  const vehicleFormHook = useVehicleForm();
-  const updateVehicleMutation = useUpdateVehicle();
   const isEditMode = !!editingVehicle;
+  const vehicleFormHook = useVehicleForm({ enableDraft: !isEditMode });
+  const updateVehicleMutation = useUpdateVehicle();
 
   const {
     formData, selectedCategoryId, mainImage, mainImageUrl,
