@@ -432,12 +432,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     });
 
     if (!editingProduct) {
-      setForm({
-        title: '', category_id: '', subcategory_id: '', brand_id: '',
-        price: '', year: '', description: '', condition: 'used',
-        model: '', location_city: '', location_country: 'Portugal', currency: 'EUR',
-      });
-      setImages([]);
+      await clearFormState();
     }
 
     onSuccess?.();
@@ -709,9 +704,9 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
             {uploading ? 'A carregar imagens...' : loading ? 'A guardar...' : 'Guardar'}
           </Button>
           {onCancel && (
-            <Button variant="outline" onClick={onCancel}>
+            <Button variant="outline" onClick={handleDiscardDraft}>
               <X className="h-4 w-4 mr-2" />
-              Cancelar
+              Descartar rascunho
             </Button>
           )}
         </div>
