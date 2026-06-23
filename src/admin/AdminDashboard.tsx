@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealOrderManagement from '@/components/RealOrderManagement';
-import { Package, TrendingUp, ExternalLink, LogOut } from 'lucide-react';
+import MessagesManagement from '@/components/admin/MessagesManagement';
+import { Package, TrendingUp, ExternalLink, LogOut, MessageSquare } from 'lucide-react';
 import { sortProductImages } from '@/utils/productImages';
 import { ADMIN_PRODUCT_DRAFT_EVENT, hasAdminProductDraft } from '@/utils/adminProductDraftStorage';
+import { useContactMessages } from '@/hooks/useContactMessages';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
@@ -18,6 +20,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState(() => hasAdminProductDraft() ? 'add-product' : 'inventory');
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { data: messages = [] } = useContactMessages();
+  const unreadCount = messages.filter((m: any) => m.status === 'unread').length;
 
   const loadProducts = async () => {
     const { data } = await supabase
@@ -80,7 +84,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -109,14 +113,41 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Mensagens não lidas</p>
+                <p className="text-3xl font-bold text-foreground">{unreadCount}</p>
+                <p className="text-xs text-muted-foreground mt-1">{messages.length} no total</p>
+              </div>
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center relative">
+                <MessageSquare className="h-6 w-6 text-primary" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="add-product">
             {editing ? 'Editar Produto' : 'Adicionar Produto'}
+          </TabsTrigger>
+          <TabsTrigger value="messages" className="relative">
+            Mensagens
+            {unreadCount > 0 && (
+              <span className="ml-2 bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-0.5">
+                {unreadCount}
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
         </TabsList>
@@ -138,6 +169,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="orders">
           <RealOrderManagement />
+        </TabsContent>
+
+        <TabsContent value="messages">
+          <MessagesManagement />
         </TabsContent>
       </Tabs>
     </div>
