@@ -685,7 +685,7 @@ const resources = {
         tractorsTitle: "Tratores",
         tractorsDescription: "Tratores agrícolas e equipamento",
         wantToSellTitle: "Quer Vender o Seu Veículo?",
-        wantToSellDescription: "Obtenha o melhor valor pelo seu camião ou maquinaria",
+        wantToSellDescription: "Obtenha o melhor valor pelo seu camião ou máquinas",
         trustedBrandsTitle: "Marcas de Confiança",
         trustedBrandsSubtitle: "Trabalhamos com os fabricantes de veículos mais fiáveis",
         trailersTitle: "Reboques",
