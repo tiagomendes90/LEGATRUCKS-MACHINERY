@@ -542,12 +542,24 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
                 {pendingFiles.map((file, i) => {
                   const globalIndex = images.length + i;
                   return (
-                    <div key={`pending-${i}`} className="relative group cursor-pointer" onClick={() => setPrimaryIndex(globalIndex)}>
+                    <div
+                      key={`pending-${i}`}
+                      draggable
+                      className={`relative group cursor-move ${dragOverState?.type === 'pending' && dragOverState.index === i ? 'ring-2 ring-primary rounded' : ''}`}
+                      onClick={() => setPrimaryIndex(globalIndex)}
+                      onDragStart={(e) => { setDragState({ type: 'pending', index: i }); e.dataTransfer.effectAllowed = 'move'; }}
+                      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverState({ type: 'pending', index: i }); }}
+                      onDrop={(e) => { e.preventDefault(); if (dragState?.type === 'pending') reorderPendingFiles(dragState.index, i); setDragState(null); setDragOverState(null); }}
+                      onDragEnd={() => { setDragState(null); setDragOverState(null); }}
+                    >
                       <img
                         src={URL.createObjectURL(file)}
                         alt={file.name}
                         className={`w-full h-24 object-cover rounded border-2 ${primaryIndex === globalIndex ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
                       />
+                      <span className="absolute bottom-1 left-1 bg-background/80 text-foreground rounded p-1 pointer-events-none">
+                        <GripVertical className="h-3 w-3" />
+                      </span>
                       {primaryIndex === globalIndex && (
                         <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
                       )}
@@ -572,13 +584,25 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
             <div className="mt-4">
               <Label className="text-sm text-muted-foreground">Imagens guardadas ({images.length})</Label>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-2">
-                {images.map((url, i) => (
-                  <div key={`img-${i}`} className="relative group cursor-pointer" onClick={() => setPrimaryIndex(i)}>
+                {images.map((image, i) => (
+                  <div
+                    key={image.id || image.url}
+                    draggable
+                    className={`relative group cursor-move ${dragOverState?.type === 'stored' && dragOverState.index === i ? 'ring-2 ring-primary rounded' : ''}`}
+                    onClick={() => setPrimaryIndex(i)}
+                    onDragStart={(e) => { setDragState({ type: 'stored', index: i }); e.dataTransfer.effectAllowed = 'move'; }}
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverState({ type: 'stored', index: i }); }}
+                    onDrop={(e) => { e.preventDefault(); if (dragState?.type === 'stored') reorderStoredImages(dragState.index, i); setDragState(null); setDragOverState(null); }}
+                    onDragEnd={() => { setDragState(null); setDragOverState(null); }}
+                  >
                     <img
-                      src={url}
+                      src={image.url}
                       alt={`Imagem ${i + 1}`}
                       className={`w-full h-24 object-cover rounded border-2 ${primaryIndex === i ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
                     />
+                    <span className="absolute bottom-1 left-1 bg-background/80 text-foreground rounded p-1 pointer-events-none">
+                      <GripVertical className="h-3 w-3" />
+                    </span>
                     {primaryIndex === i && (
                       <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
                     )}
