@@ -10,6 +10,7 @@ import {
   loadVehicleDraftImages,
   loadVehicleDraftMetadata,
   saveVehicleDraft,
+  saveVehicleDraftMetadata,
 } from '@/utils/vehicleDraftStorage';
 
 export interface VehicleFormData {
@@ -93,23 +94,18 @@ export const useVehicleForm = () => {
   useEffect(() => {
     if (!hasLoadedDraftImages) return;
 
-    const draft = {
-      formData,
-      selectedCategoryId,
-      currentTab,
+    const payload = { formData, selectedCategoryId, currentTab, mainImage, secondaryImages };
+    const meaningfulDraft = {
+      ...payload,
       hasMainImage: !!mainImage,
       secondaryImageCount: secondaryImages.length,
       updatedAt: Date.now(),
     };
 
-    if (!isVehicleDraftMeaningful(draft)) return;
+    if (!isVehicleDraftMeaningful(meaningfulDraft)) return;
 
-    const timeout = window.setTimeout(() => {
-      saveVehicleDraft({ formData, selectedCategoryId, currentTab, mainImage, secondaryImages })
-        .catch((error) => console.error('Erro ao guardar rascunho:', error));
-    }, 250);
-
-    return () => window.clearTimeout(timeout);
+    saveVehicleDraftMetadata(payload);
+    saveVehicleDraft(payload).catch((error) => console.error('Erro ao guardar rascunho:', error));
   }, [formData, selectedCategoryId, currentTab, mainImage, secondaryImages, hasLoadedDraftImages]);
 
   // Notify user once that a draft was restored
