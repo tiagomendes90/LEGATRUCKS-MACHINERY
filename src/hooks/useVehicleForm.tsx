@@ -37,18 +37,61 @@ const initialFormData: VehicleFormData = {
   is_active: true,
 };
 
+const AUTOSAVE_KEY = 'lega:add-vehicle-draft:v1';
+
+type Draft = {
+  formData: VehicleFormData;
+  selectedCategoryId: string;
+  currentTab: string;
+};
+
+const loadDraft = (): Draft | null => {
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Draft;
+    if (!parsed?.formData) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
 export const useVehicleForm = () => {
-  const [formData, setFormData] = useState<VehicleFormData>(initialFormData);
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const initialDraft = typeof window !== 'undefined' ? loadDraft() : null;
+  const [formData, setFormData] = useState<VehicleFormData>(initialDraft?.formData ?? initialFormData);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(initialDraft?.selectedCategoryId ?? "");
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [secondaryImages, setSecondaryImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [currentTab, setCurrentTab] = useState("basic");
+  const [currentTab, setCurrentTab] = useState(initialDraft?.currentTab ?? "basic");
+  const [hasRestoredDraft] = useState(!!initialDraft);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Autosave to localStorage whenever form state changes
+  useEffect(() => {
+    try {
+      const draft: Draft = { formData, selectedCategoryId, currentTab };
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(draft));
+    } catch {
+      // ignore quota errors
+    }
+  }, [formData, selectedCategoryId, currentTab]);
+
+  // Notify user once that a draft was restored
+  useEffect(() => {
+    if (hasRestoredDraft) {
+      toast({
+        title: 'Rascunho restaurado',
+        description: 'Os dados do formulário foram recuperados automaticamente.',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   const categoriesQuery = useCategories();
   const brandsQuery = useNewVehicleBrands();
@@ -70,7 +113,8 @@ export const useVehicleForm = () => {
   }, [selectedCategory]);
 
   useEffect(() => {
-    if (selectedCategoryId) {
+    // Don't wipe subcategory/brand on initial restore from draft
+    if (selectedCategoryId && !hasRestoredDraft) {
       setFormData(prev => ({ ...prev, subcategory_id: "", brand_id: "" }));
     }
   }, [selectedCategoryId]);
@@ -86,6 +130,7 @@ export const useVehicleForm = () => {
     setMainImageUrl(null);
     setSecondaryImages([]);
     setCurrentTab("basic");
+    try { localStorage.removeItem(AUTOSAVE_KEY); } catch {}
   };
 
   const safeParseInt = (value: string): number | null => {
