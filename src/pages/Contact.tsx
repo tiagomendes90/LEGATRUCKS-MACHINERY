@@ -14,6 +14,7 @@ import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import PageHero from "@/components/PageHero";
 import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+import { useCreateContactMessage } from "@/hooks/useContactMessages";
 
 const PHONE_DISPLAY = WHATSAPP_DISPLAY;
 const EMAIL = "info@lega.pt";
@@ -29,21 +30,24 @@ const Contact = () => {
     message: ""
   });
   const { toast } = useToast();
+  const createMessage = useCreateContactMessage();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: t('contact.messageSent'),
-      description: t('contact.thankYou')
-    });
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      interest: "",
-      message: ""
-    });
+    try {
+      await createMessage.mutateAsync({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || null,
+        message: formData.message,
+        source: 'general',
+        interest: formData.interest || null,
+        company: formData.company || null,
+      });
+      setFormData({ name: "", email: "", phone: "", company: "", interest: "", message: "" });
+    } catch (err) {
+      // toast handled in hook
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
