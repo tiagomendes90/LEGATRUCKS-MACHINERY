@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import AddVehicleForm from "@/components/AddVehicleForm";
 import SocialAdGenerator from "@/components/SocialAdGenerator";
+import { getPrimaryImageUrl } from "@/utils/productImages";
 
 export const VehicleManagement = () => {
   // Use includeUnpublished=true to show all vehicles in admin panel
@@ -176,7 +177,7 @@ export const VehicleManagement = () => {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
                         <img 
-                          src={vehicle.main_image_url || vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=100&h=100&fit=crop"} 
+                          src={getPrimaryImageUrl(vehicle.images) || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=100&h=100&fit=crop"} 
                           alt={vehicle.title} 
                           className="w-12 h-12 object-cover rounded"
                           loading="lazy"
