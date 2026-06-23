@@ -8,8 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X, Upload, Trash2, ImageIcon } from 'lucide-react';
+import { Save, X, Upload, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { sortProductImages } from '@/utils/productImages';
+
+type StoredImage = {
+  id?: string | null;
+  url: string;
+  is_primary?: boolean | null;
+  sort_order?: number | null;
+};
+
+type DragState = { type: 'stored' | 'pending'; index: number } | null;
 
 interface ProductFormProps {
   editingProduct?: any;
@@ -24,8 +34,10 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<StoredImage[]>([]);
   const [primaryIndex, setPrimaryIndex] = useState(0);
+  const [dragState, setDragState] = useState<DragState>(null);
+  const [dragOverState, setDragOverState] = useState<DragState>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [specs, setSpecs] = useState<any[]>([]);
