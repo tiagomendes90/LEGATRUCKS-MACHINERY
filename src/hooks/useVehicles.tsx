@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { sortProductImages } from '@/utils/productImages';
 
 export interface Vehicle {
   id: string;
@@ -23,7 +24,7 @@ export interface Vehicle {
   // Joined data
   brand?: { name: string; slug: string };
   subcategory?: { name: string; slug: string; category?: { name: string; slug: string } };
-  images?: { image_url: string; sort_order: number }[];
+  images?: { image_url: string; is_primary?: boolean | null; sort_order: number | null }[];
 }
 
 export interface VehicleFilters {
@@ -58,7 +59,7 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
             slug,
             category:categories(name, slug)
           ),
-          images:product_images(image_url, sort_order)
+          images:product_images(id, image_url, is_primary, sort_order)
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
@@ -151,12 +152,9 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
       }
 
       console.log('Products fetched successfully:', data?.length || 0);
-      // Sort images by sort_order so the main image (sort_order=0) is always first
       return (data || []).map((p: any) => ({
         ...p,
-        images: Array.isArray(p.images)
-          ? [...p.images].sort((a: any, b: any) => (a.sort_order ?? 999) - (b.sort_order ?? 999))
-          : p.images,
+        images: sortProductImages(p.images),
       }));
     },
     staleTime: 1000 * 60 * 5,
@@ -182,7 +180,7 @@ export const useVehicle = (id: string) => {
             slug,
             category:categories(name, slug)
           ),
-          images:product_images(image_url, sort_order)
+          images:product_images(id, image_url, is_primary, sort_order)
         `)
         .eq('id', id)
         .eq('is_active', true)
@@ -205,11 +203,7 @@ export const useVehicle = (id: string) => {
         `)
         .eq('product_id', id);
 
-      const sortedImages = Array.isArray((data as any)?.images)
-        ? [...(data as any).images].sort((a: any, b: any) => (a.sort_order ?? 999) - (b.sort_order ?? 999))
-        : (data as any)?.images;
-
-      return { ...data, images: sortedImages, spec_values: specValues || [] };
+      return { ...data, images: sortProductImages((data as any)?.images), spec_values: specValues || [] };
     },
     enabled: !!id,
   });

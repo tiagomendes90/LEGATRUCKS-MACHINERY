@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealOrderManagement from '@/components/RealOrderManagement';
 import { Package, TrendingUp, ExternalLink, LogOut } from 'lucide-react';
+import { sortProductImages } from '@/utils/productImages';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
@@ -19,8 +20,8 @@ export default function AdminDashboard() {
   const loadProducts = async () => {
     const { data } = await supabase
       .from('products')
-      .select('*, brand:brands(name, slug), images:product_images(image_url, sort_order)');
-    setProducts(data || []);
+      .select('*, brand:brands(name, slug), images:product_images(id, image_url, is_primary, sort_order)');
+    setProducts((data || []).map((product: any) => ({ ...product, images: sortProductImages(product.images) })));
   };
 
   useEffect(() => {

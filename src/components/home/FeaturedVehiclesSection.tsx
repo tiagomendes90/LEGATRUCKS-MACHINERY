@@ -10,6 +10,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { getPrimaryImageUrl } from "@/utils/productImages";
 
 const FeaturedVehiclesSection = () => {
   const { data: featuredProducts = [], isLoading } = useFeaturedVehicles();
@@ -153,7 +154,7 @@ const FeaturedVehiclesSection = () => {
                         <div className="relative overflow-hidden">
                           <img
                             src={
-                              product.images?.[0]?.image_url ||
+                              getPrimaryImageUrl(product.images) ||
                               "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=280&fit=crop"
                             }
                             alt={product.title}

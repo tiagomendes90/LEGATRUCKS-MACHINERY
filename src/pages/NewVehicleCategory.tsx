@@ -21,6 +21,7 @@ import CategorySidebarFilter, { SidebarFilters } from "@/components/CategorySide
 import { useVehicles } from "@/hooks/useVehicles";
 import { useCategories } from "@/hooks/useCategories";
 import { useTranslation } from "react-i18next";
+import { getPrimaryImageUrl } from "@/utils/productImages";
 import SEO from "@/components/SEO";
 import PageHero from "@/components/PageHero";
 
@@ -269,7 +270,7 @@ const NewVehicleCategory = () => {
                         <div className={`relative overflow-hidden ${aspectClass} bg-gray-100`}>
                           <img
                             src={
-                              vehicle.images?.[0]?.image_url ||
+                              getPrimaryImageUrl(vehicle.images) ||
                               "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=900&h=600&fit=crop"
                             }
                             alt={vehicle.title}

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+import { getPrimaryImageUrl } from "@/utils/productImages";
 
 const LEGA_BLUE = "#0B2545";
 const LEGA_BLUE_DARK = "#081B33";
@@ -73,12 +74,7 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
   };
 
   const data = useMemo(() => {
-    const images: string[] = (vehicle?.images || [])
-      .slice()
-      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-      .map((i: any) => i.image_url)
-      .filter(Boolean);
-    const main = vehicle?.main_image_url || images[0] || "";
+    const main = getPrimaryImageUrl(vehicle?.images) || "";
     const brand = vehicle?.brand?.name || "";
     const title: string = vehicle?.title || "";
     const model = vehicle?.model || title.replace(new RegExp(`^${brand}\\s*`, "i"), "").trim();

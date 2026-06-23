@@ -8,8 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X, Upload, Trash2, ImageIcon } from 'lucide-react';
+import { Save, X, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { sortProductImages } from '@/utils/productImages';
+
+type StoredImage = {
+  id?: string | null;
+  url: string;
+  is_primary?: boolean | null;
+  sort_order?: number | null;
+};
+
+type DragState = { type: 'stored' | 'pending'; index: number } | null;
 
 interface ProductFormProps {
   editingProduct?: any;
@@ -24,8 +34,10 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<StoredImage[]>([]);
   const [primaryIndex, setPrimaryIndex] = useState(0);
+  const [dragState, setDragState] = useState<DragState>(null);
+  const [dragOverState, setDragOverState] = useState<DragState>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [specs, setSpecs] = useState<any[]>([]);
@@ -66,8 +78,14 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         currency: editingProduct.currency || 'EUR',
       });
       if (editingProduct.images) {
-        const sortedImages = [...editingProduct.images].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-        setImages(sortedImages.map((img: any) => img.image_url));
+        const sortedImages = sortProductImages(editingProduct.images);
+        setImages(sortedImages.map((img: any) => ({
+          id: img.id,
+          url: img.image_url,
+          is_primary: img.is_primary,
+          sort_order: img.sort_order,
+        })));
+        setPrimaryIndex(Math.max(0, sortedImages.findIndex((img: any) => img.is_primary)));
       }
       // Load featured status
       const loadFeatured = async () => {
@@ -148,7 +166,10 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   };
 
   const removePendingFile = (index: number) => {
+    const globalIndex = images.length + index;
     setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+    if (primaryIndex === globalIndex) setPrimaryIndex(0);
+    else if (primaryIndex > globalIndex) setPrimaryIndex((p) => p - 1);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -160,6 +181,37 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     else if (primaryIndex > index) setPrimaryIndex((p) => p - 1);
   };
 
+  const getMovedPrimaryIndex = (current: number, from: number, to: number) => {
+    if (current === from) return to;
+    if (from < to && current > from && current <= to) return current - 1;
+    if (from > to && current >= to && current < from) return current + 1;
+    return current;
+  };
+
+  const reorderStoredImages = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= images.length || to >= images.length) return;
+    setImages((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setPrimaryIndex((current) => getMovedPrimaryIndex(current, from, to));
+  };
+
+  const reorderPendingFiles = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= pendingFiles.length || to >= pendingFiles.length) return;
+    const globalFrom = images.length + from;
+    const globalTo = images.length + to;
+    setPendingFiles((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setPrimaryIndex((current) => getMovedPrimaryIndex(current, globalFrom, globalTo));
+  };
+
   const uploadAllPendingFiles = async (productId: string): Promise<string[]> => {
     const categorySlug = getCategorySlug();
     const urls: string[] = [];
@@ -167,7 +219,6 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     for (let i = 0; i < pendingFiles.length; i++) {
       const file = pendingFiles[i];
       setUploadProgress(`A carregar ${i + 1}/${pendingFiles.length}...`);
-      const ext = file.name.split('.').pop();
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `${categorySlug}/${productId}/${Date.now()}-${safeName}`;
 
@@ -235,7 +286,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     if (productId) {
       setUploading(true);
       const newUrls = await uploadAllPendingFiles(productId);
-      const allImages = [...images, ...newUrls];
+      const allImages: StoredImage[] = [...images, ...newUrls.map((url) => ({ url }))];
       setUploading(false);
 
       // Delete existing images if editing
@@ -244,12 +295,12 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       }
 
       if (allImages.length > 0) {
-        // Adjust primaryIndex for the combined array
-        const adjustedPrimary = primaryIndex < images.length ? primaryIndex : images.length + (primaryIndex - images.length);
-        const imageRows = allImages.map((url, i) => ({
+        const safePrimaryIndex = primaryIndex >= 0 && primaryIndex < allImages.length ? primaryIndex : 0;
+        const orderedImages = [allImages[safePrimaryIndex], ...allImages.filter((_, i) => i !== safePrimaryIndex)];
+        const imageRows = orderedImages.map((image, i) => ({
           product_id: productId,
-          image_url: url,
-          is_primary: i === adjustedPrimary,
+          image_url: image.url,
+          is_primary: i === 0,
           sort_order: i,
         }));
 
@@ -257,7 +308,11 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         if (imgError) console.error('Error saving images:', imgError);
       }
 
-      setImages(allImages);
+      const safePrimaryIndex = primaryIndex >= 0 && primaryIndex < allImages.length ? primaryIndex : 0;
+      const orderedImages = [allImages[safePrimaryIndex], ...allImages.filter((_, i) => i !== safePrimaryIndex)]
+        .map((image, i) => ({ ...image, is_primary: i === 0, sort_order: i }));
+      setImages(orderedImages);
+      setPrimaryIndex(0);
       setPendingFiles([]);
     }
 
@@ -487,12 +542,24 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
                 {pendingFiles.map((file, i) => {
                   const globalIndex = images.length + i;
                   return (
-                    <div key={`pending-${i}`} className="relative group cursor-pointer" onClick={() => setPrimaryIndex(globalIndex)}>
+                    <div
+                      key={`pending-${i}`}
+                      draggable
+                      className={`relative group cursor-move ${dragOverState?.type === 'pending' && dragOverState.index === i ? 'ring-2 ring-primary rounded' : ''}`}
+                      onClick={() => setPrimaryIndex(globalIndex)}
+                      onDragStart={(e) => { setDragState({ type: 'pending', index: i }); e.dataTransfer.effectAllowed = 'move'; }}
+                      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverState({ type: 'pending', index: i }); }}
+                      onDrop={(e) => { e.preventDefault(); if (dragState?.type === 'pending') reorderPendingFiles(dragState.index, i); setDragState(null); setDragOverState(null); }}
+                      onDragEnd={() => { setDragState(null); setDragOverState(null); }}
+                    >
                       <img
                         src={URL.createObjectURL(file)}
                         alt={file.name}
                         className={`w-full h-24 object-cover rounded border-2 ${primaryIndex === globalIndex ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
                       />
+                      <span className="absolute bottom-1 left-1 bg-background/80 text-foreground rounded p-1 pointer-events-none">
+                        <GripVertical className="h-3 w-3" />
+                      </span>
                       {primaryIndex === globalIndex && (
                         <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
                       )}
@@ -517,13 +584,25 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
             <div className="mt-4">
               <Label className="text-sm text-muted-foreground">Imagens guardadas ({images.length})</Label>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-2">
-                {images.map((url, i) => (
-                  <div key={`img-${i}`} className="relative group cursor-pointer" onClick={() => setPrimaryIndex(i)}>
+                {images.map((image, i) => (
+                  <div
+                    key={image.id || image.url}
+                    draggable
+                    className={`relative group cursor-move ${dragOverState?.type === 'stored' && dragOverState.index === i ? 'ring-2 ring-primary rounded' : ''}`}
+                    onClick={() => setPrimaryIndex(i)}
+                    onDragStart={(e) => { setDragState({ type: 'stored', index: i }); e.dataTransfer.effectAllowed = 'move'; }}
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverState({ type: 'stored', index: i }); }}
+                    onDrop={(e) => { e.preventDefault(); if (dragState?.type === 'stored') reorderStoredImages(dragState.index, i); setDragState(null); setDragOverState(null); }}
+                    onDragEnd={() => { setDragState(null); setDragOverState(null); }}
+                  >
                     <img
-                      src={url}
+                      src={image.url}
                       alt={`Imagem ${i + 1}`}
                       className={`w-full h-24 object-cover rounded border-2 ${primaryIndex === i ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
                     />
+                    <span className="absolute bottom-1 left-1 bg-background/80 text-foreground rounded p-1 pointer-events-none">
+                      <GripVertical className="h-3 w-3" />
+                    </span>
                     {primaryIndex === i && (
                       <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">Principal</span>
                     )}
@@ -551,9 +630,9 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         </div>
 
         <div className="flex gap-2 pt-4">
-          <Button onClick={handleSave} disabled={loading}>
+          <Button onClick={handleSave} disabled={loading || uploading}>
             <Save className="h-4 w-4 mr-2" />
-            {loading ? 'A guardar...' : 'Guardar'}
+            {uploading ? 'A carregar imagens...' : loading ? 'A guardar...' : 'Guardar'}
           </Button>
           {onCancel && (
             <Button variant="outline" onClick={onCancel}>

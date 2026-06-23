@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getPrimaryImageUrl } from '@/utils/productImages';
 
 interface SimilarVehiclesProps {
   vehicleId: string;
@@ -34,7 +35,7 @@ const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategor
                 onClick={() => navigate(`/vehicle/${vehicle.id}`)}>
             <div className="relative overflow-hidden">
               <img 
-                src={vehicle.images?.[0]?.image_url || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
+                src={getPrimaryImageUrl(vehicle.images) || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
                 alt={vehicle.title} 
                 loading="lazy"
                 width={400}

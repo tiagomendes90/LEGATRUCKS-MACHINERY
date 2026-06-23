@@ -9,6 +9,7 @@ import { Eye, Edit, Trash2, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import ProductForm from '@/admin/ProductForm';
+import { getPrimaryImageUrl, sortProductImages } from '@/utils/productImages';
 
 export default function ProductList() {
   const [products, setProducts] = useState<any[]>([]);
@@ -28,9 +29,9 @@ export default function ProductList() {
     setLoading(true);
     const { data } = await supabase
       .from('products')
-      .select('*, brand:brands(name), images:product_images(image_url, is_primary, sort_order)')
+      .select('*, brand:brands(name), images:product_images(id, image_url, is_primary, sort_order)')
       .order('created_at', { ascending: false });
-    setProducts(data || []);
+    setProducts((data || []).map((product: any) => ({ ...product, images: sortProductImages(product.images) })));
     setLoading(false);
   };
 
@@ -82,8 +83,7 @@ export default function ProductList() {
   };
 
   const getPrimaryImage = (product: any) => {
-    const primary = product.images?.find((img: any) => img.is_primary);
-    return primary?.image_url || product.images?.[0]?.image_url;
+    return getPrimaryImageUrl(product.images);
   };
 
   if (loading) {
