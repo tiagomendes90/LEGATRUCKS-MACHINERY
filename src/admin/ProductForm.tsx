@@ -703,12 +703,10 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
             <Save className="h-4 w-4 mr-2" />
             {uploading ? 'A carregar imagens...' : loading ? 'A guardar...' : 'Guardar'}
           </Button>
-          {onCancel && (
-            <Button variant="outline" onClick={handleDiscardDraft}>
-              <X className="h-4 w-4 mr-2" />
-              Descartar rascunho
-            </Button>
-          )}
+          <Button variant="outline" onClick={handleDiscardDraft}>
+            <X className="h-4 w-4 mr-2" />
+            {editingProduct ? 'Cancelar' : 'Descartar rascunho'}
+          </Button>
         </div>
       </CardContent>
     </Card>
