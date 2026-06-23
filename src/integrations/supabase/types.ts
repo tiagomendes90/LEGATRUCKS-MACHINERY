@@ -86,6 +86,65 @@ export type Database = {
           },
         ]
       }
+      contact_messages: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          interest: string | null
+          message: string
+          name: string
+          phone: string | null
+          source: string
+          status: string
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_title: string | null
+          vehicle_url: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          interest?: string | null
+          message: string
+          name: string
+          phone?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_title?: string | null
+          vehicle_url?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          interest?: string | null
+          message?: string
+          name?: string
+          phone?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_title?: string | null
+          vehicle_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_messages_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       featured_products: {
         Row: {
           created_at: string
