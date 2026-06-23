@@ -117,7 +117,7 @@ export const loadVehicleDraftMetadata = (): VehicleDraftMetadata | null => {
 
 export const hasVehicleDraft = () => isVehicleDraftMeaningful(loadVehicleDraftMetadata());
 
-export const saveVehicleDraft = async ({
+export const saveVehicleDraftMetadata = ({
   formData,
   selectedCategoryId,
   currentTab,
@@ -142,12 +142,25 @@ export const saveVehicleDraft = async ({
   };
 
   if (!isVehicleDraftMeaningful(metadata)) {
-    await clearVehicleDraft();
+    void clearVehicleDraft();
     return;
   }
 
   window.localStorage.setItem(VEHICLE_DRAFT_METADATA_KEY, JSON.stringify(metadata));
   window.localStorage.removeItem(LEGACY_DRAFT_METADATA_KEY);
+  emitDraftEvent();
+};
+
+export const saveVehicleDraft = async (draft: {
+  formData: VehicleFormData;
+  selectedCategoryId: string;
+  currentTab: string;
+  mainImage: File | null;
+  secondaryImages: File[];
+}) => {
+  saveVehicleDraftMetadata(draft);
+
+  const { mainImage, secondaryImages } = draft;
 
   if (hasIndexedDb()) {
     const db = await openDraftDb();
@@ -185,8 +198,6 @@ export const saveVehicleDraft = async ({
       db.close();
     }
   }
-
-  emitDraftEvent();
 };
 
 export const loadVehicleDraftImages = async (): Promise<{ mainImage: File | null; secondaryImages: File[] }> => {
