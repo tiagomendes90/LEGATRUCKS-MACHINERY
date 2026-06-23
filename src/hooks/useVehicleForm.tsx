@@ -45,8 +45,8 @@ const initialFormData: VehicleFormData = {
   is_active: true,
 };
 
-export const useVehicleForm = () => {
-  const initialDraft = typeof window !== 'undefined' ? loadVehicleDraftMetadata() : null;
+export const useVehicleForm = ({ enableDraft = true }: { enableDraft?: boolean } = {}) => {
+  const initialDraft = enableDraft && typeof window !== 'undefined' ? loadVehicleDraftMetadata() : null;
   const [formData, setFormData] = useState<VehicleFormData>(initialDraft?.formData ?? initialFormData);
   const [selectedCategoryId, setSelectedCategoryId] = useState(initialDraft?.selectedCategoryId ?? "");
   const [mainImage, setMainImage] = useState<File | null>(null);
@@ -67,7 +67,7 @@ export const useVehicleForm = () => {
     let cancelled = false;
 
     const restoreImages = async () => {
-      if (!initialDraft) {
+      if (!enableDraft || !initialDraft) {
         setHasLoadedDraftImages(true);
         return;
       }
@@ -92,6 +92,7 @@ export const useVehicleForm = () => {
 
   // Autosave metadata immediately whenever form state changes.
   useEffect(() => {
+    if (!enableDraft) return;
     if (!hasLoadedDraftImages) return;
 
     const payload = { formData, selectedCategoryId, currentTab, mainImage, secondaryImages };
@@ -105,17 +106,17 @@ export const useVehicleForm = () => {
     if (!isVehicleDraftMeaningful(meaningfulDraft)) return;
 
     saveVehicleDraftMetadata(payload);
-  }, [formData, selectedCategoryId, currentTab, mainImage, secondaryImages, hasLoadedDraftImages]);
+  }, [formData, selectedCategoryId, currentTab, mainImage, secondaryImages, hasLoadedDraftImages, enableDraft]);
 
   // Persist image blobs only when image selections/order change, avoiding a heavy
   // IndexedDB rewrite on every text keystroke.
   useEffect(() => {
+    if (!enableDraft) return;
     if (!hasLoadedDraftImages) return;
-    if (!mainImage && secondaryImages.length === 0) return;
 
     saveVehicleDraft({ formData, selectedCategoryId, currentTab, mainImage, secondaryImages })
       .catch((error) => console.error('Erro ao guardar imagens do rascunho:', error));
-  }, [mainImage, secondaryImages, hasLoadedDraftImages]);
+  }, [mainImage, secondaryImages, hasLoadedDraftImages, enableDraft]);
 
   // Notify user once that a draft was restored
   useEffect(() => {
