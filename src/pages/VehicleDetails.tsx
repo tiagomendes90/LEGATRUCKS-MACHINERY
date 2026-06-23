@@ -12,6 +12,7 @@ import VehicleImageGallery from "@/components/VehicleImageGallery";
 import SimilarVehicles from "@/components/SimilarVehicles";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { useTranslation } from "react-i18next";
+import { getGalleryImageUrls } from "@/utils/productImages";
 
 const VehicleDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -56,7 +57,7 @@ const VehicleDetails = () => {
     );
   }
 
-  const imageUrls = vehicle.images?.map((img: any) => img.image_url) || [];
+  const imageUrls = getGalleryImageUrls(vehicle.images);
 
   // Extract dynamic spec values
   const dynamicSpecs = (vehicle.spec_values || []).map((sv: any) => {
