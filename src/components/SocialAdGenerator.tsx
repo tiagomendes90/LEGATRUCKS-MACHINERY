@@ -95,6 +95,28 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
     if (!el) return;
     if (!silent) setGenerating(fmt.id);
     try {
+      // Ensure all images inside the capture node are fully loaded
+      const imgs = Array.from(el.querySelectorAll("img"));
+      await Promise.all(
+        imgs.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete && img.naturalWidth > 0) return resolve();
+              img.addEventListener("load", () => resolve(), { once: true });
+              img.addEventListener("error", () => resolve(), { once: true });
+            }),
+        ),
+      );
+      // Ensure fonts are ready
+      if ((document as any).fonts?.ready) {
+        try {
+          await (document as any).fonts.ready;
+        } catch {
+          /* noop */
+        }
+      }
+      // Wait one paint frame so layout is fully flushed
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
       const canvas = await html2canvas(el, {
         useCORS: true,
         allowTaint: false,
@@ -104,6 +126,11 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
         height: fmt.height,
         windowWidth: fmt.width,
         windowHeight: fmt.height,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        logging: false,
       });
       const link = document.createElement("a");
       const safeTitle = (data.title || "lega-anuncio")
@@ -637,14 +664,38 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
                         height: f.height,
                       }}
                     >
-                      <div ref={refs[f.id]}>
-                        <Template fmt={f} />
-                      </div>
+                      <Template fmt={f} />
                     </div>
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          {/* Hidden full-size templates used for accurate PNG capture */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              opacity: 0,
+              pointerEvents: "none",
+              zIndex: -1,
+              overflow: "hidden",
+              width: 1,
+              height: 1,
+            }}
+          >
+            {FORMATS.map((f) => (
+              <div
+                key={f.id}
+                ref={refs[f.id]}
+                style={{ width: f.width, height: f.height }}
+              >
+                <Template fmt={f} />
+              </div>
+            ))}
           </div>
 
           <p className="text-xs text-muted-foreground">
