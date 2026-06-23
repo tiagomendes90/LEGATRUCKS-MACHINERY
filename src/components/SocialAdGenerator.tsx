@@ -664,14 +664,38 @@ export const SocialAdGenerator = ({ vehicle, open, onOpenChange }: Props) => {
                         height: f.height,
                       }}
                     >
-                      <div ref={refs[f.id]}>
-                        <Template fmt={f} />
-                      </div>
+                      <Template fmt={f} />
                     </div>
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          {/* Hidden full-size templates used for accurate PNG capture */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              opacity: 0,
+              pointerEvents: "none",
+              zIndex: -1,
+              overflow: "hidden",
+              width: 1,
+              height: 1,
+            }}
+          >
+            {FORMATS.map((f) => (
+              <div
+                key={f.id}
+                ref={refs[f.id]}
+                style={{ width: f.width, height: f.height }}
+              >
+                <Template fmt={f} />
+              </div>
+            ))}
           </div>
 
           <p className="text-xs text-muted-foreground">
