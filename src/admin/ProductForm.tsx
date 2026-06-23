@@ -11,6 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, X, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { sortProductImages } from '@/utils/productImages';
+import {
+  clearAdminProductDraft,
+  loadAdminProductDraft,
+  loadAdminProductDraftImages,
+  saveAdminProductDraftImages,
+  saveAdminProductDraftMetadata,
+  type AdminProductDraftForm,
+} from '@/utils/adminProductDraftStorage';
 
 type StoredImage = {
   id?: string | null;
@@ -21,6 +29,21 @@ type StoredImage = {
 
 type DragState = { type: 'stored' | 'pending'; index: number } | null;
 
+const emptyProductForm: AdminProductDraftForm = {
+  title: '',
+  category_id: '',
+  subcategory_id: '',
+  brand_id: '',
+  price: '',
+  year: '',
+  description: '',
+  condition: 'used',
+  model: '',
+  location_city: '',
+  location_country: 'Portugal',
+  currency: 'EUR',
+};
+
 interface ProductFormProps {
   editingProduct?: any;
   onSuccess?: () => void;
@@ -30,35 +53,23 @@ interface ProductFormProps {
 export default function ProductForm({ editingProduct, onSuccess, onCancel }: ProductFormProps) {
   const { toast } = useToast();
   const { data: categories = [] } = useCategories();
+  const initialDraft = !editingProduct && typeof window !== 'undefined' ? loadAdminProductDraft() : null;
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [images, setImages] = useState<StoredImage[]>([]);
-  const [primaryIndex, setPrimaryIndex] = useState(0);
+  const [primaryIndex, setPrimaryIndex] = useState(initialDraft?.primaryIndex ?? 0);
   const [dragState, setDragState] = useState<DragState>(null);
   const [dragOverState, setDragOverState] = useState<DragState>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [specs, setSpecs] = useState<any[]>([]);
-  const [specValues, setSpecValues] = useState<Record<string, any>>({});
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [displayOrder, setDisplayOrder] = useState(0);
-
-  const [form, setForm] = useState({
-    title: '',
-    category_id: '',
-    subcategory_id: '',
-    brand_id: '',
-    price: '',
-    year: '',
-    description: '',
-    condition: 'used',
-    model: '',
-    location_city: '',
-    location_country: 'Portugal',
-    currency: 'EUR',
-  });
+  const [specValues, setSpecValues] = useState<Record<string, any>>(initialDraft?.specValues ?? {});
+  const [isFeatured, setIsFeatured] = useState(initialDraft?.isFeatured ?? false);
+  const [displayOrder, setDisplayOrder] = useState(initialDraft?.displayOrder ?? 0);
+  const [hasLoadedDraftImages, setHasLoadedDraftImages] = useState(!!editingProduct || !initialDraft);
+  const [form, setForm] = useState<AdminProductDraftForm>(initialDraft?.form ?? emptyProductForm);
 
   // Load editing product data
   useEffect(() => {
@@ -102,6 +113,51 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       loadFeatured();
     }
   }, [editingProduct]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const restoreDraftImages = async () => {
+      if (editingProduct || !initialDraft) {
+        setHasLoadedDraftImages(true);
+        return;
+      }
+
+      try {
+        const files = await loadAdminProductDraftImages();
+        if (!cancelled) setPendingFiles(files);
+      } catch (error) {
+        console.error('Erro ao restaurar imagens do rascunho:', error);
+      } finally {
+        if (!cancelled) setHasLoadedDraftImages(true);
+      }
+    };
+
+    restoreDraftImages();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (editingProduct || !hasLoadedDraftImages) return;
+
+    saveAdminProductDraftMetadata({
+      form,
+      specValues,
+      isFeatured,
+      displayOrder,
+      primaryIndex,
+      pendingFileCount: pendingFiles.length,
+    });
+  }, [editingProduct, form, specValues, isFeatured, displayOrder, primaryIndex, pendingFiles.length, hasLoadedDraftImages]);
+
+  useEffect(() => {
+    if (editingProduct || !hasLoadedDraftImages) return;
+
+    saveAdminProductDraftImages(pendingFiles)
+      .catch((error) => console.error('Erro ao guardar imagens do rascunho:', error));
+  }, [editingProduct, pendingFiles, hasLoadedDraftImages]);
 
   useEffect(() => {
     if (form.category_id) {
@@ -163,6 +219,24 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     if (files.length === 0) return;
     setPendingFiles((prev) => [...prev, ...files]);
     e.target.value = '';
+  };
+
+  const clearFormState = async () => {
+    setForm(emptyProductForm);
+    setSpecValues({});
+    setIsFeatured(false);
+    setDisplayOrder(0);
+    setPrimaryIndex(0);
+    setPendingFiles([]);
+    setImages([]);
+    if (!editingProduct) {
+      try { await clearAdminProductDraft(); } catch (error) { console.error('Erro ao limpar rascunho:', error); }
+    }
+  };
+
+  const handleDiscardDraft = async () => {
+    await clearFormState();
+    onCancel?.();
   };
 
   const removePendingFile = (index: number) => {
@@ -358,12 +432,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     });
 
     if (!editingProduct) {
-      setForm({
-        title: '', category_id: '', subcategory_id: '', brand_id: '',
-        price: '', year: '', description: '', condition: 'used',
-        model: '', location_city: '', location_country: 'Portugal', currency: 'EUR',
-      });
-      setImages([]);
+      await clearFormState();
     }
 
     onSuccess?.();
@@ -634,12 +703,10 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
             <Save className="h-4 w-4 mr-2" />
             {uploading ? 'A carregar imagens...' : loading ? 'A guardar...' : 'Guardar'}
           </Button>
-          {onCancel && (
-            <Button variant="outline" onClick={onCancel}>
-              <X className="h-4 w-4 mr-2" />
-              Cancelar
-            </Button>
-          )}
+          <Button variant="outline" onClick={handleDiscardDraft}>
+            <X className="h-4 w-4 mr-2" />
+            {editingProduct ? 'Cancelar' : 'Descartar rascunho'}
+          </Button>
         </div>
       </CardContent>
     </Card>

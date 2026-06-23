@@ -4,6 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCategories } from '@/hooks/useCategories';
 import { useNewVehicleBrands } from '@/hooks/useNewVehicleBrands';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  clearVehicleDraft,
+  isVehicleDraftMeaningful,
+  loadVehicleDraftImages,
+  loadVehicleDraftMetadata,
+  saveVehicleDraft,
+  saveVehicleDraftMetadata,
+} from '@/utils/vehicleDraftStorage';
 
 export interface VehicleFormData {
   title: string;
@@ -37,28 +45,8 @@ const initialFormData: VehicleFormData = {
   is_active: true,
 };
 
-const AUTOSAVE_KEY = 'lega:add-vehicle-draft:v1';
-
-type Draft = {
-  formData: VehicleFormData;
-  selectedCategoryId: string;
-  currentTab: string;
-};
-
-const loadDraft = (): Draft | null => {
-  try {
-    const raw = localStorage.getItem(AUTOSAVE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Draft;
-    if (!parsed?.formData) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-};
-
-export const useVehicleForm = () => {
-  const initialDraft = typeof window !== 'undefined' ? loadDraft() : null;
+export const useVehicleForm = ({ enableDraft = true }: { enableDraft?: boolean } = {}) => {
+  const initialDraft = enableDraft && typeof window !== 'undefined' ? loadVehicleDraftMetadata() : null;
   const [formData, setFormData] = useState<VehicleFormData>(initialDraft?.formData ?? initialFormData);
   const [selectedCategoryId, setSelectedCategoryId] = useState(initialDraft?.selectedCategoryId ?? "");
   const [mainImage, setMainImage] = useState<File | null>(null);
@@ -68,19 +56,67 @@ export const useVehicleForm = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [currentTab, setCurrentTab] = useState(initialDraft?.currentTab ?? "basic");
   const [hasRestoredDraft] = useState(!!initialDraft);
+  const [hasLoadedDraftImages, setHasLoadedDraftImages] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Autosave to localStorage whenever form state changes
+  // Restore draft image files from IndexedDB. File inputs themselves cannot keep
+  // their value after refresh, so we persist the actual File blobs separately.
   useEffect(() => {
-    try {
-      const draft: Draft = { formData, selectedCategoryId, currentTab };
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(draft));
-    } catch {
-      // ignore quota errors
-    }
-  }, [formData, selectedCategoryId, currentTab]);
+    let cancelled = false;
+
+    const restoreImages = async () => {
+      if (!enableDraft || !initialDraft) {
+        setHasLoadedDraftImages(true);
+        return;
+      }
+
+      try {
+        const restored = await loadVehicleDraftImages();
+        if (cancelled) return;
+        setMainImage(restored.mainImage);
+        setSecondaryImages(restored.secondaryImages);
+      } catch (error) {
+        console.error('Erro ao restaurar imagens do rascunho:', error);
+      } finally {
+        if (!cancelled) setHasLoadedDraftImages(true);
+      }
+    };
+
+    restoreImages();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Autosave metadata immediately whenever form state changes.
+  useEffect(() => {
+    if (!enableDraft) return;
+    if (!hasLoadedDraftImages) return;
+
+    const payload = { formData, selectedCategoryId, currentTab, mainImage, secondaryImages };
+    const meaningfulDraft = {
+      ...payload,
+      hasMainImage: !!mainImage,
+      secondaryImageCount: secondaryImages.length,
+      updatedAt: Date.now(),
+    };
+
+    if (!isVehicleDraftMeaningful(meaningfulDraft)) return;
+
+    saveVehicleDraftMetadata(payload);
+  }, [formData, selectedCategoryId, currentTab, mainImage, secondaryImages, hasLoadedDraftImages, enableDraft]);
+
+  // Persist image blobs only when image selections/order change, avoiding a heavy
+  // IndexedDB rewrite on every text keystroke.
+  useEffect(() => {
+    if (!enableDraft) return;
+    if (!hasLoadedDraftImages) return;
+
+    saveVehicleDraft({ formData, selectedCategoryId, currentTab, mainImage, secondaryImages })
+      .catch((error) => console.error('Erro ao guardar imagens do rascunho:', error));
+  }, [mainImage, secondaryImages, hasLoadedDraftImages, enableDraft]);
 
   // Notify user once that a draft was restored
   useEffect(() => {
@@ -123,14 +159,14 @@ export const useVehicleForm = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const resetForm = () => {
+  const resetForm = async () => {
     setFormData(initialFormData);
     setSelectedCategoryId("");
     setMainImage(null);
     setMainImageUrl(null);
     setSecondaryImages([]);
     setCurrentTab("basic");
-    try { localStorage.removeItem(AUTOSAVE_KEY); } catch {}
+    try { await clearVehicleDraft(); } catch (error) { console.error('Erro ao limpar rascunho:', error); }
   };
 
   const safeParseInt = (value: string): number | null => {
@@ -257,7 +293,7 @@ export const useVehicleForm = () => {
 
       await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast({ title: "Sucesso!", description: `Produto "${product.title}" adicionado!` });
-      resetForm();
+      await resetForm();
       return product;
 
     } catch (error) {

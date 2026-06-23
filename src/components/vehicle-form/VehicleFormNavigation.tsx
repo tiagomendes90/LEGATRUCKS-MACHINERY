@@ -34,7 +34,7 @@ export const VehicleFormNavigation = ({
       
       <div className="flex space-x-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
+          Descartar rascunho
         </Button>
         <Button type="submit" disabled={isSubmitting || isUploading}>
           {isSubmitting || isUploading ? "A processar..." : 

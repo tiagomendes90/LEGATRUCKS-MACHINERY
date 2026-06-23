@@ -10,10 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealOrderManagement from '@/components/RealOrderManagement';
 import { Package, TrendingUp, ExternalLink, LogOut } from 'lucide-react';
 import { sortProductImages } from '@/utils/productImages';
+import { ADMIN_PRODUCT_DRAFT_EVENT, hasAdminProductDraft } from '@/utils/adminProductDraftStorage';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState(() => hasAdminProductDraft() ? 'add-product' : 'inventory');
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -26,6 +28,22 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadProducts();
+  }, []);
+
+  useEffect(() => {
+    const restoreDraftTab = () => {
+      if (hasAdminProductDraft()) setActiveTab('add-product');
+    };
+
+    window.addEventListener(ADMIN_PRODUCT_DRAFT_EVENT, restoreDraftTab);
+    window.addEventListener('focus', restoreDraftTab);
+    document.addEventListener('visibilitychange', restoreDraftTab);
+
+    return () => {
+      window.removeEventListener(ADMIN_PRODUCT_DRAFT_EVENT, restoreDraftTab);
+      window.removeEventListener('focus', restoreDraftTab);
+      document.removeEventListener('visibilitychange', restoreDraftTab);
+    };
   }, []);
 
   if (loading) {
@@ -94,7 +112,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="inventory" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="add-product">
@@ -107,7 +125,7 @@ export default function AdminDashboard() {
           <ProductList />
         </TabsContent>
 
-        <TabsContent value="add-product">
+        <TabsContent value="add-product" forceMount className="data-[state=inactive]:hidden">
           <ProductForm
             editingProduct={editing}
             onSuccess={() => {
