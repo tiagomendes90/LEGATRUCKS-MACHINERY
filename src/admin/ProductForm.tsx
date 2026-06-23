@@ -11,6 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, X, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { sortProductImages } from '@/utils/productImages';
+import {
+  clearAdminProductDraft,
+  loadAdminProductDraft,
+  loadAdminProductDraftImages,
+  saveAdminProductDraftImages,
+  saveAdminProductDraftMetadata,
+  type AdminProductDraftForm,
+} from '@/utils/adminProductDraftStorage';
 
 type StoredImage = {
   id?: string | null;
@@ -21,6 +29,21 @@ type StoredImage = {
 
 type DragState = { type: 'stored' | 'pending'; index: number } | null;
 
+const emptyProductForm: AdminProductDraftForm = {
+  title: '',
+  category_id: '',
+  subcategory_id: '',
+  brand_id: '',
+  price: '',
+  year: '',
+  description: '',
+  condition: 'used',
+  model: '',
+  location_city: '',
+  location_country: 'Portugal',
+  currency: 'EUR',
+};
+
 interface ProductFormProps {
   editingProduct?: any;
   onSuccess?: () => void;
@@ -30,35 +53,23 @@ interface ProductFormProps {
 export default function ProductForm({ editingProduct, onSuccess, onCancel }: ProductFormProps) {
   const { toast } = useToast();
   const { data: categories = [] } = useCategories();
+  const initialDraft = !editingProduct && typeof window !== 'undefined' ? loadAdminProductDraft() : null;
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [images, setImages] = useState<StoredImage[]>([]);
-  const [primaryIndex, setPrimaryIndex] = useState(0);
+  const [primaryIndex, setPrimaryIndex] = useState(initialDraft?.primaryIndex ?? 0);
   const [dragState, setDragState] = useState<DragState>(null);
   const [dragOverState, setDragOverState] = useState<DragState>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [specs, setSpecs] = useState<any[]>([]);
-  const [specValues, setSpecValues] = useState<Record<string, any>>({});
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [displayOrder, setDisplayOrder] = useState(0);
-
-  const [form, setForm] = useState({
-    title: '',
-    category_id: '',
-    subcategory_id: '',
-    brand_id: '',
-    price: '',
-    year: '',
-    description: '',
-    condition: 'used',
-    model: '',
-    location_city: '',
-    location_country: 'Portugal',
-    currency: 'EUR',
-  });
+  const [specValues, setSpecValues] = useState<Record<string, any>>(initialDraft?.specValues ?? {});
+  const [isFeatured, setIsFeatured] = useState(initialDraft?.isFeatured ?? false);
+  const [displayOrder, setDisplayOrder] = useState(initialDraft?.displayOrder ?? 0);
+  const [hasLoadedDraftImages, setHasLoadedDraftImages] = useState(!!editingProduct || !initialDraft);
+  const [form, setForm] = useState<AdminProductDraftForm>(initialDraft?.form ?? emptyProductForm);
 
   // Load editing product data
   useEffect(() => {
