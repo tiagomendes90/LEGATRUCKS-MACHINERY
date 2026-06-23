@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateContactOrder } from "@/hooks/useContactOrders";
+import { useCreateContactMessage } from "@/hooks/useContactMessages";
 import { Vehicle } from "@/hooks/useVehicles";
 import { useTranslation } from "react-i18next";
 
@@ -20,25 +20,29 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     message: ''
   });
 
-  const createOrder = useCreateContactOrder();
+  const createMessage = useCreateContactMessage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      await createOrder.mutateAsync({
+      await createMessage.mutateAsync({
         name: formData.name,
-        customer_email: formData.email,
+        email: formData.email,
+        phone: formData.phone || null,
+        message: formData.message,
+        source: 'vehicle',
         vehicle_id: vehicle.id,
         vehicle_title: vehicle.title,
-        vehicle_price: vehicle.price || 0,
-        message: formData.message
+        vehicle_url: typeof window !== 'undefined'
+          ? `${window.location.origin}/vehicle/${vehicle.id}`
+          : `/vehicle/${vehicle.id}`,
       });
-      
-      setFormData({ name: '', email: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', message: '' });
       onClose();
     } catch (error) {
       console.error('Error submitting contact form:', error);
@@ -71,6 +75,10 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
               <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} required placeholder={t('contactModal.emailPlaceholder')} />
             </div>
             <div>
+              <Label htmlFor="phone">Telefone</Label>
+              <Input id="phone" type="tel" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} placeholder="+351 ..." />
+            </div>
+            <div>
               <Label htmlFor="message">{t('contactModal.message')}</Label>
               <Textarea id="message" value={formData.message} onChange={(e) => handleInputChange('message', e.target.value)} placeholder={t('contactModal.messagePlaceholder')} rows={4} />
             </div>
@@ -78,8 +86,8 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
           
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">{t('contactModal.cancel')}</Button>
-            <Button type="submit" disabled={createOrder.isPending || !formData.name || !formData.email} className="flex-1">
-              {createOrder.isPending ? t('contactModal.sending') : t('contactModal.send')}
+            <Button type="submit" disabled={createMessage.isPending || !formData.name || !formData.email} className="flex-1">
+              {createMessage.isPending ? t('contactModal.sending') : t('contactModal.send')}
             </Button>
           </div>
         </form>
