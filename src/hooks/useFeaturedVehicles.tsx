@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { sortProductImages } from '@/utils/productImages';
 
 export interface FeaturedVehicle {
   id: string;
@@ -17,7 +18,7 @@ export interface FeaturedVehicle {
     year: number;
     brand?: { name: string; slug: string };
     subcategory?: { name: string; slug: string };
-    images?: { image_url: string; sort_order: number }[];
+    images?: { image_url: string; is_primary?: boolean | null; sort_order: number | null }[];
   };
 }
 
@@ -39,7 +40,7 @@ export const useFeaturedVehicles = () => {
             year,
             brand:brands(name, slug),
             subcategory:subcategories(name, slug),
-            images:product_images(image_url, sort_order)
+            images:product_images(id, image_url, is_primary, sort_order)
           )
         `)
         .order('display_order', { ascending: true });
@@ -53,7 +54,12 @@ export const useFeaturedVehicles = () => {
       const filtered = (data || []).filter((item: any) => item.product?.is_active !== false);
 
       console.log('Featured products fetched:', filtered.length);
-      return filtered;
+      return filtered.map((item: any) => ({
+        ...item,
+        product: item.product
+          ? { ...item.product, images: sortProductImages(item.product.images) }
+          : item.product,
+      }));
     },
     staleTime: 1000 * 60 * 15,
     gcTime: 1000 * 60 * 30,
