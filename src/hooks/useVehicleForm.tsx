@@ -90,7 +90,7 @@ export const useVehicleForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Autosave metadata + image blobs whenever form state changes.
+  // Autosave metadata immediately whenever form state changes.
   useEffect(() => {
     if (!hasLoadedDraftImages) return;
 
@@ -105,8 +105,17 @@ export const useVehicleForm = () => {
     if (!isVehicleDraftMeaningful(meaningfulDraft)) return;
 
     saveVehicleDraftMetadata(payload);
-    saveVehicleDraft(payload).catch((error) => console.error('Erro ao guardar rascunho:', error));
   }, [formData, selectedCategoryId, currentTab, mainImage, secondaryImages, hasLoadedDraftImages]);
+
+  // Persist image blobs only when image selections/order change, avoiding a heavy
+  // IndexedDB rewrite on every text keystroke.
+  useEffect(() => {
+    if (!hasLoadedDraftImages) return;
+    if (!mainImage && secondaryImages.length === 0) return;
+
+    saveVehicleDraft({ formData, selectedCategoryId, currentTab, mainImage, secondaryImages })
+      .catch((error) => console.error('Erro ao guardar imagens do rascunho:', error));
+  }, [mainImage, secondaryImages, hasLoadedDraftImages]);
 
   // Notify user once that a draft was restored
   useEffect(() => {
