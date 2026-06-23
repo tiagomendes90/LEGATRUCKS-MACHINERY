@@ -115,6 +115,51 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   }, [editingProduct]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const restoreDraftImages = async () => {
+      if (editingProduct || !initialDraft) {
+        setHasLoadedDraftImages(true);
+        return;
+      }
+
+      try {
+        const files = await loadAdminProductDraftImages();
+        if (!cancelled) setPendingFiles(files);
+      } catch (error) {
+        console.error('Erro ao restaurar imagens do rascunho:', error);
+      } finally {
+        if (!cancelled) setHasLoadedDraftImages(true);
+      }
+    };
+
+    restoreDraftImages();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (editingProduct || !hasLoadedDraftImages) return;
+
+    saveAdminProductDraftMetadata({
+      form,
+      specValues,
+      isFeatured,
+      displayOrder,
+      primaryIndex,
+      pendingFileCount: pendingFiles.length,
+    });
+  }, [editingProduct, form, specValues, isFeatured, displayOrder, primaryIndex, pendingFiles.length, hasLoadedDraftImages]);
+
+  useEffect(() => {
+    if (editingProduct || !hasLoadedDraftImages) return;
+
+    saveAdminProductDraftImages(pendingFiles)
+      .catch((error) => console.error('Erro ao guardar imagens do rascunho:', error));
+  }, [editingProduct, pendingFiles, hasLoadedDraftImages]);
+
+  useEffect(() => {
     if (form.category_id) {
       supabase
         .from('subcategories')
@@ -174,6 +219,24 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
     if (files.length === 0) return;
     setPendingFiles((prev) => [...prev, ...files]);
     e.target.value = '';
+  };
+
+  const clearFormState = async () => {
+    setForm(emptyProductForm);
+    setSpecValues({});
+    setIsFeatured(false);
+    setDisplayOrder(0);
+    setPrimaryIndex(0);
+    setPendingFiles([]);
+    setImages([]);
+    if (!editingProduct) {
+      try { await clearAdminProductDraft(); } catch (error) { console.error('Erro ao limpar rascunho:', error); }
+    }
+  };
+
+  const handleDiscardDraft = async () => {
+    await clearFormState();
+    onCancel?.();
   };
 
   const removePendingFile = (index: number) => {
