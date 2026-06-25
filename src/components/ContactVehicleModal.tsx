@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { HONEYPOT_FIELD } from "@/lib/turnstile";
 import { useToast } from "@/hooks/use-toast";
+import { mapAntiSpamError } from "@/lib/antiSpamErrors";
 
 interface ContactVehicleModalProps {
   isOpen: boolean;
@@ -39,11 +40,7 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!turnstileToken) {
-      toast({
-        title: 'Verificação necessária',
-        description: 'Por favor confirme que não é um robô.',
-        variant: 'destructive',
-      });
+      toast(mapAntiSpamError("verification_required"));
       return;
     }
     try {

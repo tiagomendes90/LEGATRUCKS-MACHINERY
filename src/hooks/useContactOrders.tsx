@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { mapAntiSpamError } from '@/lib/antiSpamErrors';
 
 export interface ContactOrder {
   id: string;
@@ -65,11 +66,7 @@ export const useCreateContactOrder = () => {
     },
     onError: (error: any) => {
       console.error('Failed to create contact order:', error);
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao enviar pedido de contacto. Tente novamente.",
-        variant: "destructive",
-      });
+      toast(mapAntiSpamError(error));
     },
   });
 };
