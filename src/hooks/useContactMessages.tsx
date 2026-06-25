@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { mapAntiSpamError } from '@/lib/antiSpamErrors';
 
 export type MessageSource = 'vehicle' | 'general';
 export type MessageStatus = 'unread' | 'read' | 'answered';
@@ -77,11 +78,7 @@ export const useCreateContactMessage = () => {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível enviar a mensagem. Tente novamente.',
-        variant: 'destructive',
-      });
+      toast(mapAntiSpamError(error));
     },
   });
 };

@@ -17,6 +17,7 @@ import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 import { useCreateContactMessage } from "@/hooks/useContactMessages";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { HONEYPOT_FIELD, ANTI_SPAM_MIN_ELAPSED_MS } from "@/lib/turnstile";
+import { mapAntiSpamError } from "@/lib/antiSpamErrors";
 import { useEffect, useRef } from "react";
 
 const PHONE_DISPLAY = WHATSAPP_DISPLAY;
@@ -42,11 +43,7 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!turnstileToken) {
-      toast({
-        title: "Verificação necessária",
-        description: "Por favor confirme que não é um robô.",
-        variant: "destructive",
-      });
+      toast(mapAntiSpamError("verification_required"));
       return;
     }
     try {

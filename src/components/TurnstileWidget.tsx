@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { TURNSTILE_SCRIPT_SRC, TURNSTILE_SITE_KEY } from "@/lib/turnstile";
+import { toast } from "@/hooks/use-toast";
+import { mapAntiSpamError } from "@/lib/antiSpamErrors";
 
 declare global {
   interface Window {
@@ -70,8 +72,14 @@ const TurnstileWidget = ({ onToken, theme = "auto", className }: TurnstileWidget
           sitekey: TURNSTILE_SITE_KEY,
           theme,
           callback: (token) => onToken(token),
-          "error-callback": () => onToken(null),
-          "expired-callback": () => onToken(null),
+          "error-callback": () => {
+            onToken(null);
+            toast(mapAntiSpamError("turnstile_failed"));
+          },
+          "expired-callback": () => {
+            onToken(null);
+            toast(mapAntiSpamError("verification_expired"));
+          },
         });
       })
       .catch(() => onToken(null));
