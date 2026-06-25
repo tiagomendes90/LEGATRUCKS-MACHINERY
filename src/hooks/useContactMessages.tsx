@@ -34,6 +34,10 @@ export interface CreateContactMessageInput {
   vehicle_url?: string | null;
   interest?: string | null;
   company?: string | null;
+  // anti-spam
+  turnstileToken: string;
+  honeypot?: string;
+  elapsedMs?: number;
 }
 
 export const useCreateContactMessage = () => {
@@ -42,23 +46,27 @@ export const useCreateContactMessage = () => {
 
   return useMutation({
     mutationFn: async (input: CreateContactMessageInput) => {
-      const { data, error } = await supabase
-        .from('contact_messages')
-        .insert([{
-          name: input.name.trim(),
-          email: input.email.trim(),
-          phone: input.phone?.trim() || null,
-          message: input.message.trim(),
+      const { data, error } = await supabase.functions.invoke('submit-contact-message', {
+        body: {
+          name: input.name,
+          email: input.email,
+          phone: input.phone ?? null,
+          message: input.message,
           source: input.source,
-          vehicle_id: input.vehicle_id || null,
-          vehicle_title: input.vehicle_title || null,
-          vehicle_url: input.vehicle_url || null,
-          interest: input.interest || null,
-          company: input.company || null,
-        }])
-        .select()
-        .single();
+          vehicle_id: input.vehicle_id ?? null,
+          vehicle_title: input.vehicle_title ?? null,
+          vehicle_url: input.vehicle_url ?? null,
+          interest: input.interest ?? null,
+          company: input.company ?? null,
+          turnstileToken: input.turnstileToken,
+          honeypot: input.honeypot ?? '',
+          elapsedMs: input.elapsedMs ?? 0,
+        },
+      });
       if (error) throw error;
+      if (data && (data as any).error) {
+        throw new Error((data as any).error);
+      }
       return data;
     },
     onSuccess: () => {
