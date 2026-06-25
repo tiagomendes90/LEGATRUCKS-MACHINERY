@@ -264,6 +264,7 @@ const resources = {
       },
       filterPanel: {
         subcategory: "Subcategory",
+
         all: "All",
         allBrands: "All brands",
         loading: "Loading...",
