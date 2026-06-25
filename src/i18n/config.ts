@@ -262,6 +262,20 @@ const resources = {
         sending: "Sending...",
         send: "Send Contact"
       },
+      antiSpam: {
+        verificationRequiredTitle: "Verification required",
+        verificationRequired: "Please confirm you are not a robot before submitting.",
+        verificationExpiredTitle: "Verification expired",
+        verificationExpired: "The security check has expired. Please refresh the page and try again.",
+        tooFastTitle: "Submission too fast",
+        tooFast: "The form was submitted too quickly. Please wait a moment and try again.",
+        verificationFailedTitle: "Verification failed",
+        verificationFailed: "We couldn't validate your submission. Please reload the page and try again.",
+        invalidDataTitle: "Invalid data",
+        invalidData: "Please review the form fields and try again.",
+        genericErrorTitle: "Submission error",
+        genericError: "We couldn't process your submission. Please try again in a few moments."
+      },
       filterPanel: {
         subcategory: "Subcategory",
 
@@ -817,6 +831,20 @@ const resources = {
         sending: "A enviar...",
         send: "Enviar Contacto"
       },
+      antiSpam: {
+        verificationRequiredTitle: "Verificação necessária",
+        verificationRequired: "Por favor confirme que não é um robô antes de submeter.",
+        verificationExpiredTitle: "Verificação expirada",
+        verificationExpired: "A verificação de segurança expirou. Atualize a página e volte a tentar.",
+        tooFastTitle: "Submissão demasiado rápida",
+        tooFast: "O formulário foi submetido muito rapidamente. Aguarde um momento e tente novamente.",
+        verificationFailedTitle: "Verificação falhada",
+        verificationFailed: "Não foi possível validar a submissão. Recarregue a página e tente novamente.",
+        invalidDataTitle: "Dados inválidos",
+        invalidData: "Por favor reveja os campos do formulário e tente novamente.",
+        genericErrorTitle: "Erro no envio",
+        genericError: "Não foi possível processar a sua submissão. Tente novamente dentro de instantes."
+      },
       filterPanel: {
         subcategory: "Subcategoria",
         all: "Todas",
@@ -1370,6 +1398,20 @@ const resources = {
         cancel: "Annuler",
         sending: "Envoi en cours...",
         send: "Envoyer Contact"
+      },
+      antiSpam: {
+        verificationRequiredTitle: "Vérification requise",
+        verificationRequired: "Veuillez confirmer que vous n'êtes pas un robot avant de soumettre.",
+        verificationExpiredTitle: "Vérification expirée",
+        verificationExpired: "La vérification de sécurité a expiré. Actualisez la page et réessayez.",
+        tooFastTitle: "Soumission trop rapide",
+        tooFast: "Le formulaire a été soumis trop rapidement. Patientez un instant et réessayez.",
+        verificationFailedTitle: "Vérification échouée",
+        verificationFailed: "Impossible de valider votre soumission. Rechargez la page et réessayez.",
+        invalidDataTitle: "Données invalides",
+        invalidData: "Veuillez vérifier les champs du formulaire et réessayer.",
+        genericErrorTitle: "Erreur d'envoi",
+        genericError: "Impossible de traiter votre soumission. Veuillez réessayer dans quelques instants."
       },
       filterPanel: {
         subcategory: "Sous-catégorie",
