@@ -28,6 +28,10 @@ export interface CreateContactOrderData {
   vehicle_price: number;
   phone?: string;
   message?: string;
+  // anti-spam
+  turnstileToken: string;
+  honeypot?: string;
+  elapsedMs?: number;
 }
 
 export const useCreateContactOrder = () => {
@@ -35,30 +39,22 @@ export const useCreateContactOrder = () => {
 
   return useMutation({
     mutationFn: async (orderData: CreateContactOrderData) => {
-      console.log('Creating contact order:', orderData);
-
-      const { data, error } = await supabase
-        .from('orders')
-        .insert([{
+      const { data, error } = await supabase.functions.invoke('submit-order', {
+        body: {
           name: orderData.name,
           customer_email: orderData.customer_email,
           vehicle_id: orderData.vehicle_id,
-          truck_model: orderData.vehicle_title,
-          amount: orderData.vehicle_price,
-          status: 'pending',
-          payment_status: 'pending',
-          phone: orderData.phone || null,
-          message: orderData.message || null,
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating contact order:', error);
-        throw error;
-      }
-
-      console.log('Contact order created successfully:', data);
+          vehicle_title: orderData.vehicle_title,
+          vehicle_price: orderData.vehicle_price,
+          phone: orderData.phone ?? null,
+          message: orderData.message ?? null,
+          turnstileToken: orderData.turnstileToken,
+          honeypot: orderData.honeypot ?? '',
+          elapsedMs: orderData.elapsedMs ?? 0,
+        },
+      });
+      if (error) throw error;
+      if (data && (data as any).error) throw new Error((data as any).error);
       return data;
     },
     onSuccess: () => {
