@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateContactMessage } from "@/hooks/useContactMessages";
 import { Vehicle } from "@/hooks/useVehicles";
 import { useTranslation } from "react-i18next";
+import TurnstileWidget from "@/components/TurnstileWidget";
+import { HONEYPOT_FIELD } from "@/lib/turnstile";
+import { useToast } from "@/hooks/use-toast";
 
 interface ContactVehicleModalProps {
   isOpen: boolean;
@@ -17,18 +20,32 @@ interface ContactVehicleModalProps {
 
 const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalProps) => {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     message: ''
   });
+  const [honeypot, setHoneypot] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const mountedAtRef = useRef<number>(Date.now());
+  useEffect(() => {
+    if (isOpen) mountedAtRef.current = Date.now();
+  }, [isOpen]);
 
   const createMessage = useCreateContactMessage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    if (!turnstileToken) {
+      toast({
+        title: 'Verificação necessária',
+        description: 'Por favor confirme que não é um robô.',
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       await createMessage.mutateAsync({
         name: formData.name,
@@ -41,8 +58,12 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
         vehicle_url: typeof window !== 'undefined'
           ? `${window.location.origin}/vehicle/${vehicle.id}`
           : `/vehicle/${vehicle.id}`,
+        turnstileToken,
+        honeypot,
+        elapsedMs: Date.now() - mountedAtRef.current,
       });
       setFormData({ name: '', email: '', phone: '', message: '' });
+      setHoneypot('');
       onClose();
     } catch (error) {
       console.error('Error submitting contact form:', error);
@@ -82,11 +103,25 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
               <Label htmlFor="message">{t('contactModal.message')}</Label>
               <Textarea id="message" value={formData.message} onChange={(e) => handleInputChange('message', e.target.value)} placeholder={t('contactModal.messagePlaceholder')} rows={4} />
             </div>
+            {/* Honeypot — hidden from humans */}
+            <div aria-hidden="true" className="absolute left-[-9999px] top-[-9999px] h-0 w-0 overflow-hidden">
+              <label htmlFor={HONEYPOT_FIELD}>Do not fill</label>
+              <input
+                id={HONEYPOT_FIELD}
+                name={HONEYPOT_FIELD}
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
+            <TurnstileWidget onToken={setTurnstileToken} />
           </div>
           
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">{t('contactModal.cancel')}</Button>
-            <Button type="submit" disabled={createMessage.isPending || !formData.name || !formData.email} className="flex-1">
+            <Button type="submit" disabled={createMessage.isPending || !formData.name || !formData.email || !turnstileToken} className="flex-1">
               {createMessage.isPending ? t('contactModal.sending') : t('contactModal.send')}
             </Button>
           </div>
