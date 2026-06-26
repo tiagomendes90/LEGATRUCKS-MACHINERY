@@ -1,5 +1,6 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendAdminNotification } from "../_shared/sendAdminNotification.ts";
 
 const SITEVERIFY_URL =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -112,6 +113,22 @@ Deno.serve(async (req) => {
   if (error) {
     console.error("insert error", error);
     return json({ error: "db_error", details: error.message }, 500);
+  }
+
+  // Best-effort admin notification — failure must not impact the user.
+  try {
+    await sendAdminNotification({
+      kind: "order_quote",
+      name,
+      email,
+      phone: body.phone?.toString().trim() || null,
+      message: body.message?.toString().trim() || null,
+      vehicleTitle: truckModel,
+      vehicleUrl: body.vehicle_id ? `https://lega.pt/veiculo/${body.vehicle_id}` : null,
+      vehiclePrice: amount,
+    });
+  } catch (e) {
+    console.error("notification failed", e);
   }
 
   return json({ ok: true, id: data?.id });
