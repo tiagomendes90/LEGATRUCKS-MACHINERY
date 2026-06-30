@@ -1,15 +1,14 @@
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateContactMessage } from "@/hooks/useContactMessages";
+import { useSubmitForm } from "@/hooks/useSubmitForm";
 import { Vehicle } from "@/hooks/useVehicles";
 import { useTranslation } from "react-i18next";
-import TurnstileWidget from "@/components/TurnstileWidget";
-import { HONEYPOT_FIELD } from "@/lib/turnstile";
+import AntiSpamFields, { type AntiSpamFieldsHandle } from "@/components/AntiSpamFields";
 import { useToast } from "@/hooks/use-toast";
 import { mapAntiSpamError } from "@/lib/antiSpamErrors";
 
@@ -28,39 +27,36 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
     phone: '',
     message: ''
   });
-  const [honeypot, setHoneypot] = useState('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const mountedAtRef = useRef<number>(Date.now());
-  useEffect(() => {
-    if (isOpen) mountedAtRef.current = Date.now();
-  }, [isOpen]);
+  const antiSpamRef = useRef<AntiSpamFieldsHandle | null>(null);
 
-  const createMessage = useCreateContactMessage();
+  const submit = useSubmitForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!turnstileToken) {
+    const anti = antiSpamRef.current?.getPayload();
+    if (!anti?.turnstileToken) {
       toast(mapAntiSpamError("verification_required"));
       return;
     }
     try {
-      await createMessage.mutateAsync({
+      await submit.mutateAsync({
+        source: 'vehicle',
         name: formData.name,
         email: formData.email,
         phone: formData.phone || null,
         message: formData.message,
-        source: 'vehicle',
         vehicle_id: vehicle.id,
         vehicle_title: vehicle.title,
         vehicle_url: typeof window !== 'undefined'
           ? `${window.location.origin}/vehicle/${vehicle.id}`
           : `/vehicle/${vehicle.id}`,
-        turnstileToken,
-        honeypot,
-        elapsedMs: Date.now() - mountedAtRef.current,
+        turnstileToken: anti.turnstileToken,
+        honeypot: anti.honeypot,
+        elapsedMs: anti.elapsedMs,
       });
       setFormData({ name: '', email: '', phone: '', message: '' });
-      setHoneypot('');
+      antiSpamRef.current?.reset();
       onClose();
     } catch (error) {
       console.error('Error submitting contact form:', error);
@@ -100,26 +96,13 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
               <Label htmlFor="message">{t('contactModal.message')}</Label>
               <Textarea id="message" value={formData.message} onChange={(e) => handleInputChange('message', e.target.value)} placeholder={t('contactModal.messagePlaceholder')} rows={4} />
             </div>
-            {/* Honeypot — hidden from humans */}
-            <div aria-hidden="true" className="absolute left-[-9999px] top-[-9999px] h-0 w-0 overflow-hidden">
-              <label htmlFor={HONEYPOT_FIELD}>Do not fill</label>
-              <input
-                id={HONEYPOT_FIELD}
-                name={HONEYPOT_FIELD}
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                value={honeypot}
-                onChange={(e) => setHoneypot(e.target.value)}
-              />
-            </div>
-            <TurnstileWidget onToken={setTurnstileToken} />
+            <AntiSpamFields ref={antiSpamRef} onTokenChange={setTurnstileToken} />
           </div>
           
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">{t('contactModal.cancel')}</Button>
-            <Button type="submit" disabled={createMessage.isPending || !formData.name || !formData.email || !turnstileToken} className="flex-1">
-              {createMessage.isPending ? t('contactModal.sending') : t('contactModal.send')}
+            <Button type="submit" disabled={submit.isPending || !formData.name || !formData.email || !turnstileToken} className="flex-1">
+              {submit.isPending ? t('contactModal.sending') : t('contactModal.send')}
             </Button>
           </div>
         </form>

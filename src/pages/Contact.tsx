@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,9 @@ import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import PageHero from "@/components/PageHero";
 import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
-import { useCreateContactMessage } from "@/hooks/useContactMessages";
-import TurnstileWidget from "@/components/TurnstileWidget";
-import { HONEYPOT_FIELD, ANTI_SPAM_MIN_ELAPSED_MS } from "@/lib/turnstile";
+import { useSubmitForm } from "@/hooks/useSubmitForm";
+import AntiSpamFields, { type AntiSpamFieldsHandle } from "@/components/AntiSpamFields";
 import { mapAntiSpamError } from "@/lib/antiSpamErrors";
-import { useEffect, useRef } from "react";
 
 const PHONE_DISPLAY = WHATSAPP_DISPLAY;
 const EMAIL = "info@lega.pt";
@@ -33,34 +31,33 @@ const Contact = () => {
     interest: "",
     message: ""
   });
-  const [honeypot, setHoneypot] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const mountedAtRef = useRef<number>(Date.now());
-  useEffect(() => { mountedAtRef.current = Date.now(); }, []);
+  const antiSpamRef = useRef<AntiSpamFieldsHandle | null>(null);
   const { toast } = useToast();
-  const createMessage = useCreateContactMessage();
+  const submit = useSubmitForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!turnstileToken) {
+    const anti = antiSpamRef.current?.getPayload();
+    if (!anti?.turnstileToken) {
       toast(mapAntiSpamError("verification_required"));
       return;
     }
     try {
-      await createMessage.mutateAsync({
+      await submit.mutateAsync({
+        source: 'general',
         name: formData.name,
         email: formData.email,
         phone: formData.phone || null,
         message: formData.message,
-        source: 'general',
         interest: formData.interest || null,
         company: formData.company || null,
-        turnstileToken,
-        honeypot,
-        elapsedMs: Date.now() - mountedAtRef.current,
+        turnstileToken: anti.turnstileToken,
+        honeypot: anti.honeypot,
+        elapsedMs: anti.elapsedMs,
       });
       setFormData({ name: "", email: "", phone: "", company: "", interest: "", message: "" });
-      setHoneypot("");
+      antiSpamRef.current?.reset();
     } catch (err) {
       // toast handled in hook
     }
@@ -266,26 +263,12 @@ const Contact = () => {
                       />
                     </div>
 
-                    {/* Honeypot — hidden from humans */}
-                    <div aria-hidden="true" className="absolute left-[-9999px] top-[-9999px] h-0 w-0 overflow-hidden">
-                      <label htmlFor={HONEYPOT_FIELD}>Do not fill</label>
-                      <input
-                        id={HONEYPOT_FIELD}
-                        name={HONEYPOT_FIELD}
-                        type="text"
-                        tabIndex={-1}
-                        autoComplete="off"
-                        value={honeypot}
-                        onChange={(e) => setHoneypot(e.target.value)}
-                      />
-                    </div>
-
-                    <TurnstileWidget onToken={setTurnstileToken} />
+                    <AntiSpamFields ref={antiSpamRef} onTokenChange={setTurnstileToken} />
 
                     <Button
                       type="submit"
                       size="lg"
-                      disabled={createMessage.isPending || !turnstileToken}
+                      disabled={submit.isPending || !turnstileToken}
                       className="w-full bg-orange-500 hover:bg-blue-700 text-white transition-colors"
                     >
                       {t('contact.sendMessageBtn')}
