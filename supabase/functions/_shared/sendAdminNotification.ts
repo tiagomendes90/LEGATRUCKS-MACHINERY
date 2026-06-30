@@ -11,7 +11,10 @@ const DASHBOARD_URL = `${SITE_URL}/admin`;
 export type NotificationKind =
   | "contact_general"
   | "contact_vehicle"
-  | "order_quote";
+  | "order_quote"
+  | "parts_request"
+  | "sell_equipment"
+  | "other";
 
 export interface AdminNotificationInput {
   kind: NotificationKind;
@@ -22,6 +25,10 @@ export interface AdminNotificationInput {
   vehicleTitle?: string | null;
   vehicleUrl?: string | null;
   vehiclePrice?: number | null;
+  /** Extra fields (any source-specific data). Rendered as a generic table. */
+  metadata?: Record<string, unknown> | null;
+  /** Optional override for the source label shown in the email header. */
+  sourceLabel?: string | null;
 }
 
 function escapeHtml(input: string | null | undefined): string {
@@ -40,18 +47,30 @@ function buildSubject(i: AdminNotificationInput): string {
       return `Novo contacto sobre veículo – ${i.vehicleTitle || "Veículo"}`;
     case "order_quote":
       return `Novo pedido de orçamento – ${i.vehicleTitle || "Veículo"}`;
+    case "parts_request":
+      return `Novo pedido de peças – ${i.name}`;
+    case "sell_equipment":
+      return `Nova proposta de venda de equipamento – ${i.name}`;
+    case "other":
+      return `Nova submissão de formulário – ${i.name}`;
     case "contact_general":
     default:
       return `Novo contacto geral – ${i.name}`;
   }
 }
 
-function sourceLabel(kind: NotificationKind): string {
+function defaultSourceLabel(kind: NotificationKind): string {
   switch (kind) {
     case "contact_vehicle":
       return "Formulário de contacto – Página de veículo";
     case "order_quote":
       return "Pedido de orçamento – Página de veículo";
+    case "parts_request":
+      return "Pedido de peças";
+    case "sell_equipment":
+      return "Venda de equipamento";
+    case "other":
+      return "Submissão de formulário";
     case "contact_general":
     default:
       return "Formulário de contacto – Página Contactos";
@@ -76,9 +95,30 @@ function row(label: string, value: string): string {
     </tr>`;
 }
 
+function humanizeKey(key: string): string {
+  return key
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function renderMetadataRows(
+  metadata: Record<string, unknown> | null | undefined,
+): string {
+  if (!metadata) return "";
+  return Object.entries(metadata)
+    .filter(([, v]) => v !== null && v !== undefined && v !== "")
+    .map(([k, v]) => {
+      const value =
+        typeof v === "string" ? v : JSON.stringify(v, null, 2);
+      return row(humanizeKey(k), escapeHtml(value));
+    })
+    .join("");
+}
+
 function buildHtml(i: AdminNotificationInput): string {
   const date = formatDate(new Date());
   const subject = buildSubject(i);
+  const labelText = i.sourceLabel || defaultSourceLabel(i.kind);
   const vehicleBlock = i.vehicleTitle
     ? `${row("Veículo", escapeHtml(i.vehicleTitle))}${
         i.vehicleUrl
@@ -116,7 +156,7 @@ function buildHtml(i: AdminNotificationInput): string {
         </tr>
         <tr>
           <td style="padding:32px;">
-            <div style="font-size:12px;font-weight:600;color:#ea580c;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${escapeHtml(sourceLabel(i.kind))}</div>
+            <div style="font-size:12px;font-weight:600;color:#ea580c;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${escapeHtml(labelText)}</div>
             <h1 style="margin:0 0 4px 0;font-size:22px;color:#0a2540;font-weight:700;">${escapeHtml(subject)}</h1>
             <div style="color:#64748b;font-size:13px;margin-bottom:24px;">${escapeHtml(date)}</div>
 
@@ -125,6 +165,7 @@ function buildHtml(i: AdminNotificationInput): string {
               ${row("Email", `<a href="mailto:${escapeHtml(i.email)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(i.email)}</a>`)}
               ${i.phone ? row("Telefone", `<a href="tel:${escapeHtml(i.phone)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(i.phone)}</a>`) : ""}
               ${vehicleBlock}
+              ${renderMetadataRows(i.metadata)}
             </table>
 
             ${messageBlock}
@@ -151,7 +192,7 @@ function buildText(i: AdminNotificationInput): string {
     buildSubject(i),
     formatDate(new Date()),
     "",
-    `Origem: ${sourceLabel(i.kind)}`,
+    `Origem: ${i.sourceLabel || defaultSourceLabel(i.kind)}`,
     `Nome: ${i.name}`,
     `Email: ${i.email}`,
   ];
@@ -160,6 +201,13 @@ function buildText(i: AdminNotificationInput): string {
   if (i.vehicleUrl) lines.push(`Link: ${i.vehicleUrl}`);
   if (typeof i.vehiclePrice === "number" && i.vehiclePrice > 0) {
     lines.push(`Preço indicativo: € ${i.vehiclePrice.toLocaleString("pt-PT")}`);
+  }
+  if (i.metadata) {
+    for (const [k, v] of Object.entries(i.metadata)) {
+      if (v === null || v === undefined || v === "") continue;
+      const value = typeof v === "string" ? v : JSON.stringify(v);
+      lines.push(`${humanizeKey(k)}: ${value}`);
+    }
   }
   if (i.message) {
     lines.push("", "Mensagem:", i.message);
