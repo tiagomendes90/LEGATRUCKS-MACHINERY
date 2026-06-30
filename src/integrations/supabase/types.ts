@@ -94,6 +94,7 @@ export type Database = {
           id: string
           interest: string | null
           message: string
+          metadata: Json
           name: string
           phone: string | null
           source: string
@@ -110,6 +111,7 @@ export type Database = {
           id?: string
           interest?: string | null
           message: string
+          metadata?: Json
           name: string
           phone?: string | null
           source?: string
@@ -126,6 +128,7 @@ export type Database = {
           id?: string
           interest?: string | null
           message?: string
+          metadata?: Json
           name?: string
           phone?: string | null
           source?: string
