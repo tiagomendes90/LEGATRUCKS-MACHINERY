@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { mapAntiSpamError } from '@/lib/antiSpamErrors';
+import { useSubmitForm, type SubmitFormInput } from '@/hooks/useSubmitForm';
 
 export interface ContactOrder {
   id: string;
@@ -35,40 +35,36 @@ export interface CreateContactOrderData {
   elapsedMs?: number;
 }
 
+/**
+ * Thin wrapper around the unified `useSubmitForm` hook. The historical
+ * "order" form is now `source: 'quote'` — same edge function, same table.
+ */
 export const useCreateContactOrder = () => {
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (orderData: CreateContactOrderData) => {
-      const { data, error } = await supabase.functions.invoke('submit-order', {
-        body: {
-          name: orderData.name,
-          customer_email: orderData.customer_email,
-          vehicle_id: orderData.vehicle_id,
-          vehicle_title: orderData.vehicle_title,
-          vehicle_price: orderData.vehicle_price,
-          phone: orderData.phone ?? null,
-          message: orderData.message ?? null,
-          turnstileToken: orderData.turnstileToken,
-          honeypot: orderData.honeypot ?? '',
-          elapsedMs: orderData.elapsedMs ?? 0,
-        },
-      });
-      if (error) throw error;
-      if (data && (data as any).error) throw new Error((data as any).error);
-      return data;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Contacto Enviado!",
-        description: "O seu pedido de contacto foi enviado com sucesso. Entraremos em contacto em breve.",
-      });
-    },
-    onError: (error: any) => {
-      console.error('Failed to create contact order:', error);
-      toast(mapAntiSpamError(error));
+  const submit = useSubmitForm({
+    successToast: {
+      title: "Contacto Enviado!",
+      description:
+        "O seu pedido de contacto foi enviado com sucesso. Entraremos em contacto em breve.",
     },
   });
+  const adapt = (o: CreateContactOrderData): SubmitFormInput => ({
+    source: "quote",
+    name: o.name,
+    email: o.customer_email,
+    phone: o.phone ?? null,
+    message: o.message ?? null,
+    vehicle_id: o.vehicle_id,
+    vehicle_title: o.vehicle_title,
+    vehicle_price: o.vehicle_price,
+    turnstileToken: o.turnstileToken,
+    honeypot: o.honeypot,
+    elapsedMs: o.elapsedMs,
+  });
+  return {
+    ...submit,
+    mutateAsync: (o: CreateContactOrderData) => submit.mutateAsync(adapt(o)),
+    mutate: (o: CreateContactOrderData) => submit.mutate(adapt(o)),
+  };
 };
 
 export const useContactOrders = () => {
