@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { mapAntiSpamError } from '@/lib/antiSpamErrors';
+import { useSubmitForm, type SubmitFormInput } from '@/hooks/useSubmitForm';
 
 export type MessageSource = 'vehicle' | 'general';
 export type MessageStatus = 'unread' | 'read' | 'answered';
@@ -41,46 +41,19 @@ export interface CreateContactMessageInput {
   elapsedMs?: number;
 }
 
+/**
+ * Thin wrapper around the unified `useSubmitForm` hook. Kept for backward
+ * compatibility — new code should call `useSubmitForm` directly.
+ */
 export const useCreateContactMessage = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: CreateContactMessageInput) => {
-      const { data, error } = await supabase.functions.invoke('submit-contact-message', {
-        body: {
-          name: input.name,
-          email: input.email,
-          phone: input.phone ?? null,
-          message: input.message,
-          source: input.source,
-          vehicle_id: input.vehicle_id ?? null,
-          vehicle_title: input.vehicle_title ?? null,
-          vehicle_url: input.vehicle_url ?? null,
-          interest: input.interest ?? null,
-          company: input.company ?? null,
-          turnstileToken: input.turnstileToken,
-          honeypot: input.honeypot ?? '',
-          elapsedMs: input.elapsedMs ?? 0,
-        },
-      });
-      if (error) throw error;
-      if (data && (data as any).error) {
-        throw new Error((data as any).error);
-      }
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contact-messages'] });
-      toast({
-        title: 'Mensagem enviada',
-        description: 'Recebemos a sua mensagem e entraremos em contacto em breve.',
-      });
-    },
-    onError: (error: any) => {
-      toast(mapAntiSpamError(error));
-    },
-  });
+  const submit = useSubmitForm();
+  return {
+    ...submit,
+    mutateAsync: (input: CreateContactMessageInput) =>
+      submit.mutateAsync(input as unknown as SubmitFormInput),
+    mutate: (input: CreateContactMessageInput) =>
+      submit.mutate(input as unknown as SubmitFormInput),
+  };
 };
 
 export const useContactMessages = () => {
