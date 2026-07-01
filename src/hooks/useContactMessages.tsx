@@ -4,8 +4,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubmitForm, type SubmitFormInput } from '@/hooks/useSubmitForm';
 
-export type MessageSource = 'vehicle' | 'general';
-export type MessageStatus = 'unread' | 'read' | 'answered';
+export type MessageSource = 'vehicle' | 'general' | 'quote' | 'parts' | 'sell_equipment' | (string & {});
+export type MessageStatus = 'unread' | 'read' | 'answered' | 'archived';
 
 export interface ContactMessage {
   id: string;
@@ -22,6 +22,7 @@ export interface ContactMessage {
   status: MessageStatus;
   created_at: string;
   updated_at: string;
+  metadata: Record<string, unknown> | null;
 }
 
 export interface CreateContactMessageInput {
