@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { data: messages = [] } = useContactMessages();
   const unreadCount = messages.filter((m: any) => m.status === 'unread').length;
+  const pendingCount = messages.filter((m: any) => m.status === 'unread' || m.status === 'read').length;
 
   const loadProducts = async () => {
     const { data } = await supabase
@@ -119,7 +120,9 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Mensagens não lidas</p>
                 <p className="text-3xl font-bold text-foreground">{unreadCount}</p>
-                <p className="text-xs text-muted-foreground mt-1">{messages.length} no total</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {pendingCount} por responder · {messages.length} no total
+                </p>
               </div>
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center relative">
                 <MessageSquare className="h-6 w-6 text-primary" />
