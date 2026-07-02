@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useSubmitForm, type SubmitFormInput } from '@/hooks/useSubmitForm';
 
 export type MessageSource = 'vehicle' | 'general' | 'quote' | 'parts' | 'sell_equipment' | (string & {});
 export type MessageStatus = 'unread' | 'read' | 'answered' | 'archived';
@@ -24,38 +23,6 @@ export interface ContactMessage {
   updated_at: string;
   metadata: Record<string, unknown> | null;
 }
-
-export interface CreateContactMessageInput {
-  name: string;
-  email: string;
-  phone?: string | null;
-  message: string;
-  source: MessageSource;
-  vehicle_id?: string | null;
-  vehicle_title?: string | null;
-  vehicle_url?: string | null;
-  interest?: string | null;
-  company?: string | null;
-  // anti-spam
-  turnstileToken: string;
-  honeypot?: string;
-  elapsedMs?: number;
-}
-
-/**
- * Thin wrapper around the unified `useSubmitForm` hook. Kept for backward
- * compatibility — new code should call `useSubmitForm` directly.
- */
-export const useCreateContactMessage = () => {
-  const submit = useSubmitForm();
-  return {
-    ...submit,
-    mutateAsync: (input: CreateContactMessageInput) =>
-      submit.mutateAsync(input as unknown as SubmitFormInput),
-    mutate: (input: CreateContactMessageInput) =>
-      submit.mutate(input as unknown as SubmitFormInput),
-  };
-};
 
 export const useContactMessages = () => {
   const { user, isAdmin } = useAuth();
