@@ -19,6 +19,7 @@ import {
   saveAdminProductDraftMetadata,
   type AdminProductDraftForm,
 } from '@/utils/adminProductDraftStorage';
+import { emitPublishingEvent } from '@/lib/publishing';
 
 type StoredImage = {
   id?: string | null;
