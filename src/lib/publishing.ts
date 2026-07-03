@@ -19,7 +19,7 @@ export interface EmitEventInput {
 export async function emitPublishingEvent({ type, productId = null, payload = {} }: EmitEventInput) {
   const { data, error } = await supabase
     .from("publishing_events")
-    .insert({ event_type: type, product_id: productId, payload })
+    .insert([{ event_type: type, product_id: productId ?? undefined, payload: payload as any }])
     .select("id")
     .maybeSingle();
 
