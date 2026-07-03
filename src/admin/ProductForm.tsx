@@ -436,6 +436,14 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
       await clearFormState();
     }
 
+    // Emit publishing event — PublishingService handles all external channels.
+    if (productId) {
+      emitPublishingEvent({
+        type: editingProduct ? 'product.updated' : 'product.published',
+        productId,
+      });
+    }
+
     onSuccess?.();
   };
 
