@@ -19,6 +19,7 @@ import {
   saveAdminProductDraftMetadata,
   type AdminProductDraftForm,
 } from '@/utils/adminProductDraftStorage';
+import { emitPublishingEvent } from '@/lib/publishing';
 
 type StoredImage = {
   id?: string | null;
@@ -433,6 +434,14 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
 
     if (!editingProduct) {
       await clearFormState();
+    }
+
+    // Emit publishing event — PublishingService handles all external channels.
+    if (productId) {
+      emitPublishingEvent({
+        type: editingProduct ? 'product.updated' : 'product.published',
+        productId,
+      });
     }
 
     onSuccess?.();

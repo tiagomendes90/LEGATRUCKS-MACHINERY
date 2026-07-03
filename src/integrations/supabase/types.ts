@@ -363,6 +363,107 @@ export type Database = {
         }
         Relationships: []
       }
+      publishing_channels: {
+        Row: {
+          config: Json
+          created_at: string
+          enabled: boolean
+          key: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          key: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          key?: string
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      publishing_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          product_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          product_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          product_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      publishing_logs: {
+        Row: {
+          attempts: number
+          channel_key: string
+          created_at: string
+          error: string | null
+          event_id: string | null
+          id: string
+          request: Json
+          response: Json
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          channel_key: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          request?: Json
+          response?: Json
+          status: string
+        }
+        Update: {
+          attempts?: number
+          channel_key?: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          request?: Json
+          response?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publishing_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "publishing_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spec_definitions: {
         Row: {
           created_at: string | null
