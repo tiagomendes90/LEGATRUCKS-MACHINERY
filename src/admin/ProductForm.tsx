@@ -607,6 +607,25 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
           )}
         </div>
 
+        {/* Publish now */}
+        <div className="flex items-start gap-3 p-4 border rounded-lg bg-orange-50/40">
+          <Checkbox
+            id="publish-now"
+            checked={publishNow}
+            onCheckedChange={(checked) => setPublishNow(checked === true)}
+            className="mt-0.5"
+          />
+          <div>
+            <Label htmlFor="publish-now" className="cursor-pointer font-medium">
+              Publicar agora nos canais externos
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Ao guardar, dispara publicação automática nos canais ativos (Facebook, Instagram, Newsletter).
+              Deixe desligado para edições que não devem gerar novo post ou email.
+            </p>
+          </div>
+        </div>
+
         {/* Image Upload */}
         <div>
           <Label>Imagens (selecione múltiplas de uma vez)</Label>
