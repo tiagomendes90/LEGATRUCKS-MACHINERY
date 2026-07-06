@@ -69,6 +69,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [specValues, setSpecValues] = useState<Record<string, any>>(initialDraft?.specValues ?? {});
   const [isFeatured, setIsFeatured] = useState(initialDraft?.isFeatured ?? false);
   const [displayOrder, setDisplayOrder] = useState(initialDraft?.displayOrder ?? 0);
+  const [publishNow, setPublishNow] = useState(false);
   const [hasLoadedDraftImages, setHasLoadedDraftImages] = useState(!!editingProduct || !initialDraft);
   const [form, setForm] = useState<AdminProductDraftForm>(initialDraft?.form ?? emptyProductForm);
 
@@ -438,10 +439,22 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
 
     // Emit publishing event — PublishingService handles all external channels.
     if (productId) {
-      emitPublishingEvent({
-        type: editingProduct ? 'product.updated' : 'product.published',
-        productId,
-      });
+      // "Publicar agora" toggle explicitly triggers social channels.
+      // Without it, we still emit "product.updated" so the sitemap regenerates
+      // but social/newsletter adapters (which only listen to "product.published") stay quiet.
+      const type = publishNow
+        ? 'product.published'
+        : editingProduct
+          ? 'product.updated'
+          : 'product.updated';
+      emitPublishingEvent({ type, productId });
+      if (publishNow) {
+        toast({
+          title: 'Publicação em curso',
+          description:
+            'O produto está a ser publicado nos canais ativos (Facebook, Instagram, Newsletter).',
+        });
+      }
     }
 
     onSuccess?.();
