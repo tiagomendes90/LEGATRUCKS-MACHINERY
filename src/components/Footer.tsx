@@ -8,14 +8,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+import { supabase } from "@/integrations/supabase/client";
 
 const Footer = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [accepted, setAccepted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accepted) {
       toast({
@@ -25,12 +27,28 @@ const Footer = () => {
       });
       return;
     }
-    setEmail("");
-    setAccepted(false);
-    toast({
-      title: t("footer.subscribedTitle"),
-      description: t("footer.subscribedDesc"),
-    });
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("newsletter-subscribe", {
+        body: { email, consent: true },
+      });
+      if (error || (data as any)?.error) {
+        toast({
+          title: "Erro",
+          description: (data as any)?.detail ?? error?.message ?? "Não foi possível subscrever.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setEmail("");
+      setAccepted(false);
+      toast({
+        title: t("footer.subscribedTitle"),
+        description: t("footer.subscribedDesc"),
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -67,6 +85,7 @@ const Footer = () => {
                 />
                 <button 
                   type="submit" 
+                  disabled={submitting}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 transition-colors"
                 >
                   <ArrowRight className="h-5 w-5" />
