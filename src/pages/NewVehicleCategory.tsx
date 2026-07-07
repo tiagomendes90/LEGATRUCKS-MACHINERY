@@ -152,32 +152,6 @@ const NewVehicleCategory = () => {
     description: `Browse ${categoryTitle} available at LEGA — quality stock delivered across Europe.`,
   };
 
-  const categoryJsonLd = useMemo(() => {
-    const list = paginationData.currentVehicles || [];
-    return [
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
-          { "@type": "ListItem", position: 2, name: categoryTitle, item: `https://lega.pt/${category}` },
-        ],
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        name: seo.title,
-        numberOfItems: totalCount,
-        itemListElement: list.slice(0, 30).map((v: any, i: number) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          url: `https://lega.pt/vehicle/${v.id}`,
-          name: v.title,
-        })),
-      },
-    ];
-  }, [paginationData.currentVehicles, categoryTitle, category, seo.title, totalCount]);
-
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -195,6 +169,28 @@ const NewVehicleCategory = () => {
   }
 
   const totalCount = vehicles?.length || 0;
+  const categoryJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
+        { "@type": "ListItem", position: 2, name: categoryTitle, item: `https://lega.pt/${category}` },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: seo.title,
+      numberOfItems: totalCount,
+      itemListElement: (paginationData.currentVehicles || []).slice(0, 30).map((v: any, i: number) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://lega.pt/vehicle/${v.id}`,
+        name: v.title,
+      })),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
