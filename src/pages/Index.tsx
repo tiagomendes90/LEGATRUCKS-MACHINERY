@@ -22,9 +22,22 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="Lega | Equipamentos e Soluções Industriais em Portugal"
-        description="Lega é a plataforma portuguesa de referência para camiões, máquinas industriais, tractores, reboques e peças. Equipamentos de qualidade e soluções para empresas em todo o país."
+        title="LEGA | Equipamentos e Soluções Industriais em Portugal"
+        description="LEGA é a empresa portuguesa de referência em camiões, máquinas industriais, tractores, reboques e peças. Stock disponível, entrega nacional e assistência dedicada."
         path="/"
+        keywords="LEGA, camiões usados, máquinas industriais, tractores, reboques, peças, equipamentos Portugal"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": "Categorias LEGA",
+          "itemListElement": [
+            { "@type": "ListItem", position: 1, name: "Camiões", url: "https://lega.pt/camioes" },
+            { "@type": "ListItem", position: 2, name: "Máquinas", url: "https://lega.pt/maquinas" },
+            { "@type": "ListItem", position: 3, name: "Tractores", url: "https://lega.pt/tractores" },
+            { "@type": "ListItem", position: 4, name: "Reboques", url: "https://lega.pt/reboques" },
+            { "@type": "ListItem", position: 5, name: "Peças", url: "https://lega.pt/pecas" },
+          ],
+        }}
       />
       <Navbar />
       
