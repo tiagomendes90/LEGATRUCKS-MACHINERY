@@ -234,7 +234,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-white/20 mt-4 pt-3 text-center">
-          <p className="text-white text-xs">© 2026 Lega. {t('footer.allRightsReserved')}</p>
+          <p className="text-white text-xs">© 2026 LEGA. {t('footer.allRightsReserved')}</p>
         </div>
       </div>
     </footer>
