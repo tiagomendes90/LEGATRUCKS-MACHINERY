@@ -27,24 +27,24 @@ import PageHero from "@/components/PageHero";
 
 const CATEGORY_SEO: Record<string, { title: string; description: string }> = {
   camioes: {
-    title: "Camiões Usados e Comerciais em Portugal | Lega",
-    description: "Camiões usados e comerciais em Portugal: stock variado de veículos pesados para transporte e logística, com entrega rápida e financiamento disponível.",
+    title: "Camiões Usados e Comerciais em Portugal | LEGA",
+    description: "Camiões usados e comerciais na LEGA: stock variado de veículos pesados para transporte e logística, com entrega em todo o país e financiamento disponível.",
   },
   maquinas: {
-    title: "Máquinas Industriais e Equipamentos Pesados | Lega",
-    description: "Máquinas industriais e equipamentos pesados para construção, obras públicas e indústria. Stock atualizado de máquinas usadas e seminovas em Portugal.",
+    title: "Máquinas Industriais e Equipamentos Pesados | LEGA",
+    description: "Máquinas industriais e equipamentos pesados para construção, obras públicas e indústria. Stock atualizado de máquinas usadas e seminovas na LEGA.",
   },
   tractores: {
-    title: "Tractores Agrícolas em Portugal | Lega",
-    description: "Tractores agrícolas usados e seminovos em Portugal. Soluções para agricultura, pecuária e exploração florestal com entrega em todo o país.",
+    title: "Tractores Agrícolas em Portugal | LEGA",
+    description: "Tractores agrícolas usados e seminovos na LEGA. Soluções para agricultura, pecuária e exploração florestal com entrega em todo o país.",
   },
   reboques: {
-    title: "Reboques Comerciais e Pesados | Lega",
-    description: "Reboques comerciais e pesados para transporte de mercadorias, máquinas e veículos. Variedade de tipologias disponíveis em stock na Lega.",
+    title: "Reboques Comerciais e Pesados | LEGA",
+    description: "Reboques comerciais e pesados para transporte de mercadorias, máquinas e veículos. Variedade de tipologias disponíveis em stock na LEGA.",
   },
   pecas: {
-    title: "Peças para Máquinas e Camiões em Portugal | Lega",
-    description: "Peças e componentes para camiões, máquinas, tractores e reboques. Stock alargado de peças novas e usadas com envio para todo o país.",
+    title: "Peças para Máquinas e Camiões em Portugal | LEGA",
+    description: "Peças e componentes para camiões, máquinas, tractores e reboques. Stock alargado de peças novas e usadas com envio para todo o país pela LEGA.",
   },
 };
 
@@ -169,10 +169,32 @@ const NewVehicleCategory = () => {
   }
 
   const totalCount = vehicles?.length || 0;
+  const categoryJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
+        { "@type": "ListItem", position: 2, name: categoryTitle, item: `https://lega.pt/${category}` },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: seo.title,
+      numberOfItems: totalCount,
+      itemListElement: (paginationData.currentVehicles || []).slice(0, 30).map((v: any, i: number) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://lega.pt/vehicle/${v.id}`,
+        name: v.title,
+      })),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <SEO title={seo.title} description={seo.description} path={`/${category}`} />
+      <SEO title={seo.title} description={seo.description} path={`/${category}`} jsonLd={categoryJsonLd} />
       <Navbar />
 
       <PageHero title={categoryTitle} subtitle={categoryDescription} />

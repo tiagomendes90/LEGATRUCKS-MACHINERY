@@ -2,6 +2,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 
 const NotFound = () => {
   const { t } = useTranslation();
@@ -16,6 +17,12 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <SEO
+        title="Página não encontrada | LEGA"
+        description="A página que procura não existe. Volte à página inicial da LEGA."
+        path={location.pathname}
+        noIndex
+      />
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">{t('notFound.title')}</h1>
         <p className="text-xl text-gray-600 mb-4">{t('notFound.message')}</p>

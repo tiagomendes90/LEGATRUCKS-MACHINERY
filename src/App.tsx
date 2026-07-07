@@ -13,6 +13,7 @@ import VehicleDetails from "./pages/VehicleDetails";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import About from "./pages/About";
 import AdminLogin from "./admin/AdminLogin";
 import AdminDashboard from "./admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,8 @@ const App = () => (
             <Route path="/tractores" element={<NewVehicleCategory />} />
             <Route path="/reboques" element={<NewVehicleCategory />} />
             <Route path="/pecas" element={<NewVehicleCategory />} />
+            <Route path="/sobre" element={<About />} />
+            <Route path="/about" element={<About />} />
             <Route path="/:slug" element={<NewVehicleCategory />} />
             
             <Route path="/vehicle/:id" element={<VehicleDetails />} />

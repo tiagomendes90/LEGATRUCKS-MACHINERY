@@ -11,6 +11,7 @@ import VehicleActions from "@/components/VehicleActions";
 import VehicleImageGallery from "@/components/VehicleImageGallery";
 import SimilarVehicles from "@/components/SimilarVehicles";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import { getGalleryImageUrls } from "@/utils/productImages";
 
@@ -59,6 +60,52 @@ const VehicleDetails = () => {
 
   const imageUrls = getGalleryImageUrls(vehicle.images);
 
+  const seoTitle = `${vehicle.title} | LEGA`;
+  const seoDescription = (vehicle.description || `${vehicle.title} disponível na LEGA. Contacte-nos para orçamento e mais informações.`)
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160);
+  const primaryImage = imageUrls[0] || "https://lega.pt/logo-hero.png";
+  const categorySlug = (vehicle as any).category?.slug || "camioes";
+  const categoryName = (vehicle as any).category?.name || (vehicle as any).subcategory?.name || "Equipamentos";
+
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: vehicle.title,
+    description: seoDescription,
+    image: imageUrls.length ? imageUrls : [primaryImage],
+    sku: vehicle.id,
+    brand: vehicle.brand?.name ? { "@type": "Brand", name: vehicle.brand.name } : undefined,
+    category: categoryName,
+    ...(vehicle.price
+      ? {
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "EUR",
+            price: vehicle.price,
+            availability: "https://schema.org/InStock",
+            itemCondition:
+              vehicle.condition === "new"
+                ? "https://schema.org/NewCondition"
+                : "https://schema.org/UsedCondition",
+            url: `https://lega.pt/vehicle/${vehicle.id}`,
+            seller: { "@type": "Organization", name: "LEGA" },
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
+      { "@type": "ListItem", position: 2, name: categoryName, item: `https://lega.pt/${categorySlug}` },
+      { "@type": "ListItem", position: 3, name: vehicle.title, item: `https://lega.pt/vehicle/${vehicle.id}` },
+    ],
+  };
+
   // Extract dynamic spec values
   const dynamicSpecs = (vehicle.spec_values || []).map((sv: any) => {
     const def = sv.spec_definition;
@@ -83,6 +130,14 @@ const VehicleDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        path={`/vehicle/${vehicle.id}`}
+        image={primaryImage}
+        type="article"
+        jsonLd={[productJsonLd, breadcrumbJsonLd]}
+      />
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-28 pb-12">
 

@@ -73,9 +73,16 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <SEO
-        title="Contactos | Lega"
-        description="Entre em contacto com a Lega para pedidos de orçamento sobre camiões, máquinas, tractores, reboques e peças. Resposta rápida em Portugal e Europa."
+        title="Contactos | LEGA"
+        description="Contacte a LEGA para orçamentos de camiões, máquinas, tractores, reboques e peças. Resposta rápida em Portugal, com assistência dedicada."
         path="/contactos"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          name: "Contactos LEGA",
+          url: "https://lega.pt/contactos",
+          about: { "@type": "Organization", name: "LEGA" },
+        }}
       />
       <Navbar />
 
