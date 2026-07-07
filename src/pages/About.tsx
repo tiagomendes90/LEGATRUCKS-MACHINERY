@@ -47,13 +47,70 @@ const About = () => {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="About LEGA | Used Trucks, Machinery & Parts Specialists"
-        description="Learn about LEGA — over 20 years specialising in used trucks, machinery, trailers, tractors and parts for clients across Europe."
+        title="Sobre a LEGA | Empresa Portuguesa de Equipamentos Industriais"
+        description="Conheça a LEGA — empresa portuguesa especializada em camiões, máquinas industriais, tractores, reboques e peças, com cobertura nacional e assistência dedicada."
         path="/sobre"
+        keywords="LEGA, sobre a LEGA, empresa portuguesa, equipamentos industriais, camiões, máquinas, tractores, reboques, peças"
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "AboutPage",
+            name: "Sobre a LEGA",
+            url: "https://lega.pt/sobre",
+            about: {
+              "@type": "Organization",
+              name: "LEGA",
+              alternateName: "LEGA Trucks & Machinery",
+              url: "https://lega.pt",
+              logo: "https://lega.pt/logo-hero.png",
+              areaServed: { "@type": "Country", name: "Portugal" },
+              foundingDate: "2005",
+            },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
+              { "@type": "ListItem", position: 2, name: "Sobre a LEGA", item: "https://lega.pt/sobre" },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              { "@type": "Question", name: "O que é a LEGA?", acceptedAnswer: { "@type": "Answer", text: "A LEGA é uma empresa portuguesa especializada na comercialização de camiões, máquinas industriais, tractores, reboques e peças, com sede em Vila Nova de Famalicão e cobertura nacional." } },
+              { "@type": "Question", name: "Que tipos de equipamentos a LEGA disponibiliza?", acceptedAnswer: { "@type": "Answer", text: "Camiões pesados e comerciais, máquinas industriais e de construção, tractores agrícolas, reboques de várias tipologias e peças novas e usadas." } },
+              { "@type": "Question", name: "A LEGA entrega em todo o país?", acceptedAnswer: { "@type": "Answer", text: "Sim. A LEGA opera com cobertura nacional em Portugal continental e ilhas." } },
+              { "@type": "Question", name: "A LEGA presta assistência pós-venda?", acceptedAnswer: { "@type": "Answer", text: "Sim. A LEGA oferece assistência dedicada pós-venda, apoio técnico e fornecimento contínuo de peças." } },
+            ],
+          },
+        ]}
       />
       <Navbar />
       
-      <PageHero title={t('about.title')} subtitle={t('about.subtitle')} />
+      <PageHero title="Sobre a LEGA" subtitle="Empresa portuguesa de referência em equipamentos e soluções industriais" />
+
+      <section className="py-16">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <h1 className="sr-only">Sobre a LEGA — Empresa Portuguesa de Equipamentos Industriais</h1>
+          <div className="text-lg text-gray-700 leading-relaxed space-y-5">
+            <p>
+              A <strong>LEGA</strong> é uma empresa portuguesa dedicada à comercialização de{" "}
+              <strong>camiões, máquinas industriais, tractores agrícolas, reboques e peças</strong>,
+              com sede em Vila Nova de Famalicão e operação em todo o território nacional. Ao longo
+              de mais de duas décadas, a LEGA consolidou-se como parceiro de confiança de empresas de
+              transporte, construção, obras públicas, agricultura, logística e indústria.
+            </p>
+            <p>
+              O nosso propósito é <strong>disponibilizar equipamentos fiáveis, ao preço certo, com
+              acompanhamento técnico especializado</strong>. Cada camião, máquina, tractor ou reboque
+              que integra o stock da LEGA passa por avaliação criteriosa, garantindo qualidade e
+              transparência ao cliente final.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Stats Section */}
       <section className="py-16 bg-slate-50">
