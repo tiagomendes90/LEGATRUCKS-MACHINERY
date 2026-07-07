@@ -166,6 +166,97 @@ const About = () => {
         </div>
       </section>
 
+      {/* Missão / Visão / Valores */}
+      <section className="py-20">
+        <div className="container mx-auto px-6 max-w-6xl">
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card>
+              <CardContent className="pt-8">
+                <ShieldCheck className="h-10 w-10 text-blue-600 mb-4" />
+                <h2 className="text-2xl font-bold mb-3 text-slate-800">Missão</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  Fornecer equipamentos industriais e agrícolas de qualidade a empresas portuguesas,
+                  com transparência, apoio técnico especializado e soluções adaptadas a cada necessidade.
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-8">
+                <Globe className="h-10 w-10 text-blue-600 mb-4" />
+                <h2 className="text-2xl font-bold mb-3 text-slate-800">Visão</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  Ser a referência nacional em camiões, máquinas, tractores, reboques e peças,
+                  reconhecida pela qualidade do stock, confiança e proximidade com o cliente.
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-8">
+                <HeartHandshake className="h-10 w-10 text-blue-600 mb-4" />
+                <h2 className="text-2xl font-bold mb-3 text-slate-800">Valores</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  Integridade, competência técnica, transparência comercial, foco no cliente e
+                  compromisso com soluções sustentáveis e duradouras.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Áreas de atuação */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-6 max-w-6xl">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4 text-center">
+            Áreas de atuação da LEGA
+          </h2>
+          <p className="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">
+            Uma oferta completa para empresas que dependem de equipamentos fiáveis no dia-a-dia.
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { icon: <Truck className="h-8 w-8 text-blue-600" />, title: "Camiões pesados e comerciais", text: "Veículos para transporte de mercadorias, logística e distribuição." },
+              { icon: <Cog className="h-8 w-8 text-blue-600" />, title: "Máquinas industriais", text: "Equipamentos para construção, obras públicas e movimentação de terras." },
+              { icon: <Tractor className="h-8 w-8 text-blue-600" />, title: "Tractores agrícolas", text: "Soluções para agricultura, pecuária e exploração florestal." },
+              { icon: <Truck className="h-8 w-8 text-blue-600" />, title: "Reboques", text: "Reboques de várias tipologias para transporte de máquinas, veículos e cargas." },
+              { icon: <Wrench className="h-8 w-8 text-blue-600" />, title: "Peças novas e usadas", text: "Stock alargado de peças e componentes para todas as categorias." },
+              { icon: <MapPin className="h-8 w-8 text-blue-600" />, title: "Cobertura nacional", text: "Entrega em Portugal continental e ilhas, com apoio dedicado." },
+            ].map((item, i) => (
+              <Card key={i} className="hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="mb-4">{item.icon}</div>
+                  <h3 className="text-lg font-semibold text-slate-800 mb-2">{item.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{item.text}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Serviços e assistência */}
+      <section className="py-20">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6">
+            Serviços e assistência LEGA
+          </h2>
+          <div className="text-lg text-gray-700 space-y-4 leading-relaxed">
+            <p>
+              Para além da comercialização, a LEGA oferece um conjunto de serviços que asseguram
+              o ciclo de vida completo do equipamento: <strong>avaliação técnica, apoio na escolha,
+              logística de entrega, fornecimento contínuo de peças e assistência pós-venda</strong>.
+            </p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Consultoria personalizada na escolha do camião, máquina, tractor ou reboque adequado.</li>
+              <li>Apoio ao financiamento e opções de aquisição flexíveis.</li>
+              <li>Serviço de transporte e entrega em Portugal continental e ilhas.</li>
+              <li>Fornecimento de peças originais e alternativas para as principais marcas.</li>
+              <li>Assistência pós-venda e apoio técnico contínuo.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-900 to-slate-800 text-white">
         <div className="container mx-auto px-6 text-center">
