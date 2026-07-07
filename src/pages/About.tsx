@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, Award, Wrench, Globe } from "lucide-react";
+import { Users, Award, Wrench, Globe, Truck, Tractor, Cog, MapPin, ShieldCheck, HeartHandshake } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
