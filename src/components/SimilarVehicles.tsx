@@ -36,8 +36,9 @@ const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategor
             <div className="relative overflow-hidden">
               <img 
                 src={getPrimaryImageUrl(vehicle.images) || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
-                alt={vehicle.title} 
+                alt={`${vehicle.title}${vehicle.brand?.name ? ` - ${vehicle.brand.name}` : ''} | LEGA`}
                 loading="lazy"
+                decoding="async"
                 width={400}
                 height={192}
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"

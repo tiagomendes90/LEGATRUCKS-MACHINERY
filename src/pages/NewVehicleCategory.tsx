@@ -295,9 +295,12 @@ const NewVehicleCategory = () => {
                               getPrimaryImageUrl(vehicle.images) ||
                               "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=900&h=600&fit=crop"
                             }
-                            alt={vehicle.title}
+                            alt={`${vehicle.title}${vehicle.brand?.name ? ` - ${vehicle.brand.name}` : ''}${vehicle.year ? ` (${vehicle.year})` : ''} | LEGA`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             loading="lazy"
+                            decoding="async"
+                            width={900}
+                            height={600}
                           />
                           {vehicle.condition && (
                             <Badge className="absolute top-3 right-3 bg-orange-500 hover:bg-orange-500 text-white font-semibold uppercase text-[10px] tracking-wider">

@@ -63,6 +63,8 @@ const VehicleImageGallery = ({ images, vehicleName }: VehicleImageGalleryProps) 
             alt={`${vehicleName} - ${selectedImageIndex + 1}`}
             className="w-full h-[400px] lg:h-[520px] object-cover transition-transform duration-500 group-hover:scale-105"
             loading="eager"
+            decoding="async"
+            fetchPriority="high"
             width={800}
             height={520}
           />
@@ -120,6 +122,7 @@ const VehicleImageGallery = ({ images, vehicleName }: VehicleImageGalleryProps) 
                   alt={`${vehicleName} - ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  decoding="async"
                   width={80}
                   height={80}
                 />

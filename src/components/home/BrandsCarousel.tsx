@@ -106,6 +106,7 @@ const BrandsCarousel = () => {
                   src={brandLogos[brand.slug]}
                   alt={brand.name}
                   loading="lazy"
+                  decoding="async"
                   width={512}
                   height={512}
                   className="h-20 w-auto max-w-[140px] object-contain object-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
