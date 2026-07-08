@@ -76,20 +76,23 @@ const VehicleDetails = () => {
     description: seoDescription,
     image: imageUrls.length ? imageUrls : [primaryImage],
     sku: vehicle.id,
-    brand: vehicle.brand?.name ? { "@type": "Brand", name: vehicle.brand.name } : undefined,
+    ...(vehicle.brand?.name ? { brand: { "@type": "Brand", name: vehicle.brand.name } } : {}),
     category: categoryName,
     ...(vehicle.price
       ? {
           offers: {
             "@type": "Offer",
             priceCurrency: "EUR",
-            price: vehicle.price,
+            price: String(vehicle.price),
             availability: "https://schema.org/InStock",
             itemCondition:
               vehicle.condition === "new"
                 ? "https://schema.org/NewCondition"
                 : "https://schema.org/UsedCondition",
             url: `https://lega.pt/vehicle/${vehicle.id}`,
+            priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31)
+              .toISOString()
+              .slice(0, 10),
             seller: { "@type": "Organization", name: "LEGA" },
           },
         }
@@ -135,7 +138,7 @@ const VehicleDetails = () => {
         description={seoDescription}
         path={`/vehicle/${vehicle.id}`}
         image={primaryImage}
-        type="article"
+        type="product"
         jsonLd={[productJsonLd, breadcrumbJsonLd]}
       />
       <Navbar />

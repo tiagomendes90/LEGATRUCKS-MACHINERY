@@ -157,9 +157,10 @@ const FeaturedVehiclesSection = () => {
                               getPrimaryImageUrl(product.images) ||
                               "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=280&fit=crop"
                             }
-                            alt={product.title}
+                            alt={`${product.title}${product.brand?.name ? ` - ${product.brand.name}` : ''}${product.year ? ` (${product.year})` : ''} | LEGA`}
                             className="w-full h-56 object-cover transition-transform duration-500 hover:scale-105"
                             loading="lazy"
+                            decoding="async"
                             width={400}
                             height={224}
                           />

@@ -10,7 +10,7 @@ interface SEOProps {
   description: string;
   path: string;
   image?: string;
-  type?: "website" | "article";
+  type?: "website" | "article" | "product";
   noIndex?: boolean;
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
   locale?: string;
@@ -55,6 +55,8 @@ const SEO = ({
       <meta property="og:type" content={type} />
       <meta property="og:image" content={image} />
       <meta property="og:image:alt" content={title} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content={TWITTER_HANDLE} />
       <meta name="twitter:title" content={title} />
