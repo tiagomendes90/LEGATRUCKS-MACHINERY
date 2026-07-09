@@ -1,0 +1,22 @@
+# LEGA
+
+> LEGA — empresa portuguesa de equipamentos e soluções industriais: comercialização de camiões, máquinas, tractores, reboques e peças, com cobertura nacional e assistência dedicada.
+
+## Pages
+
+- [Início](/): Apresentação da LEGA e destaques do stock.
+- [Sobre a LEGA](/sobre): Missão, valores, história e serviços da empresa.
+- [Contactos](/contactos): Morada, telefone, email e horários.
+
+## Catálogo
+
+- [Camiões](/camioes): Camiões usados e seminovos.
+- [Máquinas](/maquinas): Máquinas industriais e de obras públicas.
+- [Tractores](/tractores): Tractores agrícolas e industriais.
+- [Reboques](/reboques): Reboques e semirreboques.
+- [Peças](/pecas): Peças e componentes para camiões e máquinas.
+
+## Optional
+
+- [Termos](/terms): Termos e condições de utilização.
+- [Privacidade](/privacy): Política de privacidade.
