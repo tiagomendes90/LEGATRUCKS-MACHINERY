@@ -30,6 +30,11 @@ Conclusão: **arquitetura pronta**. A Fase 2 preenche credenciais, endurece pipe
 4. **Remetente**: `newsletter@lega.pt` (From) + `info@lega.pt` (Reply-To). Secrets: `RESEND_FROM_EMAIL=newsletter@lega.pt`, `RESEND_REPLY_TO=info@lega.pt`.
 5. **Novo estado `scheduled`** no pipeline (ver §2.3) — suporta agendamento futuro de qualquer canal sem alterar o dispatcher.
 6. **Preparação para motores de pesquisa** como canais nativos: `indexnow` (Bing, Yandex, DuckDuckGo, Seznam) e `google-indexing` (via Indexing API — hoje só suporta JobPosting e BroadcastEvent oficialmente, útil como stub) — mais detalhe em §2.4.
+7. **Separação website ↔ redes sociais** (novo): publicar no website **não** publica automaticamente em FB/IG. O produto entra em estado `ready_for_social` e aguarda confirmação explícita do admin, que pré-visualiza e edita o caption gerado antes de confirmar.
+8. **Persistência de identificadores externos** (novo): cada publicação num canal guarda `external_id` + `external_url` (post ID FB, media ID IG, broadcast ID Resend) para consulta, edição, republicação ou remoção futura.
+9. **Edições simples não republicam** (novo): `product.updated` deixa de disparar FB/IG automaticamente. Só `social.publish.confirmed` (ação explícita do admin) dispara redes sociais. Sitemap/IndexNow continuam automáticos em qualquer alteração.
+10. **Fast-track newsletter** (novo): produtos marcados como `Destaque`, `Novidade` ou `Promoção` podem ser enviados imediatamente por decisão explícita do admin (`newsletter.instant`), mantendo o digest semanal como default.
+11. **Métricas por publicação** (novo): tabela dedicada para snapshots periódicos de likes/comments/reach/clicks por canal, alimentada por job de refresh.
 
 ### 2.1 Novos tipos de evento
 
@@ -38,7 +43,11 @@ type PublishingEventType =
   | "product.published"
   | "product.updated"
   | "product.unpublished"
+  | "social.publish.confirmed"   // admin confirmou publicação FB+IG (após preview/edit)
+  | "social.republish"           // republicar uma publicação existente (usa external_ids)
+  | "social.delete"              // remover post FB/IG usando external_id
   | "newsletter.manual"      // campanha manual ad-hoc
+  | "newsletter.instant"     // envio imediato p/ Destaque/Novidade/Promoção
   | "digest.weekly";         // disparado pelo cron do digest
 ```
 
@@ -47,14 +56,28 @@ Adapters filtram via `supports(event)` — zero alterações no dispatcher.
 ### 2.2 Fluxo end-to-end
 
 ```text
-Admin publica produto (toggle ON)
+Admin publica no website (toggle ON)
   → emitPublishingEvent("product.published", productId)
-       → INSERT publishing_events (status=pending | scheduled se scheduled_for>now)
-       → invoke publish-dispatcher (só se pending)
-              → sitemap.publish()    → invalida cache + ping IndexNow/Google
-              → facebook.publish()   → Graph API /photos
-              → instagram.publish()  → single OU carousel conforme nº imagens
-              → newsletter.publish() → SKIPPED em product.published (só reage a digest.weekly + newsletter.manual)
+       → sitemap.publish()   → invalida cache + IndexNow
+       → facebook/instagram  → SKIPPED (aguardam confirmação explícita)
+       → produto passa a social_status='ready_for_social' + caption gerado auto
+
+Admin abre painel "Pronto para Publicação"
+  → pré-visualiza post (imagem principal + caption editável + hashtags + link)
+  → edita caption / seleciona imagens / escolhe canais (FB e/ou IG)
+  → confirma → emitPublishingEvent("social.publish.confirmed", productId, { caption, image_ids, channels })
+       → facebook.publish()   → guarda external_id + external_url em product_social_posts
+       → instagram.publish()  → single ou carrossel; guarda ids/urls
+       → produto passa a social_status='published'
+
+Admin edita preço/descrição do veículo
+  → emitPublishingEvent("product.updated")
+       → sitemap + IndexNow apenas (FB/IG skipped)
+       → UI mostra badge "alterado desde última publicação social" com opção "Republicar" (=> social.republish)
+
+Admin marca produto como Destaque/Novidade/Promoção e escolhe "Enviar já"
+  → emitPublishingEvent("newsletter.instant", productId)
+       → newsletter.publish() → envio imediato para audience (com override de template)
 
 pg_cron semanal (Qui 10:00 WET)
   → invoke newsletter-weekly-digest
@@ -65,6 +88,10 @@ pg_cron semanal (Qui 10:00 WET)
 pg_cron cada 5min
   → invoke publish-dispatcher (sem event_id)
        → processa pending + failed(<3 attempts) + scheduled(scheduled_for<=now)
+
+pg_cron cada 6h
+  → invoke publishing-metrics-refresh
+       → varre product_social_posts ativos → Graph API insights → INSERT publishing_metrics snapshot
 ```
 
 ### 2.3 Estado `scheduled` no pipeline
@@ -83,6 +110,48 @@ Regras no dispatcher:
 - `emitPublishingEvent({ scheduledFor })` → INSERT com `status='scheduled'` e não invoca dispatcher.
 - Cron: `WHERE status='pending' OR (status='scheduled' AND scheduled_for <= now()) OR (status='failed' AND attempts < 3)`.
 - UI admin: date-time picker opcional junto ao toggle "Publicar agora" → "Agendar para…".
+
+### 2.3.b Estado social do produto + persistência de posts
+
+```sql
+ALTER TABLE products
+  ADD COLUMN social_status TEXT NOT NULL DEFAULT 'not_ready',
+  -- not_ready | ready_for_social | published | outdated | failed
+  ADD COLUMN social_caption TEXT,          -- caption editado/aprovado pelo admin
+  ADD COLUMN social_caption_auto TEXT,     -- caption gerado automaticamente (referência)
+  ADD COLUMN social_last_published_at TIMESTAMPTZ,
+  ADD COLUMN social_hash TEXT;             -- hash dos campos-chave (título/preço/desc/imagens)
+                                           -- para detetar "outdated" após product.updated
+
+CREATE TABLE public.product_social_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  channel_key TEXT NOT NULL,               -- 'facebook' | 'instagram' | 'newsletter'
+  external_id TEXT NOT NULL,               -- FB post id / IG media id / Resend broadcast id
+  external_url TEXT,                       -- permalink público
+  caption TEXT,
+  media JSONB NOT NULL DEFAULT '[]',       -- URLs enviadas, ordem
+  status TEXT NOT NULL DEFAULT 'live',     -- live | deleted | failed
+  published_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  raw_response JSONB NOT NULL DEFAULT '{}',
+  UNIQUE (channel_key, external_id)
+);
+
+CREATE TABLE public.publishing_metrics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  social_post_id UUID NOT NULL REFERENCES public.product_social_posts(id) ON DELETE CASCADE,
+  captured_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  likes INT, comments INT, shares INT, reach INT, impressions INT, clicks INT,
+  raw JSONB NOT NULL DEFAULT '{}'
+);
+```
+
+Regras:
+- `social.publish.confirmed` → INSERT em `product_social_posts` (uma linha por canal) → UPDATE `products.social_status='published'` + `social_last_published_at=now()` + `social_hash=<hash atual>`.
+- `product.updated` → recalcula `social_hash`; se diferir do guardado e `social_status='published'` → passa a `outdated` (UI destaca "Republicar").
+- `social.republish` recebe `product_social_posts.id[]` (ou canais) → edita/recria via Graph API; para FB usa edit (mantém URL); para IG apaga + recria (IG não suporta edit de media).
+- `social.delete` chama Graph API `DELETE /{external_id}` + marca `status='deleted'`.
+- Painel admin lista posts existentes com contadores de métricas (última snapshot).
 
 ### 2.4 Canal `search-engines` (novo, preparado)
 
@@ -151,6 +220,8 @@ _shared/publishing/channels/searchEngines/
 - `pg_cron` a cada 5min invoca `publish-dispatcher`.
 - Guard: só processa `product.published` se `products.published=true` no momento.
 - Alerta admin após 3 falhas via `sendAdminNotification`.
+- Migração paralela: novas colunas `social_*` em `products`, tabelas `product_social_posts` e `publishing_metrics` (com GRANTs + RLS admin-only).
+- Emissão `product.published` deixa de acionar FB/IG (adapters `supports()` ignoram); passam a reagir apenas a `social.publish.confirmed` / `social.republish`.
 
 ### Fase 2.1 — Sitemap dinâmico + IndexNow foundation (0.5 dia)
 - Criar edge function `sitemap-xml` + rewrite.
@@ -167,25 +238,31 @@ _shared/publishing/channels/searchEngines/
 - Nova edge function `newsletter-weekly-digest` (agregação + enqueue evento `digest.weekly`).
 - `pg_cron` semanal (Qui 10:00 Europe/Lisbon) invoca a função.
 - Painel admin: nova secção "Newsletter" com preview do próximo digest + botão "Enviar campanha manual".
+- Botão "Enviar já" no editor do produto (visível apenas se `is_featured` OU `is_new` OU `is_promo`) → emite `newsletter.instant`.
 - Teste com audience interna antes de abrir subscrições públicas.
 
-### Fase 2.3 — Facebook Page (1–2 dias)
-- App Meta em Live, App Review para `pages_manage_posts`.
-- Gerar Page Access Token permanente.
-- Adicionar secrets, ativar canal.
-- Publicar produto de teste, validar post + link + engagement.
+### Fase 2.3 — Painel "Pronto para Publicação" + Facebook (2 dias)
+- Novo separador no admin: lista produtos com `social_status='ready_for_social'` ou `outdated`.
+- Ecrã de preview: mockup FB/IG, caption editável (auto gerado via `productFormatting` — título, ano, km, preço, hashtags, link canónico), seleção de imagens (ordem drag-and-drop), toggle canais FB/IG.
+- Botão "Confirmar publicação" → `social.publish.confirmed`.
+- Facebook adapter: Graph API `/photos` (single) ou `/feed` com link; guarda `post_id` + `permalink_url` em `product_social_posts`.
+- App Meta em Live, App Review para `pages_manage_posts`, Page Access Token permanente, secrets.
 
-### Fase 2.4 — Instagram Business single + carrossel (2–3 dias)
+### Fase 2.4 — Instagram single + carrossel + republicação (2–3 dias)
 - Conta IG Business ligada à Página.
 - Obter `META_IG_BUSINESS_ID` via `/{page-id}?fields=instagram_business_account`.
 - Implementar branching single vs carrossel no adapter.
 - Polling de `status_code` com timeout (30s por container).
 - Guard rate limit 25/24h consultando `publishing_logs` do próprio canal.
+- Guardar `ig_media_id` + `permalink` em `product_social_posts`.
+- Implementar `social.republish` (FB=edit, IG=delete+recreate) e `social.delete`.
 - Testes: produto com 1 foto e produto com 5 fotos.
 
-### Fase 2.5 — Search engines completos + observabilidade (1 dia)
+### Fase 2.5 — Search engines + métricas + observabilidade (1.5 dias)
 - Ativar IndexNow em produção (ping em cada publicação/atualização).
 - Google Indexing API: manter stub, documentar limitação.
+- Nova edge function `publishing-metrics-refresh` (`pg_cron` 6h): FB `/{post-id}?fields=likes.summary(true),comments.summary(true),shares`, IG `/{media-id}/insights?metric=reach,impressions,likes,comments,saved`.
+- Painel: por post → gráfico de métricas 30d.
 - Painel admin: filtros por canal/status, retry por canal individual, métricas 30d, agendador (date-time picker).
 - Alertas de quota Meta/Resend >80%.
 
@@ -209,11 +286,17 @@ LinkedIn Company Page, WhatsApp Business Cloud API, X/Twitter, Google Business P
 | Google Indexing API não indexa páginas normais | Baixa | Confiar em sitemap + IndexNow; API só como stub |
 | Cron falha silenciosa | Média | Logar execução em `publishing_logs` (channel_key='cron') |
 | Timezone do digest | Baixa | Cron em UTC ajustado (`0 9 * * 4` = 10:00 WET / 11:00 WEST — usar UTC 09:00 e aceitar desvio horário) |
+| IG não permite editar media | Média | `social.republish` em IG = delete + recreate; avisar admin que URL muda |
+| Fast-track abusar do envio | Média | Rate limit por audience (máx 1 instant/dia) + confirmação dupla no admin |
+| Métricas Graph API rate-limited | Baixa | Refresh 6h com backoff; snapshot apenas de posts <90 dias |
+| Caption editado divergir do produto real | Baixa | Guardar `social_hash` no momento da publicação; badge "outdated" quando produto muda |
 
 ## 6. Resultado esperado no fim da Fase 2
 
-- Publicar veículo (toggle ON) dispara automaticamente: post FB + post IG (single ou carrossel) + IndexNow + sitemap dinâmico sempre atualizado.
-- Newsletter enviada em digest semanal automático + campanhas manuais on-demand.
+- Publicar veículo no website atualiza sitemap + IndexNow automaticamente; publicação em FB/IG requer confirmação explícita com preview e caption editável.
+- Cada publicação social guarda `external_id` + `external_url` + snapshots de métricas — permite consultar, editar, republicar ou apagar.
+- Edições simples ao produto não republicam nas redes sociais; UI sinaliza "outdated" e oferece republicação 1-clique.
+- Newsletter em digest semanal automático + envio imediato opcional para Destaque/Novidade/Promoção + campanhas manuais on-demand.
 - Suporte a agendamento (`scheduled_for`) em qualquer canal, sem alterar o dispatcher.
 - Adicionar novo canal (LinkedIn, WhatsApp) ou novo motor de pesquisa = 1 ficheiro, zero mudanças no core.
 - Zero credenciais em código; tudo em Supabase Secrets ou `publishing_channels.config`.
