@@ -16,6 +16,10 @@ export interface PublishingEventRow {
   status: string;
   created_at: string;
   processed_at: string | null;
+  attempts?: number;
+  scheduled_for?: string | null;
+  next_attempt_at?: string | null;
+  last_error?: string | null;
 }
 
 export interface PublishingLogRow {
