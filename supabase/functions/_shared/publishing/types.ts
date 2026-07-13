@@ -2,13 +2,21 @@
 export type PublishingEventType =
   | "product.published"
   | "product.updated"
-  | "product.unpublished";
+  | "product.unpublished"
+  | "social.publish.confirmed"
+  | "social.republish"
+  | "social.delete"
+  | "newsletter.instant"
+  | "digest.weekly";
 
 export interface PublishingEvent {
   id: string;
   event_type: PublishingEventType | string;
   product_id: string | null;
   payload: Record<string, unknown>;
+  attempts?: number;
+  scheduled_for?: string | null;
+  dedupe_key?: string | null;
 }
 
 export type ChannelResultStatus = "success" | "failed" | "skipped";
