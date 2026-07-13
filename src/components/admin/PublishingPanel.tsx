@@ -21,6 +21,7 @@ const statusVariant = (status: string) => {
       return "destructive";
     case "processing":
     case "pending":
+    case "scheduled":
       return "secondary";
     default:
       return "outline";
@@ -52,11 +53,22 @@ function EventRow({ evt }: { evt: any }) {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {typeof evt.attempts === "number" && evt.attempts > 0 && (
+            <span className="text-xs text-muted-foreground">tent. {evt.attempts}</span>
+          )}
           <Badge variant={statusVariant(evt.status) as any}>{evt.status}</Badge>
         </div>
       </button>
       {open && (
         <div className="border-t p-3 space-y-2 bg-muted/20">
+          {evt.last_error && (
+            <p className="text-xs text-destructive">Último erro: {evt.last_error}</p>
+          )}
+          {evt.next_attempt_at && (
+            <p className="text-xs text-muted-foreground">
+              Próxima tentativa: {new Date(evt.next_attempt_at).toLocaleString("pt-PT")}
+            </p>
+          )}
           {logs.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem registos ainda.</p>
           ) : (
