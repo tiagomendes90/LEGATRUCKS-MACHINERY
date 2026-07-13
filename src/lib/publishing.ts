@@ -45,7 +45,7 @@ export async function emitPublishingEvent({
 
     const { data, error } = await supabase
       .from("publishing_events")
-      .insert([row])
+      .insert([row as any])
       .select("id")
       .maybeSingle();
 
