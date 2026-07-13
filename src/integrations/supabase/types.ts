@@ -260,6 +260,69 @@ export type Database = {
           },
         ]
       }
+      product_social_posts: {
+        Row: {
+          caption: string | null
+          channel_key: string
+          created_at: string
+          event_id: string | null
+          external_id: string | null
+          external_url: string | null
+          id: string
+          media: Json
+          product_id: string | null
+          published_at: string
+          raw_response: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          channel_key: string
+          created_at?: string
+          event_id?: string | null
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          media?: Json
+          product_id?: string | null
+          published_at?: string
+          raw_response?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          channel_key?: string
+          created_at?: string
+          event_id?: string | null
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          media?: Json
+          product_id?: string | null
+          published_at?: string
+          raw_response?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_social_posts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "publishing_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_social_posts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           brand_id: string | null
@@ -274,6 +337,8 @@ export type Database = {
           location_country: string | null
           model: string | null
           price: number | null
+          social_hash: string | null
+          social_status: string
           stock_status: string | null
           subcategory_id: string | null
           title: string
@@ -292,6 +357,8 @@ export type Database = {
           location_country?: string | null
           model?: string | null
           price?: number | null
+          social_hash?: string | null
+          social_status?: string
           stock_status?: string | null
           subcategory_id?: string | null
           title: string
@@ -310,6 +377,8 @@ export type Database = {
           location_country?: string | null
           model?: string | null
           price?: number | null
+          social_hash?: string | null
+          social_status?: string
           stock_status?: string | null
           subcategory_id?: string | null
           title?: string
@@ -392,30 +461,51 @@ export type Database = {
       }
       publishing_events: {
         Row: {
+          attempts: number
           created_at: string
+          dedupe_key: string | null
           event_type: string
           id: string
+          last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
+          next_attempt_at: string | null
           payload: Json
           processed_at: string | null
           product_id: string | null
+          scheduled_for: string | null
           status: string
         }
         Insert: {
+          attempts?: number
           created_at?: string
+          dedupe_key?: string | null
           event_type: string
           id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          next_attempt_at?: string | null
           payload?: Json
           processed_at?: string | null
           product_id?: string | null
+          scheduled_for?: string | null
           status?: string
         }
         Update: {
+          attempts?: number
           created_at?: string
+          dedupe_key?: string | null
           event_type?: string
           id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          next_attempt_at?: string | null
           payload?: Json
           processed_at?: string | null
           product_id?: string | null
+          scheduled_for?: string | null
           status?: string
         }
         Relationships: []
@@ -460,6 +550,56 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "publishing_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publishing_metrics: {
+        Row: {
+          channel_key: string
+          clicks: number | null
+          collected_at: string
+          comments: number | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          post_id: string
+          raw: Json
+          reach: number | null
+          shares: number | null
+        }
+        Insert: {
+          channel_key: string
+          clicks?: number | null
+          collected_at?: string
+          comments?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          post_id: string
+          raw?: Json
+          reach?: number | null
+          shares?: number | null
+        }
+        Update: {
+          channel_key?: string
+          clicks?: number | null
+          collected_at?: string
+          comments?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          post_id?: string
+          raw?: Json
+          reach?: number | null
+          shares?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publishing_metrics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "product_social_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -587,6 +727,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_publishing_events: {
+        Args: { p_limit?: number; p_worker?: string }
+        Returns: {
+          attempts: number
+          created_at: string
+          dedupe_key: string | null
+          event_type: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
+          next_attempt_at: string | null
+          payload: Json
+          processed_at: string | null
+          product_id: string | null
+          scheduled_for: string | null
+          status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "publishing_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
