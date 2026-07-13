@@ -97,7 +97,15 @@ export function useRetryEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (eventId: string) => {
-      await supabase.from("publishing_events").update({ status: "pending" }).eq("id", eventId);
+      await supabase
+        .from("publishing_events")
+        .update({
+          status: "pending",
+          next_attempt_at: null,
+          locked_at: null,
+          locked_by: null,
+        })
+        .eq("id", eventId);
       await supabase.functions.invoke("publish-dispatcher", { body: { event_id: eventId } });
     },
     onSuccess: () => {
