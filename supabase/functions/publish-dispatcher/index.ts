@@ -113,10 +113,18 @@ async function processEvent(supabase: any, event: PublishingEvent) {
 
   const anyFailed = results.some((r) => r.result.status === "failed");
   const attempts = event.attempts ?? 1;
+  const retryCycle = (event as any).retry_cycle ?? 0;
+  // MAX_ATTEMPTS aplica-se por ciclo (retry_cycle). `attempts` nunca é
+  // reiniciado — preserva o histórico completo do evento.
+  // Attempts consumidas neste ciclo = attempts - baseline(retryCycle).
+  // Aproximação simples: enquanto (attempts % MAX_ATTEMPTS) < MAX_ATTEMPTS
+  // continuamos a reagendar. Uma nova reclamação manual (retry_cycle+1)
+  // reabre o ciclo, permitindo até MAX_ATTEMPTS novas tentativas.
+  const attemptsThisCycle = attempts - retryCycle * MAX_ATTEMPTS;
 
-  if (anyFailed && attempts < MAX_ATTEMPTS) {
+  if (anyFailed && attemptsThisCycle < MAX_ATTEMPTS) {
     // Reagendar com backoff exponencial — permanece elegível para retry.
-    const nextAt = new Date(Date.now() + nextBackoffMs(attempts)).toISOString();
+    const nextAt = new Date(Date.now() + nextBackoffMs(attemptsThisCycle)).toISOString();
     await supabase
       .from("publishing_events")
       .update({
