@@ -97,6 +97,14 @@ export function useRetryEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (eventId: string) => {
+      // Preserva `attempts` (histórico completo) e incrementa `retry_cycle`
+      // para distinguir ciclos manuais iniciados pelo administrador.
+      const { data: current } = await supabase
+        .from("publishing_events")
+        .select("retry_cycle")
+        .eq("id", eventId)
+        .maybeSingle();
+      const nextCycle = ((current as any)?.retry_cycle ?? 0) + 1;
       await supabase
         .from("publishing_events")
         .update({
@@ -104,7 +112,9 @@ export function useRetryEvent() {
           next_attempt_at: null,
           locked_at: null,
           locked_by: null,
-        })
+          retry_cycle: nextCycle,
+          last_error: null,
+        } as any)
         .eq("id", eventId);
       await supabase.functions.invoke("publish-dispatcher", { body: { event_id: eventId } });
     },
