@@ -10,6 +10,7 @@ import {
   usePublishingEvents,
   usePublishingLogs,
   useRetryEvent,
+  usePublishingTransitions,
 } from "@/hooks/usePublishing";
 
 const statusVariant = (status: string) => {
@@ -31,6 +32,7 @@ const statusVariant = (status: string) => {
 function EventRow({ evt }: { evt: any }) {
   const [open, setOpen] = useState(false);
   const { data: logs = [] } = usePublishingLogs(open ? evt.id : null);
+  const { data: transitions = [] } = usePublishingTransitions(open ? evt.id : null);
   const retry = useRetryEvent();
 
   return (
@@ -55,6 +57,9 @@ function EventRow({ evt }: { evt: any }) {
         <div className="flex items-center gap-2">
           {typeof evt.attempts === "number" && evt.attempts > 0 && (
             <span className="text-xs text-muted-foreground">tent. {evt.attempts}</span>
+          )}
+          {typeof evt.retry_cycle === "number" && evt.retry_cycle > 0 && (
+            <span className="text-xs text-muted-foreground">ciclo {evt.retry_cycle}</span>
           )}
           <Badge variant={statusVariant(evt.status) as any}>{evt.status}</Badge>
         </div>
@@ -89,6 +94,23 @@ function EventRow({ evt }: { evt: any }) {
                 </div>
               </div>
             ))
+          )}
+          {transitions.length > 0 && (
+            <div className="pt-2 border-t">
+              <p className="text-xs font-medium mb-1">Auditoria de estados</p>
+              <ul className="space-y-1">
+                {transitions.map((t) => (
+                  <li key={t.id} className="text-xs text-muted-foreground font-mono">
+                    {new Date(t.created_at).toLocaleString("pt-PT")} ·{" "}
+                    {t.from_status ?? "∅"} → {t.to_status}
+                    {t.retry_cycle ? ` · ciclo ${t.retry_cycle}` : ""}
+                    {t.attempts ? ` · tent. ${t.attempts}` : ""}
+                    {t.worker ? ` · ${t.worker}` : ""}
+                    {t.reason ? ` · ${t.reason}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <div className="pt-2">
             <Button
