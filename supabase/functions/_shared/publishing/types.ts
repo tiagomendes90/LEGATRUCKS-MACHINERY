@@ -15,6 +15,7 @@ export interface PublishingEvent {
   product_id: string | null;
   payload: Record<string, unknown>;
   attempts?: number;
+  retry_cycle?: number;
   scheduled_for?: string | null;
   dedupe_key?: string | null;
 }
