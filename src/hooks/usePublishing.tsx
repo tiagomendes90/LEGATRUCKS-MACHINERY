@@ -17,9 +17,22 @@ export interface PublishingEventRow {
   created_at: string;
   processed_at: string | null;
   attempts?: number;
+  retry_cycle?: number;
   scheduled_for?: string | null;
   next_attempt_at?: string | null;
   last_error?: string | null;
+}
+
+export interface PublishingTransitionRow {
+  id: string;
+  event_id: string;
+  from_status: string | null;
+  to_status: string;
+  attempts: number | null;
+  retry_cycle: number | null;
+  worker: string | null;
+  reason: string | null;
+  created_at: string;
 }
 
 export interface PublishingLogRow {
@@ -89,6 +102,22 @@ export function usePublishingLogs(eventId: string | null) {
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as unknown as PublishingLogRow[];
+    },
+  });
+}
+
+export function usePublishingTransitions(eventId: string | null) {
+  return useQuery({
+    queryKey: ["publishing_transitions", eventId],
+    enabled: !!eventId,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("publishing_event_transitions")
+        .select("*")
+        .eq("event_id", eventId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as PublishingTransitionRow[];
     },
   });
 }
