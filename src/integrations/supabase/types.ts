@@ -459,6 +459,50 @@ export type Database = {
         }
         Relationships: []
       }
+      publishing_event_transitions: {
+        Row: {
+          attempts: number | null
+          created_at: string
+          event_id: string
+          from_status: string | null
+          id: string
+          reason: string | null
+          retry_cycle: number | null
+          to_status: string
+          worker: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string
+          event_id: string
+          from_status?: string | null
+          id?: string
+          reason?: string | null
+          retry_cycle?: number | null
+          to_status: string
+          worker?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string
+          event_id?: string
+          from_status?: string | null
+          id?: string
+          reason?: string | null
+          retry_cycle?: number | null
+          to_status?: string
+          worker?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publishing_event_transitions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "publishing_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       publishing_events: {
         Row: {
           attempts: number
@@ -473,6 +517,7 @@ export type Database = {
           payload: Json
           processed_at: string | null
           product_id: string | null
+          retry_cycle: number
           scheduled_for: string | null
           status: string
         }
@@ -489,6 +534,7 @@ export type Database = {
           payload?: Json
           processed_at?: string | null
           product_id?: string | null
+          retry_cycle?: number
           scheduled_for?: string | null
           status?: string
         }
@@ -505,6 +551,7 @@ export type Database = {
           payload?: Json
           processed_at?: string | null
           product_id?: string | null
+          retry_cycle?: number
           scheduled_for?: string | null
           status?: string
         }
@@ -742,6 +789,7 @@ export type Database = {
           payload: Json
           processed_at: string | null
           product_id: string | null
+          retry_cycle: number
           scheduled_for: string | null
           status: string
         }[]
@@ -751,6 +799,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      compute_dedupe_key: {
+        Args: { p_event_type: string; p_payload: Json; p_product_id: string }
+        Returns: string
       }
       is_admin: { Args: never; Returns: boolean }
     }
