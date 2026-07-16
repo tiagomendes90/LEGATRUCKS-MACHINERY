@@ -260,6 +260,50 @@ export type Database = {
           },
         ]
       }
+      product_social_hash_audit: {
+        Row: {
+          changed_fields: Json
+          created_at: string
+          id: string
+          new_hash: string
+          new_snapshot: Json
+          old_hash: string | null
+          old_snapshot: Json | null
+          product_id: string
+          source: string
+        }
+        Insert: {
+          changed_fields?: Json
+          created_at?: string
+          id?: string
+          new_hash: string
+          new_snapshot: Json
+          old_hash?: string | null
+          old_snapshot?: Json | null
+          product_id: string
+          source?: string
+        }
+        Update: {
+          changed_fields?: Json
+          created_at?: string
+          id?: string
+          new_hash?: string
+          new_snapshot?: Json
+          old_hash?: string | null
+          old_snapshot?: Json | null
+          product_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_social_hash_audit_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_social_posts: {
         Row: {
           caption: string | null
@@ -774,6 +818,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      build_product_social_snapshot: {
+        Args: { p_product_id: string }
+        Returns: Json
+      }
       claim_publishing_events: {
         Args: { p_limit?: number; p_worker?: string }
         Returns: {
@@ -804,7 +852,19 @@ export type Database = {
         Args: { p_event_type: string; p_payload: Json; p_product_id: string }
         Returns: string
       }
+      compute_product_social_hash: {
+        Args: { p_product_id: string }
+        Returns: string
+      }
+      diff_social_snapshots: {
+        Args: { new_s: Json; old_s: Json }
+        Returns: Json
+      }
       is_admin: { Args: never; Returns: boolean }
+      refresh_product_social_hash: {
+        Args: { p_product_id: string; p_source?: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
