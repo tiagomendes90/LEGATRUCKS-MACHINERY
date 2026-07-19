@@ -10,6 +10,8 @@ import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
 import { Save, X, Trash2, ImageIcon, GripVertical } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { sortProductImages } from '@/utils/productImages';
 import {
   clearAdminProductDraft,
@@ -551,6 +553,27 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         </div>
 
         {/* Dynamic Specs */}
+        {form.subcategory_id && specs.length === 0 && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Sem especificações definidas</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>
+                Esta subcategoria ainda não possui campos técnicos configurados.
+                É possível guardar o produto na mesma, mas não serão apresentadas
+                especificações no site até que sejam definidas.
+              </p>
+              <a
+                href={`https://supabase.com/dashboard/project/dzljzvkshlgnmwpvweas/editor?schema=public&table=spec_definitions&filter=subcategory_id%3Deq%3A${form.subcategory_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex text-sm underline text-primary"
+              >
+                Configurar especificações desta subcategoria →
+              </a>
+            </AlertDescription>
+          </Alert>
+        )}
         {specs.length > 0 && (
           <div>
             <Label className="text-base font-semibold">Especificações</Label>
