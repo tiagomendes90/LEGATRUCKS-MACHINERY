@@ -454,7 +454,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         toast({
           title: 'Publicação em curso',
           description:
-            'O produto está a ser publicado nos canais ativos (Facebook, Instagram, Newsletter).',
+            'O produto foi disponibilizado no website. A publicação nas redes sociais é feita manualmente na aba "Redes Sociais".',
         });
       }
     }
