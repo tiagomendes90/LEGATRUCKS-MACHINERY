@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealOrderManagement from '@/components/RealOrderManagement';
 import MessagesManagement from '@/components/admin/MessagesManagement';
 import PublishingPanel from '@/components/admin/PublishingPanel';
+import SocialPublishingPanel from '@/components/admin/SocialPublishingPanel';
 import { Package, TrendingUp, ExternalLink, LogOut, MessageSquare } from 'lucide-react';
 import { sortProductImages } from '@/utils/productImages';
 import { ADMIN_PRODUCT_DRAFT_EVENT, hasAdminProductDraft } from '@/utils/adminProductDraftStorage';
@@ -140,7 +141,7 @@ export default function AdminDashboard() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="add-product">
             {editing ? 'Editar Produto' : 'Adicionar Produto'}
@@ -154,6 +155,7 @@ export default function AdminDashboard() {
             )}
           </TabsTrigger>
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
+          <TabsTrigger value="social">Redes Sociais</TabsTrigger>
           <TabsTrigger value="publishing">Publicação</TabsTrigger>
         </TabsList>
 
@@ -178,6 +180,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="messages">
           <MessagesManagement />
+        </TabsContent>
+
+        <TabsContent value="social">
+          <SocialPublishingPanel />
         </TabsContent>
 
         <TabsContent value="publishing">
