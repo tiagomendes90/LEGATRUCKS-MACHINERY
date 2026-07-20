@@ -381,6 +381,7 @@ export type Database = {
           location_country: string | null
           model: string | null
           price: number | null
+          social_caption: string | null
           social_hash: string | null
           social_status: string
           stock_status: string | null
@@ -401,6 +402,7 @@ export type Database = {
           location_country?: string | null
           model?: string | null
           price?: number | null
+          social_caption?: string | null
           social_hash?: string | null
           social_status?: string
           stock_status?: string | null
@@ -421,6 +423,7 @@ export type Database = {
           location_country?: string | null
           model?: string | null
           price?: number | null
+          social_caption?: string | null
           social_hash?: string | null
           social_status?: string
           stock_status?: string | null
