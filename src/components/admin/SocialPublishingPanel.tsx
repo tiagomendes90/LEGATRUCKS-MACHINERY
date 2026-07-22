@@ -98,8 +98,16 @@ function autoCaption(p: SocialProductRow): string {
   return parts.join("\n");
 }
 
+type ChannelKey = "facebook" | "instagram";
+
+const CHANNEL_META: Record<ChannelKey, { label: string; Icon: typeof Facebook }> = {
+  facebook: { label: "Facebook", Icon: Facebook },
+  instagram: { label: "Instagram", Icon: Instagram },
+};
+
 function ProductCard({ product }: { product: SocialProductRow }) {
   const [caption, setCaption] = useState(product.social_caption ?? autoCaption(product));
+  const [channel, setChannel] = useState<ChannelKey>("facebook");
   useEffect(() => {
     setCaption(product.social_caption ?? autoCaption(product));
   }, [product.id, product.social_caption]);
@@ -116,9 +124,10 @@ function ProductCard({ product }: { product: SocialProductRow }) {
 
   const image = primaryImage(product);
   const link = `${SITE_URL}/veiculo/${product.id}`;
-  const fbPost = posts.find(
-    (p) => p.channel_key === "facebook" && p.status === "published",
-  );
+  const postByChannel = (key: ChannelKey) =>
+    posts.find((p) => p.channel_key === key && p.status === "published");
+  const activePost = postByChannel(channel);
+  const imageCount = (product.images ?? []).length;
 
   const changedFields = useMemo(() => {
     const raw = audit?.changed_fields;
@@ -136,7 +145,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
     publishMut.mutate(
       {
         productId: product.id,
-        channel: "facebook",
+        channel,
         caption,
         imageUrl: image,
         ...opts,
@@ -145,7 +154,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
         onSuccess: () =>
           toast({
             title: "Publicação enfileirada",
-            description: "O Facebook será atualizado dentro de instantes.",
+            description: `${CHANNEL_META[channel].label} será atualizado dentro de instantes.`,
           }),
         onError: (e: any) =>
           toast({
@@ -239,11 +248,19 @@ function ProductCard({ product }: { product: SocialProductRow }) {
           <div className="border rounded-lg overflow-hidden bg-muted/20">
             <div className="flex items-center gap-2 p-3 border-b bg-background">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Facebook className="h-4 w-4 text-primary" />
+                {(() => {
+                  const Icon = CHANNEL_META[channel].Icon;
+                  return <Icon className="h-4 w-4 text-primary" />;
+                })()}
               </div>
               <div className="text-xs">
                 <p className="font-semibold">LEGA</p>
-                <p className="text-muted-foreground">Pré-visualização · Público</p>
+                <p className="text-muted-foreground">
+                  {CHANNEL_META[channel].label} · Pré-visualização
+                  {channel === "instagram" && imageCount > 1
+                    ? ` · Carrossel (${Math.min(imageCount, 10)})`
+                    : ""}
+                </p>
               </div>
             </div>
             <div className="p-3 space-y-2">
@@ -269,15 +286,41 @@ function ProductCard({ product }: { product: SocialProductRow }) {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Channel selector */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+          <span className="text-xs text-muted-foreground mr-1">Canal:</span>
+          {(Object.keys(CHANNEL_META) as ChannelKey[]).map((k) => {
+            const Icon = CHANNEL_META[k].Icon;
+            const p = postByChannel(k);
+            return (
+              <Button
+                key={k}
+                size="sm"
+                variant={channel === k ? "default" : "outline"}
+                onClick={() => setChannel(k)}
+                className="h-8"
+              >
+                <Icon className="h-3 w-3 mr-2" />
+                {CHANNEL_META[k].label}
+                {p && (
+                  <Badge variant="secondary" className="ml-2 h-4 px-1 text-[10px]">
+                    live
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap items-center gap-2">
           {product.social_status === "ready_for_social" && (
             <Button
               onClick={() => runPublish()}
               disabled={publishMut.isPending}
             >
               <Send className="h-4 w-4 mr-2" />
-              Publicar no Facebook
+              Publicar em {CHANNEL_META[channel].label}
             </Button>
           )}
           {product.social_status === "outdated" && (
@@ -308,15 +351,24 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               </Button>
             </>
           )}
-          {product.social_status === "published" && (
+          {(product.social_status === "published" || !!activePost) && (
             <>
-              {fbPost?.external_url && (
+              {activePost?.external_url && (
                 <Button variant="outline" asChild>
-                  <a href={fbPost.external_url} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-4 w-4 mr-2" /> Ver no Facebook
+                  <a href={activePost.external_url} target="_blank" rel="noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" /> Ver em{" "}
+                    {CHANNEL_META[channel].label}
                   </a>
                 </Button>
               )}
+              {!activePost && product.social_status === "published" && (
+                <Button onClick={() => runPublish()} disabled={publishMut.isPending}>
+                  <Send className="h-4 w-4 mr-2" /> Publicar em{" "}
+                  {CHANNEL_META[channel].label}
+                </Button>
+              )}
+              {activePost && (
+                <>
               <Button
                 variant="ghost"
                 onClick={() => runPublish({ republish: true })}
@@ -330,8 +382,8 @@ function ProductCard({ product }: { product: SocialProductRow }) {
                   deleteMut.mutate(
                     {
                       productId: product.id,
-                      channel: "facebook",
-                      externalId: fbPost?.external_id,
+                          channel,
+                          externalId: activePost?.external_id,
                     },
                     {
                       onSuccess: () =>
@@ -343,15 +395,29 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               >
                 <Trash2 className="h-4 w-4 mr-2" /> Apagar publicação
               </Button>
+                </>
+              )}
             </>
           )}
         </div>
 
-        {/* Coming soon indicators */}
-        <div className="flex items-center gap-3 pt-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Instagram className="h-3 w-3" /> Instagram — Fase 2.4
-          </span>
+        {/* Multi-channel state summary */}
+        <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-muted-foreground">
+          {(Object.keys(CHANNEL_META) as ChannelKey[]).map((k) => {
+            const Icon = CHANNEL_META[k].Icon;
+            const p = postByChannel(k);
+            return (
+              <span key={k} className="flex items-center gap-1">
+                <Icon className="h-3 w-3" />
+                {CHANNEL_META[k].label}: {p ? "publicado" : "por publicar"}
+              </span>
+            );
+          })}
+          {channel === "instagram" && imageCount === 0 && (
+            <span className="text-destructive">
+              Instagram requer pelo menos uma imagem.
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>
