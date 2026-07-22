@@ -5,6 +5,29 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const GRAPH = "https://graph.facebook.com/v19.0";
 const CHANNEL_KEY = "facebook";
 
+/**
+ * Meta Graph API errors follow a well-known envelope:
+ *   { error: { message, type, code, error_subcode, fbtrace_id, ... } }
+ * We flatten the important fields into a single human-readable string so it
+ * shows up cleanly in `publishing_logs.error` and `publishing_events.last_error`,
+ * while the full JSON payload is still persisted in `publishing_logs.response`
+ * for deep debugging in the admin panel.
+ */
+function formatMetaError(json: any, httpStatus: number): string {
+  const e = json?.error;
+  if (!e) return `HTTP ${httpStatus}`;
+  const parts: string[] = [];
+  if (e.message) parts.push(e.message);
+  const codeBits: string[] = [];
+  if (e.code !== undefined) codeBits.push(`code=${e.code}`);
+  if (e.error_subcode !== undefined) codeBits.push(`subcode=${e.error_subcode}`);
+  if (e.type) codeBits.push(`type=${e.type}`);
+  if (e.fbtrace_id) codeBits.push(`trace=${e.fbtrace_id}`);
+  if (codeBits.length) parts.push(`[${codeBits.join(" ")}]`);
+  parts.push(`(HTTP ${httpStatus})`);
+  return parts.join(" ");
+}
+
 // Fase 2.3: Facebook agora é acionado exclusivamente pelo administrador via
 // eventos `social.publish.confirmed` / `social.delete` (aprovação manual).
 // Deixou de reagir a `product.published`.
