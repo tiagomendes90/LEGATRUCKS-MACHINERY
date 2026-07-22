@@ -86,6 +86,9 @@ function EventRow({ evt }: { evt: any }) {
                     <span className="text-xs text-muted-foreground">tent. {l.attempts}</span>
                   </div>
                   {l.error && <p className="text-xs text-destructive mt-1">{l.error}</p>}
+                  {l.response && (l.response as any).error && (
+                    <MetaErrorBlock error={(l.response as any).error} />
+                  )}
                   {l.response && Object.keys(l.response).length > 0 && (
                     <pre className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
                       {JSON.stringify(l.response, null, 2)}
