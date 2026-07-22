@@ -29,6 +29,36 @@ const statusVariant = (status: string) => {
   }
 };
 
+/**
+ * Renders a friendly breakdown of a Meta Graph API error envelope so the admin
+ * sees the exact message + code + subcode + trace, not just a generic "failed".
+ * The raw JSON is still shown below for deep debugging.
+ */
+function MetaErrorBlock({ error }: { error: any }) {
+  if (!error || typeof error !== "object") return null;
+  return (
+    <div className="mt-1 rounded border border-destructive/40 bg-destructive/5 p-2 text-xs">
+      {error.message && (
+        <p className="text-destructive font-medium">{error.message}</p>
+      )}
+      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground font-mono">
+        {error.code !== undefined && <span>code: {String(error.code)}</span>}
+        {error.error_subcode !== undefined && (
+          <span>subcode: {String(error.error_subcode)}</span>
+        )}
+        {error.type && <span>type: {String(error.type)}</span>}
+        {error.fbtrace_id && <span>trace: {String(error.fbtrace_id)}</span>}
+      </div>
+      {error.error_user_title && (
+        <p className="mt-1 font-medium">{String(error.error_user_title)}</p>
+      )}
+      {error.error_user_msg && (
+        <p className="text-muted-foreground">{String(error.error_user_msg)}</p>
+      )}
+    </div>
+  );
+}
+
 function EventRow({ evt }: { evt: any }) {
   const [open, setOpen] = useState(false);
   const { data: logs = [] } = usePublishingLogs(open ? evt.id : null);
