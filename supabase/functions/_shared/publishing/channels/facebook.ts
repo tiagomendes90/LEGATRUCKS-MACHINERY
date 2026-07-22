@@ -81,7 +81,7 @@ export const facebookChannel: ChannelAdapter = {
             status: "failed",
             request: { endpoint: `DELETE ${targetPostId}` },
             response: json,
-            error: json?.error?.message ?? `HTTP ${res.status}`,
+            error: formatMetaError(json, res.status),
           };
         }
         await admin
@@ -161,7 +161,7 @@ export const facebookChannel: ChannelAdapter = {
           status: "failed",
           request: { endpoint, hasImage: !!imageUrl },
           response: json,
-          error: json?.error?.message ?? `HTTP ${res.status}`,
+          error: formatMetaError(json, res.status),
         };
       }
 
