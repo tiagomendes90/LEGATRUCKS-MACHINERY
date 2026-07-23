@@ -15,7 +15,6 @@ import {
   Send,
   Heart,
   MessageCircle,
-  Send as SendIcon,
   Bookmark,
 } from "lucide-react";
 import {
