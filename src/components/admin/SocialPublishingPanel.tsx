@@ -13,6 +13,9 @@ import {
   Check,
   AlertTriangle,
   Send,
+  Heart,
+  MessageCircle,
+  Bookmark,
 } from "lucide-react";
 import {
   useSocialProducts,
@@ -124,6 +127,19 @@ function ProductCard({ product }: { product: SocialProductRow }) {
 
   const image = primaryImage(product);
   const link = `${SITE_URL}/veiculo/${product.id}`;
+  const orderedImages = useMemo(() => {
+    const imgs = product.images ?? [];
+    return [...imgs]
+      .sort((a, b) => {
+        if (!!b.is_primary !== !!a.is_primary) return b.is_primary ? 1 : -1;
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+      })
+      .map((i) => i.image_url)
+      .filter(Boolean)
+      .slice(0, 10);
+  }, [product.images]);
+  const [igIndex, setIgIndex] = useState(0);
+  useEffect(() => setIgIndex(0), [product.id, channel]);
   const postByChannel = (key: ChannelKey) =>
     posts.find((p) => p.channel_key === key && p.status === "published");
   const activePost = postByChannel(channel);
@@ -245,45 +261,22 @@ function ProductCard({ product }: { product: SocialProductRow }) {
           </div>
 
           {/* Preview */}
-          <div className="border rounded-lg overflow-hidden bg-muted/20">
-            <div className="flex items-center gap-2 p-3 border-b bg-background">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                {(() => {
-                  const Icon = CHANNEL_META[channel].Icon;
-                  return <Icon className="h-4 w-4 text-primary" />;
-                })()}
-              </div>
-              <div className="text-xs">
-                <p className="font-semibold">LEGA</p>
-                <p className="text-muted-foreground">
-                  {CHANNEL_META[channel].label} · Pré-visualização
-                  {channel === "instagram" && imageCount > 1
-                    ? ` · Carrossel (${Math.min(imageCount, 10)})`
-                    : ""}
-                </p>
-              </div>
-            </div>
-            <div className="p-3 space-y-2">
-              <p className="text-sm whitespace-pre-line line-clamp-6">{caption}</p>
-            </div>
-            {image ? (
-              <img
-                src={image}
-                alt={product.title}
-                className="w-full aspect-video object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="aspect-video bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                Sem imagem principal
-              </div>
-            )}
-            <div className="p-3 border-t bg-background">
-              <p className="text-[10px] uppercase text-muted-foreground">lega.pt</p>
-              <p className="text-xs font-medium truncate">{product.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{link}</p>
-            </div>
-          </div>
+          {channel === "instagram" ? (
+            <InstagramPreview
+              title={product.title}
+              caption={caption}
+              images={orderedImages}
+              index={igIndex}
+              setIndex={setIgIndex}
+            />
+          ) : (
+            <FacebookPreview
+              title={product.title}
+              caption={caption}
+              image={image}
+              link={link}
+            />
+          )}
         </div>
 
         {/* Channel selector */}
@@ -421,6 +414,148 @@ function ProductCard({ product }: { product: SocialProductRow }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function FacebookPreview({
+  title, caption, image, link,
+}: { title: string; caption: string; image: string | null; link: string }) {
+  return (
+    <div className="border rounded-lg overflow-hidden bg-muted/20">
+      <div className="flex items-center gap-2 p-3 border-b bg-background">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+          <Facebook className="h-4 w-4 text-primary" />
+        </div>
+        <div className="text-xs">
+          <p className="font-semibold">LEGA</p>
+          <p className="text-muted-foreground">Facebook · Pré-visualização</p>
+        </div>
+      </div>
+      <div className="p-3">
+        <p className="text-sm whitespace-pre-line line-clamp-6">{caption}</p>
+      </div>
+      {image ? (
+        <img src={image} alt={title} className="w-full aspect-video object-cover" loading="lazy" />
+      ) : (
+        <div className="aspect-video bg-muted flex items-center justify-center text-xs text-muted-foreground">
+          Sem imagem principal
+        </div>
+      )}
+      <div className="p-3 border-t bg-background">
+        <p className="text-[10px] uppercase text-muted-foreground">lega.pt</p>
+        <p className="text-xs font-medium truncate">{title}</p>
+        <p className="text-xs text-muted-foreground truncate">{link}</p>
+      </div>
+    </div>
+  );
+}
+
+function InstagramPreview({
+  title, caption, images, index, setIndex,
+}: {
+  title: string;
+  caption: string;
+  images: string[];
+  index: number;
+  setIndex: (n: number) => void;
+}) {
+  const isCarousel = images.length > 1;
+  const current = images[Math.min(index, Math.max(images.length - 1, 0))];
+  const short = caption.length > 125 ? `${caption.slice(0, 125)}… ` : caption;
+
+  return (
+    <div className="border rounded-lg overflow-hidden bg-background max-w-[420px] mx-auto w-full">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px]">
+          <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
+            <span className="text-[10px] font-bold">L</span>
+          </div>
+        </div>
+        <div className="text-xs flex-1 min-w-0">
+          <p className="font-semibold truncate">lega.pt</p>
+          <p className="text-muted-foreground text-[10px] truncate">Patrocinado</p>
+        </div>
+        <span className="text-muted-foreground text-lg leading-none">⋯</span>
+      </div>
+
+      {/* Square media */}
+      <div className="relative aspect-square bg-muted">
+        {current ? (
+          <img
+            src={current}
+            alt={title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+            Sem imagem
+          </div>
+        )}
+        {isCarousel && (
+          <>
+            <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
+              {index + 1}/{images.length}
+            </span>
+            {index > 0 && (
+              <button
+                type="button"
+                onClick={() => setIndex(index - 1)}
+                className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white text-sm"
+                aria-label="Anterior"
+              >
+                ‹
+              </button>
+            )}
+            {index < images.length - 1 && (
+              <button
+                type="button"
+                onClick={() => setIndex(index + 1)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white text-sm"
+                aria-label="Seguinte"
+              >
+                ›
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Action bar */}
+      <div className="flex items-center gap-3 px-3 py-2">
+        <Heart className="h-5 w-5" />
+        <MessageCircle className="h-5 w-5" />
+        <Send className="h-5 w-5" />
+        <div className="flex-1" />
+        <Bookmark className="h-5 w-5" />
+      </div>
+
+      {isCarousel && (
+        <div className="flex justify-center gap-1 pb-1">
+          {images.map((_, i) => (
+            <span
+              key={i}
+              className={`h-1 w-1 rounded-full ${i === index ? "bg-primary" : "bg-muted-foreground/30"}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Caption */}
+      <div className="px-3 pb-3 space-y-1">
+        <p className="text-xs">
+          <span className="font-semibold mr-1">lega.pt</span>
+          <span className="whitespace-pre-line">{short}</span>
+          {caption.length > 125 && (
+            <span className="text-muted-foreground">mais</span>
+          )}
+        </p>
+        <p className="text-[10px] text-muted-foreground uppercase">
+          {isCarousel ? `Carrossel · ${images.length} imagens` : "Publicação simples"}
+        </p>
+      </div>
+    </div>
   );
 }
 

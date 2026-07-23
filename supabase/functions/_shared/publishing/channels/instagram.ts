@@ -1,10 +1,38 @@
 import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.ts";
 import { buildProductCaption, getProductUrl } from "../productFormatting.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateInstagramImages, summarizeIssues } from "../imageValidation.ts";
 
 const GRAPH = "https://graph.facebook.com/v19.0";
 const CHANNEL_KEY = "instagram";
 const MAX_CAROUSEL = 10;
+
+// Poll intervals for container status_code=FINISHED (ms).
+const POLL_INTERVALS_MS = [800, 1200, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 8000];
+
+async function waitForContainerFinished(
+  containerId: string,
+  token: string,
+): Promise<{ ok: true } | { ok: false; status: string; error?: any }> {
+  for (const wait of POLL_INTERVALS_MS) {
+    await new Promise((r) => setTimeout(r, wait));
+    try {
+      const res = await fetch(
+        `${GRAPH}/${containerId}?fields=status_code,status&access_token=${encodeURIComponent(token)}`,
+      );
+      const json = await res.json().catch(() => ({}));
+      const code = (json?.status_code as string) ?? "";
+      if (code === "FINISHED") return { ok: true };
+      if (code === "ERROR" || code === "EXPIRED") {
+        return { ok: false, status: code, error: json };
+      }
+      // IN_PROGRESS / PUBLISHED / '' -> keep polling
+    } catch (_) {
+      // keep polling
+    }
+  }
+  return { ok: false, status: "TIMEOUT" };
+}
 
 /**
  * Fase 2.4 — Instagram.
@@ -162,6 +190,20 @@ export const instagramChannel: ChannelAdapter = {
         response: { reason: "instagram requires at least one public image" },
       };
     }
+
+    // ---------- IMAGE VALIDATION (before hitting Graph API) ----------
+    const validation = await validateInstagramImages(allImages);
+    if (!validation.ok) {
+      return {
+        status: "skipped",
+        request: { step: "image_validation", images: allImages },
+        response: { issues: validation.issues, probes: validation.probes },
+        error:
+          "Instagram: imagens não cumprem requisitos e não foram enviadas (sem consumir retries):\n" +
+          summarizeIssues(validation.issues),
+      };
+    }
+
     const link = getProductUrl(ctx.product);
     const caption =
       (payload.caption as string | undefined) ??
@@ -208,6 +250,16 @@ export const instagramChannel: ChannelAdapter = {
           };
         }
         creationId = json.id;
+        // Wait for FINISHED before publishing
+        const ready = await waitForContainerFinished(creationId, token);
+        if (!ready.ok) {
+          return {
+            status: "failed",
+            request: { step: "wait_container", mode: "single", creation_id: creationId },
+            response: (ready as any).error ?? { status: ready.status },
+            error: `Instagram container não ficou pronto (status=${ready.status}).`,
+          };
+        }
         publishRequest = { mode: "single", imageUrl: allImages[0] };
       } else {
         // Carousel: create N child containers, then a parent CAROUSEL container.
@@ -233,6 +285,18 @@ export const instagramChannel: ChannelAdapter = {
           }
           childIds.push(json.id);
         }
+        // Wait each child to be FINISHED before creating the parent.
+        for (const cid of childIds) {
+          const ready = await waitForContainerFinished(cid, token);
+          if (!ready.ok) {
+            return {
+              status: "failed",
+              request: { step: "wait_child", child_id: cid },
+              response: (ready as any).error ?? { status: ready.status },
+              error: `Instagram carousel child não ficou pronto (status=${ready.status}).`,
+            };
+          }
+        }
         const parentRes = await fetch(`${GRAPH}/${igUserId}/media`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -253,6 +317,16 @@ export const instagramChannel: ChannelAdapter = {
           };
         }
         creationId = parentJson.id;
+        // Wait parent FINISHED
+        const readyParent = await waitForContainerFinished(creationId, token);
+        if (!readyParent.ok) {
+          return {
+            status: "failed",
+            request: { step: "wait_carousel_parent", creation_id: creationId },
+            response: (readyParent as any).error ?? { status: readyParent.status },
+            error: `Instagram carousel parent não ficou pronto (status=${readyParent.status}).`,
+          };
+        }
         publishRequest = { mode: "carousel", images: allImages, children: childIds };
       }
 
