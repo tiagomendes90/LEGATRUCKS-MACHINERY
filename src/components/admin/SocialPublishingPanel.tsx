@@ -526,7 +526,7 @@ function InstagramPreview({
       <div className="flex items-center gap-3 px-3 py-2">
         <Heart className="h-5 w-5" />
         <MessageCircle className="h-5 w-5" />
-        <SendIcon className="h-5 w-5" />
+        <Send className="h-5 w-5" />
         <div className="flex-1" />
         <Bookmark className="h-5 w-5" />
       </div>
