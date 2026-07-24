@@ -2,7 +2,7 @@
 // https://www.indexnow.org/documentation
 import type { SearchEngine, SearchEngineResult } from "./engines.ts";
 
-const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://lega.pt";
+const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://www.lega.pt";
 const ENDPOINT = "https://api.indexnow.org/IndexNow";
 
 function host(url: string): string {

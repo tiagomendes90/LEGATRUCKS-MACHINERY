@@ -80,7 +80,7 @@ const Contact = () => {
           "@context": "https://schema.org",
           "@type": "ContactPage",
           name: "Contactos LEGA",
-          url: "https://lega.pt/contactos",
+          url: "https://www.lega.pt/contactos",
           about: { "@type": "Organization", name: "LEGA" },
         }}
       />

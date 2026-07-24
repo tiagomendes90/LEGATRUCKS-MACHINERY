@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://lega.pt/</loc>
+    <loc>https://www.lega.pt/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://lega.pt/sobre</loc>
+    <loc>https://www.lega.pt/sobre</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://lega.pt/camioes</loc>
+    <loc>https://www.lega.pt/camioes</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://lega.pt/maquinas</loc>
+    <loc>https://www.lega.pt/maquinas</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://lega.pt/tractores</loc>
+    <loc>https://www.lega.pt/tractores</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://lega.pt/reboques</loc>
+    <loc>https://www.lega.pt/reboques</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://lega.pt/pecas</loc>
+    <loc>https://www.lega.pt/pecas</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://lega.pt/contactos</loc>
+    <loc>https://www.lega.pt/contactos</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://lega.pt/terms</loc>
+    <loc>https://www.lega.pt/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://lega.pt/privacy</loc>
+    <loc>https://www.lega.pt/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

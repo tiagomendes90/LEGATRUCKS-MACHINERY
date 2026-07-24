@@ -20,5 +20,5 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-Host: https://lega.pt
-Sitemap: https://lega.pt/sitemap.xml
+Host: https://www.lega.pt
+Sitemap: https://www.lega.pt/sitemap.xml

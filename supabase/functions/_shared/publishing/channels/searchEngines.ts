@@ -7,7 +7,7 @@ import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.
 import { engines, enginesByKey } from "./searchEngines/engines.ts";
 import { getProductUrl } from "../productFormatting.ts";
 
-const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://lega.pt";
+const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://www.lega.pt";
 
 function selectEngines(ctx: PublishingContext) {
   const configured = Array.isArray(ctx.channelConfig?.engines)

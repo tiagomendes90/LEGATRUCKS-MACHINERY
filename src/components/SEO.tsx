@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-const SITE_URL = "https://lega.pt";
+const SITE_URL = "https://www.lega.pt";
 const DEFAULT_IMAGE = `${SITE_URL}/logo-hero.png`;
 const SITE_NAME = "LEGA";
 const TWITTER_HANDLE = "@lega_pt";

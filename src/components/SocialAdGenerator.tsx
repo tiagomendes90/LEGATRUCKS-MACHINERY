@@ -18,7 +18,7 @@ const LEGA_BLUE_DARK = "#081B33";
 const LEGA_ORANGE = "#F39200";
 const LEGA_GRAY = "#F3F4F6";
 const LEGA_LOGO = "/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png";
-const SITE_URL = "lega.pt";
+const SITE_URL = "www.lega.pt";
 
 type FormatId = "instagram" | "facebook" | "story";
 

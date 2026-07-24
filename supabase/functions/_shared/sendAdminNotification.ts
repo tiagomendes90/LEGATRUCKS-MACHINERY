@@ -4,8 +4,8 @@
 const RESEND_GATEWAY_URL = "https://connector-gateway.lovable.dev/resend/emails";
 const ADMIN_EMAIL = "info@lega.pt";
 const FROM = "LEGA <notificacoes@notify.lega.pt>";
-const SITE_URL = "https://lega.pt";
-const LOGO_URL = "https://lega.pt/logo-hero.png";
+const SITE_URL = "https://www.lega.pt";
+const LOGO_URL = "https://www.lega.pt/logo-hero.png";
 const DASHBOARD_URL = `${SITE_URL}/admin`;
 
 export type NotificationKind =
@@ -175,7 +175,7 @@ function buildHtml(i: AdminNotificationInput): string {
             </div>
 
             <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px;line-height:1.5;text-align:center;">
-              Esta é uma notificação automática do website <a href="${SITE_URL}" style="color:#64748b;text-decoration:none;">lega.pt</a>.<br>
+              Esta é uma notificação automática do website <a href="${SITE_URL}" style="color:#64748b;text-decoration:none;">www.lega.pt</a>.<br>
               Para responder ao contacto, utilize o email indicado acima.
             </div>
           </td>
