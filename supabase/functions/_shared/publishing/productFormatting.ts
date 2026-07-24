@@ -1,7 +1,7 @@
 // Shared formatting helpers used by publishing channel adapters.
 // Keep pure and dependency-free so adapters stay tiny.
 
-const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://lega.pt";
+const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://www.lega.pt";
 
 type AnyRecord = Record<string, unknown>;
 

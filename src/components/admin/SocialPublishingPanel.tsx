@@ -30,7 +30,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 const SITE_URL =
-  (import.meta as any)?.env?.VITE_PUBLIC_SITE_URL || "https://lega.pt";
+  (import.meta as any)?.env?.VITE_PUBLIC_SITE_URL || "https://www.lega.pt";
 
 const FIELD_LABELS: Record<string, string> = {
   title: "Título",

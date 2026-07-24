@@ -65,7 +65,7 @@ const VehicleDetails = () => {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 160);
-  const primaryImage = imageUrls[0] || "https://lega.pt/logo-hero.png";
+  const primaryImage = imageUrls[0] || "https://www.lega.pt/logo-hero.png";
   const categorySlug = (vehicle as any).category?.slug || "camioes";
   const categoryName = (vehicle as any).category?.name || (vehicle as any).subcategory?.name || "Equipamentos";
 
@@ -89,7 +89,7 @@ const VehicleDetails = () => {
               vehicle.condition === "new"
                 ? "https://schema.org/NewCondition"
                 : "https://schema.org/UsedCondition",
-            url: `https://lega.pt/vehicle/${vehicle.id}`,
+            url: `https://www.lega.pt/vehicle/${vehicle.id}`,
             priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31)
               .toISOString()
               .slice(0, 10),
@@ -103,9 +103,9 @@ const VehicleDetails = () => {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
-      { "@type": "ListItem", position: 2, name: categoryName, item: `https://lega.pt/${categorySlug}` },
-      { "@type": "ListItem", position: 3, name: vehicle.title, item: `https://lega.pt/vehicle/${vehicle.id}` },
+      { "@type": "ListItem", position: 1, name: "Início", item: "https://www.lega.pt/" },
+      { "@type": "ListItem", position: 2, name: categoryName, item: `https://www.lega.pt/${categorySlug}` },
+      { "@type": "ListItem", position: 3, name: vehicle.title, item: `https://www.lega.pt/vehicle/${vehicle.id}` },
     ],
   };
 

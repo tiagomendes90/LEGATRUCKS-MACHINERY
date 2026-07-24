@@ -31,11 +31,11 @@ const Index = () => {
           "@type": "ItemList",
           "name": "Categorias LEGA",
           "itemListElement": [
-            { "@type": "ListItem", position: 1, name: "Camiões", url: "https://lega.pt/camioes" },
-            { "@type": "ListItem", position: 2, name: "Máquinas", url: "https://lega.pt/maquinas" },
-            { "@type": "ListItem", position: 3, name: "Tractores", url: "https://lega.pt/tractores" },
-            { "@type": "ListItem", position: 4, name: "Reboques", url: "https://lega.pt/reboques" },
-            { "@type": "ListItem", position: 5, name: "Peças", url: "https://lega.pt/pecas" },
+            { "@type": "ListItem", position: 1, name: "Camiões", url: "https://www.lega.pt/camioes" },
+            { "@type": "ListItem", position: 2, name: "Máquinas", url: "https://www.lega.pt/maquinas" },
+            { "@type": "ListItem", position: 3, name: "Tractores", url: "https://www.lega.pt/tractores" },
+            { "@type": "ListItem", position: 4, name: "Reboques", url: "https://www.lega.pt/reboques" },
+            { "@type": "ListItem", position: 5, name: "Peças", url: "https://www.lega.pt/pecas" },
           ],
         }}
       />

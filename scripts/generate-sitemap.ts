@@ -3,7 +3,7 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
-const BASE_URL = "https://lega.pt";
+const BASE_URL = "https://www.lega.pt";
 const SUPABASE_URL =
   process.env.VITE_SUPABASE_URL || "https://dzljzvkshlgnmwpvweas.supabase.co";
 const SUPABASE_KEY =

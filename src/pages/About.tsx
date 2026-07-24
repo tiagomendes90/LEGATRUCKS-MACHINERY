@@ -56,13 +56,13 @@ const About = () => {
             "@context": "https://schema.org",
             "@type": "AboutPage",
             name: "Sobre a LEGA",
-            url: "https://lega.pt/sobre",
+            url: "https://www.lega.pt/sobre",
             about: {
               "@type": "Organization",
               name: "LEGA",
               alternateName: "LEGA Trucks & Machinery",
-              url: "https://lega.pt",
-              logo: "https://lega.pt/logo-hero.png",
+              url: "https://www.lega.pt",
+              logo: "https://www.lega.pt/logo-hero.png",
               areaServed: { "@type": "Country", name: "Portugal" },
               foundingDate: "2005",
             },
@@ -71,8 +71,8 @@ const About = () => {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
-              { "@type": "ListItem", position: 2, name: "Sobre a LEGA", item: "https://lega.pt/sobre" },
+              { "@type": "ListItem", position: 1, name: "Início", item: "https://www.lega.pt/" },
+              { "@type": "ListItem", position: 2, name: "Sobre a LEGA", item: "https://www.lega.pt/sobre" },
             ],
           },
           {

@@ -174,8 +174,8 @@ const NewVehicleCategory = () => {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Início", item: "https://lega.pt/" },
-        { "@type": "ListItem", position: 2, name: categoryTitle, item: `https://lega.pt/${category}` },
+        { "@type": "ListItem", position: 1, name: "Início", item: "https://www.lega.pt/" },
+        { "@type": "ListItem", position: 2, name: categoryTitle, item: `https://www.lega.pt/${category}` },
       ],
     },
     {
@@ -186,7 +186,7 @@ const NewVehicleCategory = () => {
       itemListElement: (paginationData.currentVehicles || []).slice(0, 30).map((v: any, i: number) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: `https://lega.pt/vehicle/${v.id}`,
+        url: `https://www.lega.pt/vehicle/${v.id}`,
         name: v.title,
       })),
     },
