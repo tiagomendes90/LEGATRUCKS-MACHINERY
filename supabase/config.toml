@@ -1,3 +1,9 @@
 project_id = "dzljzvkshlgnmwpvweas"
 [functions.sitemap]
 verify_jwt = false
+[functions.newsletter-subscribe]
+verify_jwt = false
+[functions.newsletter-unsubscribe]
+verify_jwt = false
+[functions.newsletter-preview]
+verify_jwt = false
