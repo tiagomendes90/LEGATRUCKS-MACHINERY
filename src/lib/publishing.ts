@@ -8,7 +8,9 @@ export type PublishingEventType =
   | "social.republish"
   | "social.delete"
   | "newsletter.instant"
-  | "digest.weekly";
+  | "digest.weekly"
+  | "newsletter.campaign.send"
+  | "newsletter.campaign.cancel";
 
 export interface EmitEventInput {
   type: PublishingEventType;
