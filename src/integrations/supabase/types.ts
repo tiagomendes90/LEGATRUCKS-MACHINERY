@@ -177,6 +177,183 @@ export type Database = {
           },
         ]
       }
+      newsletter_campaigns: {
+        Row: {
+          broadcast_id: string | null
+          content_html: string | null
+          content_json: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          last_error: string | null
+          preheader: string | null
+          product_ids: string[]
+          scheduled_for: string | null
+          sent_at: string | null
+          sent_by: string | null
+          stats: Json
+          status: string
+          subject: string
+          template_key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          broadcast_id?: string | null
+          content_html?: string | null
+          content_json?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_error?: string | null
+          preheader?: string | null
+          product_ids?: string[]
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          stats?: Json
+          status?: string
+          subject: string
+          template_key?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          broadcast_id?: string | null
+          content_html?: string | null
+          content_json?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_error?: string | null
+          preheader?: string | null
+          product_ids?: string[]
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          stats?: Json
+          status?: string
+          subject?: string
+          template_key?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_sends: {
+        Row: {
+          broadcast_id: string | null
+          campaign_id: string
+          channel_key: string
+          created_at: string
+          error: string | null
+          id: string
+          raw_response: Json
+          recipients_count: number | null
+          resend_message_id: string | null
+          sent_at: string | null
+          status: string
+          subscriber_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          broadcast_id?: string | null
+          campaign_id: string
+          channel_key?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          raw_response?: Json
+          recipients_count?: number | null
+          resend_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subscriber_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          broadcast_id?: string | null
+          campaign_id?: string
+          channel_key?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          raw_response?: Json
+          recipients_count?: number | null
+          resend_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subscriber_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_sends_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_subscribers: {
+        Row: {
+          consent: boolean
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          metadata: Json
+          resend_contact_id: string | null
+          source: string
+          status: string
+          subscribed_at: string
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          consent?: boolean
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          metadata?: Json
+          resend_contact_id?: string | null
+          source?: string
+          status?: string
+          subscribed_at?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          consent?: boolean
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          metadata?: Json
+          resend_contact_id?: string | null
+          source?: string
+          status?: string
+          subscribed_at?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount: number
