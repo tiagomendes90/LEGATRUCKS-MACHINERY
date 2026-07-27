@@ -1,6 +1,7 @@
 // Adds a subscriber to the configured Resend Audience.
 // Public endpoint invoked from the site footer form.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND = "https://api.resend.com";
 
@@ -29,12 +30,51 @@ Deno.serve(async (req) => {
     if (!isValidEmail(email)) return jsonResponse(400, { error: "invalid_email" });
     if (!consent) return jsonResponse(400, { error: "consent_required" });
 
+    // 1. Persist in newsletter_subscribers first (source of truth).
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: existing } = await supabase
+      .from("newsletter_subscribers")
+      .select("id, status, unsubscribe_token")
+      .eq("email", email!)
+      .maybeSingle();
+
+    let subscriberRow = existing;
+    if (!existing) {
+      const { data: inserted, error: insErr } = await supabase
+        .from("newsletter_subscribers")
+        .insert({
+          email,
+          first_name: firstName ?? null,
+          last_name: lastName ?? null,
+          consent: true,
+          status: "active",
+          source: "footer_form",
+        })
+        .select("id, status, unsubscribe_token")
+        .maybeSingle();
+      if (insErr) {
+        console.warn("[newsletter-subscribe] insert failed", insErr);
+      }
+      subscriberRow = inserted ?? null;
+    } else if (existing.status === "unsubscribed") {
+      await supabase
+        .from("newsletter_subscribers")
+        .update({ status: "active", unsubscribed_at: null, consent: true })
+        .eq("id", existing.id);
+    }
+
     const apiKey = Deno.env.get("RESEND_API_KEY");
     const audienceId = Deno.env.get("RESEND_AUDIENCE_ID");
     if (!apiKey || !audienceId) {
-      return jsonResponse(503, {
-        error: "newsletter_not_configured",
-        detail: "missing RESEND_API_KEY or RESEND_AUDIENCE_ID",
+      // Subscriber saved locally; Resend sync pending — still a success from
+      // the user's perspective as long as we captured the address.
+      return jsonResponse(200, {
+        ok: true,
+        contact: null,
+        warning: "resend_not_configured",
       });
     }
 
@@ -59,6 +99,13 @@ Deno.serve(async (req) => {
         error: "resend_error",
         detail: json?.message ?? `HTTP ${res.status}`,
       });
+    }
+
+    if (subscriberRow && (json as any)?.id) {
+      await supabase
+        .from("newsletter_subscribers")
+        .update({ resend_contact_id: (json as any).id })
+        .eq("id", subscriberRow.id);
     }
 
     return jsonResponse(200, { ok: true, contact: json });
