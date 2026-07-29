@@ -28,6 +28,7 @@ import {
   type SocialProductRow,
 } from "@/hooks/useSocialPublishing";
 import { useToast } from "@/hooks/use-toast";
+import SocialOperationsOverview from "./SocialOperationsOverview";
 
 const SITE_URL =
   (import.meta as any)?.env?.VITE_PUBLIC_SITE_URL || "https://www.lega.pt";
@@ -561,8 +562,8 @@ function InstagramPreview({
 
 export default function SocialPublishingPanel() {
   const { data: products = [], isLoading } = useSocialProducts();
-  const [tab, setTab] = useState<"ready_for_social" | "outdated" | "published">(
-    "ready_for_social",
+  const [tab, setTab] = useState<"overview" | "ready_for_social" | "outdated" | "published">(
+    "overview",
   );
 
   const grouped = useMemo(() => {
@@ -584,6 +585,7 @@ export default function SocialPublishingPanel() {
       <div className="flex flex-wrap gap-2">
         {(
           [
+            { key: "overview", label: "Visão geral" },
             { key: "ready_for_social", label: "Prontos" },
             { key: "outdated", label: "Desatualizados" },
             { key: "published", label: "Publicados" },
@@ -596,14 +598,18 @@ export default function SocialPublishingPanel() {
             onClick={() => setTab(t.key)}
           >
             {t.label}
-            <Badge variant="secondary" className="ml-2">
-              {grouped[t.key]?.length ?? 0}
-            </Badge>
+            {t.key !== "overview" && (
+              <Badge variant="secondary" className="ml-2">
+                {grouped[t.key]?.length ?? 0}
+              </Badge>
+            )}
           </Button>
         ))}
       </div>
 
-      {isLoading ? (
+      {tab === "overview" ? (
+        <SocialOperationsOverview />
+      ) : isLoading ? (
         <p className="text-sm text-muted-foreground">A carregar…</p>
       ) : current.length === 0 ? (
         <Card>
