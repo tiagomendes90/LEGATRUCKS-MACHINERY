@@ -64,10 +64,10 @@ export const newsletterChannel: ChannelAdapter = {
     }
 
     // ---- SEND ----------------------------------------------------------
-    if (!audienceId || !from) {
+    if (!from) {
       return {
         status: "skipped",
-        response: { reason: "missing RESEND_AUDIENCE_ID or RESEND_FROM_EMAIL" },
+        response: { reason: "missing RESEND_FROM_EMAIL" },
       };
     }
 
@@ -113,6 +113,106 @@ export const newsletterChannel: ChannelAdapter = {
       .from("newsletter_campaigns")
       .update({ status: "sending" })
       .eq("id", campaignId);
+
+    // ---- Segmented send (campaign bound to a list) ----------------------
+    // Uses Resend batch e-mails so each recipient gets its own message with a
+    // personal unsubscribe link. Falls back to audience broadcast when no list.
+    if (campaign.list_id) {
+      try {
+        const { data: members } = await supabase
+          .from("newsletter_list_subscribers")
+          .select("subscriber:newsletter_subscribers(id, email, status, unsubscribe_token)")
+          .eq("list_id", campaign.list_id);
+
+        const recipients = ((members ?? []) as any[])
+          .map((m) => m.subscriber)
+          .filter((s) => s && s.status === "active");
+
+        if (recipients.length === 0) {
+          await supabase
+            .from("newsletter_campaigns")
+            .update({ status: "failed", last_error: "list has no active subscribers" })
+            .eq("id", campaignId);
+          return { status: "failed", error: "list has no active subscribers" };
+        }
+
+        const results: Record<string, unknown>[] = [];
+        let failures = 0;
+        // Resend batch endpoint accepts up to 100 messages per call.
+        for (let i = 0; i < recipients.length; i += 100) {
+          const chunk = recipients.slice(i, i + 100);
+          const res = await fetch(`${RESEND}/emails/batch`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(
+              chunk.map((s: any) => ({
+                from,
+                to: [s.email],
+                subject: campaign.subject,
+                html: html.replaceAll(
+                  "{{RESEND_UNSUBSCRIBE_URL}}",
+                  `${ctx.supabaseUrl}/functions/v1/newsletter-unsubscribe?token=${s.unsubscribe_token}`,
+                ),
+              })),
+            ),
+          });
+          const json = await res.json().catch(() => ({}));
+          if (!res.ok) failures += chunk.length;
+          results.push({ ok: res.ok, status: res.status, body: json });
+
+          await supabase.from("newsletter_sends").insert(
+            chunk.map((s: any) => ({
+              campaign_id: campaignId,
+              subscriber_id: s.id,
+              status: res.ok ? "sent" : "failed",
+              error: res.ok ? null : (json?.message ?? `HTTP ${res.status}`),
+              raw_response: json,
+              sent_at: res.ok ? new Date().toISOString() : null,
+            })),
+          );
+        }
+
+        const sentCount = recipients.length - failures;
+        await supabase
+          .from("newsletter_campaigns")
+          .update({
+            status: failures === recipients.length ? "failed" : "sent",
+            sent_at: new Date().toISOString(),
+            content_html: html,
+            last_error: failures > 0 ? `${failures} destinatários falharam` : null,
+            stats: { recipients: recipients.length, sent: sentCount, failed: failures, mode: "list_batch" },
+          })
+          .eq("id", campaignId);
+
+        return {
+          status: failures === recipients.length ? "failed" : "success",
+          request: { mode: "list_batch", list_id: campaign.list_id, recipients: recipients.length, from },
+          response: { batches: results, sent: sentCount, failed: failures },
+          error: failures > 0 ? `${failures} destinatários falharam` : undefined,
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await supabase
+          .from("newsletter_campaigns")
+          .update({ status: "failed", last_error: msg })
+          .eq("id", campaignId);
+        return { status: "failed", error: msg };
+      }
+    }
+
+    if (!audienceId) {
+      await supabase
+        .from("newsletter_campaigns")
+        .update({ status: "draft" })
+        .eq("id", campaignId);
+      return {
+        status: "skipped",
+        response: { reason: "missing RESEND_AUDIENCE_ID (or select a list for segmented send)" },
+      };
+    }
 
     try {
       const createRes = await fetch(`${RESEND}/broadcasts`, {
