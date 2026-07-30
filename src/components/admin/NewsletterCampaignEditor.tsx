@@ -23,6 +23,8 @@ import {
   useSaveCampaign,
   useSendCampaign,
   usePublishableProducts,
+  useLists,
+  useTemplates,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
 
@@ -41,6 +43,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const [intro, setIntro] = useState(campaign?.content_json?.intro ?? "");
   const [outro, setOutro] = useState(campaign?.content_json?.outro ?? "");
   const [productIds, setProductIds] = useState<string[]>(campaign?.product_ids ?? []);
+  const [listId, setListId] = useState<string | null>(campaign?.list_id ?? null);
+  const [templateId, setTemplateId] = useState<string | null>(campaign?.template_id ?? null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
@@ -49,6 +53,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const save = useSaveCampaign();
   const send = useSendCampaign();
   const products = usePublishableProducts();
+  const lists = useLists();
+  const templates = useTemplates();
 
   const draft = useMemo(
     () => ({
@@ -58,9 +64,24 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
       preheader: preheader.trim() || null,
       product_ids: productIds,
       content_json: { intro, outro, overrides: campaign?.content_json?.overrides ?? {} },
+      list_id: listId,
+      template_id: templateId,
     }),
-    [campaign, title, subject, preheader, intro, outro, productIds],
+    [campaign, title, subject, preheader, intro, outro, productIds, listId, templateId],
   );
+
+  const applyTemplate = (id: string) => {
+    const tpl = (templates.data ?? []).find((t) => t.id === id);
+    setTemplateId(id || null);
+    if (!tpl) return;
+    if (tpl.subject_template && !subject.trim()) setSubject(tpl.subject_template);
+    if (tpl.preheader_template && !preheader) setPreheader(tpl.preheader_template);
+    if (tpl.content_json?.intro) setIntro(tpl.content_json.intro);
+    if (tpl.content_json?.outro) setOutro(tpl.content_json.outro);
+    toast({ title: "Template aplicado", description: tpl.name });
+  };
+
+  const selectedList = (lists.data ?? []).find((l) => l.id === listId) ?? null;
 
   const refreshPreview = async () => {
     setPreviewLoading(true);
@@ -194,6 +215,45 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               <div>
                 <Label>Fecho</Label>
                 <Textarea rows={3} value={outro} onChange={(e) => setOutro(e.target.value)} disabled={isReadOnly} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Destinatários e template</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <Label>Lista de destinatários</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={listId ?? ""}
+                  disabled={isReadOnly}
+                  onChange={(e) => setListId(e.target.value || null)}
+                >
+                  <option value="">Audiência completa (Resend broadcast)</option>
+                  {(lists.data ?? []).filter((l) => l.is_active).map((l) => (
+                    <option key={l.id} value={l.id}>{l.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {selectedList
+                    ? "Envio segmentado: cada subscritor recebe um email individual com link de cancelamento próprio."
+                    : "Envio para toda a audiência configurada no Resend."}
+                </p>
+              </div>
+              <div>
+                <Label>Template base</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={templateId ?? ""}
+                  disabled={isReadOnly}
+                  onChange={(e) => applyTemplate(e.target.value)}
+                >
+                  <option value="">Sem template</option>
+                  {(templates.data ?? []).filter((t) => t.is_active).map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
               </div>
             </CardContent>
           </Card>
