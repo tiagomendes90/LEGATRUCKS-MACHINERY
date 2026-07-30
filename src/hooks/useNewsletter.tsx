@@ -522,21 +522,3 @@ export function useAutomations() {
     },
   });
 }
-
-const _legacyPreview = async (input: {
-  campaign_id?: string;
-  draft?: {
-    title: string;
-    subject: string;
-    preheader?: string | null;
-    product_ids: string[];
-    content_json: NewsletterCampaign["content_json"];
-  };
-}): Promise<{ html: string; subject: string; product_count: number }> => {
-  const { data, error } = await supabase.functions.invoke("newsletter-preview", {
-    body: input,
-  });
-  if (error) throw error;
-  if (!data?.ok) throw new Error((data as any)?.error ?? "preview_failed");
-  return data as { html: string; subject: string; product_count: number };
-};
