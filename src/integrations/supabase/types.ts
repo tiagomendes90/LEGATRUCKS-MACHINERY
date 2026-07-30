@@ -177,6 +177,60 @@ export type Database = {
           },
         ]
       }
+      newsletter_automations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          list_id: string | null
+          name: string
+          template_id: string | null
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          list_id?: string | null
+          name: string
+          template_id?: string | null
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          list_id?: string | null
+          name?: string
+          template_id?: string | null
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_automations_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_automations_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_campaigns: {
         Row: {
           broadcast_id: string | null
@@ -186,6 +240,7 @@ export type Database = {
           created_by: string | null
           id: string
           last_error: string | null
+          list_id: string | null
           preheader: string | null
           product_ids: string[]
           scheduled_for: string | null
@@ -194,6 +249,7 @@ export type Database = {
           stats: Json
           status: string
           subject: string
+          template_id: string | null
           template_key: string
           title: string
           updated_at: string
@@ -206,6 +262,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           last_error?: string | null
+          list_id?: string | null
           preheader?: string | null
           product_ids?: string[]
           scheduled_for?: string | null
@@ -214,6 +271,7 @@ export type Database = {
           stats?: Json
           status?: string
           subject: string
+          template_id?: string | null
           template_key?: string
           title: string
           updated_at?: string
@@ -226,6 +284,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           last_error?: string | null
+          list_id?: string | null
           preheader?: string | null
           product_ids?: string[]
           scheduled_for?: string | null
@@ -234,8 +293,96 @@ export type Database = {
           stats?: Json
           status?: string
           subject?: string
+          template_id?: string | null
           template_key?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_campaigns_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_list_subscribers: {
+        Row: {
+          created_at: string
+          id: string
+          list_id: string
+          subscriber_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_id: string
+          subscriber_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_id?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_list_subscribers_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_list_subscribers_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          key: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          key: string
+          metadata?: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          key?: string
+          metadata?: Json
+          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -316,6 +463,7 @@ export type Database = {
           source: string
           status: string
           subscribed_at: string
+          tags: string[]
           unsubscribe_token: string
           unsubscribed_at: string | null
           updated_at: string
@@ -332,6 +480,7 @@ export type Database = {
           source?: string
           status?: string
           subscribed_at?: string
+          tags?: string[]
           unsubscribe_token?: string
           unsubscribed_at?: string | null
           updated_at?: string
@@ -348,8 +497,57 @@ export type Database = {
           source?: string
           status?: string
           subscribed_at?: string
+          tags?: string[]
           unsubscribe_token?: string
           unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_templates: {
+        Row: {
+          content_json: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          key: string
+          name: string
+          preheader_template: string | null
+          subject_template: string | null
+          template_key: string
+          updated_at: string
+        }
+        Insert: {
+          content_json?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          key: string
+          name: string
+          preheader_template?: string | null
+          subject_template?: string | null
+          template_key?: string
+          updated_at?: string
+        }
+        Update: {
+          content_json?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          key?: string
+          name?: string
+          preheader_template?: string | null
+          subject_template?: string | null
+          template_key?: string
           updated_at?: string
         }
         Relationships: []
