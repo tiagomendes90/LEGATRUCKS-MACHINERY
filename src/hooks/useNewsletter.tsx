@@ -10,6 +10,8 @@ export interface NewsletterCampaign {
   status: string;
   product_ids: string[];
   template_key: string;
+  list_id: string | null;
+  template_id: string | null;
   content_json: {
     intro?: string;
     outro?: string;
@@ -36,6 +38,45 @@ export interface NewsletterSubscriber {
   subscribed_at: string;
   unsubscribed_at: string | null;
   unsubscribe_token: string;
+  tags?: string[] | null;
+}
+
+export interface NewsletterList {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NewsletterTemplate {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  template_key: string;
+  subject_template: string | null;
+  preheader_template: string | null;
+  content_json: { intro?: string; outro?: string } | null;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NewsletterAutomation {
+  id: string;
+  name: string;
+  trigger_type: string;
+  trigger_config: Record<string, unknown>;
+  list_id: string | null;
+  template_id: string | null;
+  is_active: boolean;
+  last_run_at: string | null;
+  created_at: string;
 }
 
 export interface NewsletterSend {
@@ -147,6 +188,8 @@ export interface CampaignDraft {
   product_ids: string[];
   content_json: NewsletterCampaign["content_json"];
   status?: string;
+  list_id?: string | null;
+  template_id?: string | null;
 }
 
 export function useSaveCampaign() {
@@ -160,6 +203,8 @@ export function useSaveCampaign() {
         product_ids: draft.product_ids,
         content_json: draft.content_json ?? {},
         status: draft.status ?? "draft",
+        list_id: draft.list_id ?? null,
+        template_id: draft.template_id ?? null,
       };
       if (draft.id) {
         const { data, error } = await (supabase as any)
@@ -262,4 +307,218 @@ export async function fetchCampaignPreview(input: {
   if (error) throw error;
   if (!data?.ok) throw new Error((data as any)?.error ?? "preview_failed");
   return data as { html: string; subject: string; product_count: number };
+}
+
+/* ------------------------------------------------------------------ */
+/* Listas (segmentação)                                                */
+/* ------------------------------------------------------------------ */
+
+export function useLists() {
+  return useQuery({
+    queryKey: ["newsletter_lists"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_lists")
+        .select("*")
+        .order("is_default", { ascending: false })
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as NewsletterList[];
+    },
+  });
+}
+
+/** Contagem de membros por lista (subscritores ativos). */
+export function useListMemberCounts() {
+  return useQuery({
+    queryKey: ["newsletter_list_counts"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_list_subscribers")
+        .select("list_id, subscriber:newsletter_subscribers(status)")
+        .limit(5000);
+      if (error) throw error;
+      const counts: Record<string, { total: number; active: number }> = {};
+      for (const row of (data ?? []) as any[]) {
+        const bucket = (counts[row.list_id] ??= { total: 0, active: 0 });
+        bucket.total += 1;
+        if (row.subscriber?.status === "active") bucket.active += 1;
+      }
+      return counts;
+    },
+  });
+}
+
+export function useSaveList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (list: Partial<NewsletterList> & { name: string; key: string }) => {
+      const payload = {
+        key: list.key,
+        name: list.name,
+        description: list.description ?? null,
+        is_active: list.is_active ?? true,
+      };
+      if (list.id) {
+        const { data, error } = await (supabase as any)
+          .from("newsletter_lists").update(payload).eq("id", list.id).select("*").maybeSingle();
+        if (error) throw error;
+        return data as NewsletterList;
+      }
+      const { data, error } = await (supabase as any)
+        .from("newsletter_lists").insert(payload).select("*").maybeSingle();
+      if (error) throw error;
+      return data as NewsletterList;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_lists"] }),
+  });
+}
+
+export function useDeleteList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any).from("newsletter_lists").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["newsletter_lists"] });
+      qc.invalidateQueries({ queryKey: ["newsletter_list_counts"] });
+    },
+  });
+}
+
+/** Adiciona/remove subscritores de uma lista (segmentação manual). */
+export function useSetListMembership() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      listId,
+      subscriberIds,
+      action,
+    }: { listId: string; subscriberIds: string[]; action: "add" | "remove" }) => {
+      if (subscriberIds.length === 0) return;
+      if (action === "add") {
+        const { error } = await (supabase as any)
+          .from("newsletter_list_subscribers")
+          .upsert(
+            subscriberIds.map((sid) => ({ list_id: listId, subscriber_id: sid })),
+            { onConflict: "list_id,subscriber_id", ignoreDuplicates: true },
+          );
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any)
+          .from("newsletter_list_subscribers")
+          .delete()
+          .eq("list_id", listId)
+          .in("subscriber_id", subscriberIds);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_list_counts"] }),
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Templates reutilizáveis                                             */
+/* ------------------------------------------------------------------ */
+
+export function useTemplates() {
+  return useQuery({
+    queryKey: ["newsletter_templates"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_templates")
+        .select("*")
+        .order("is_default", { ascending: false })
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as NewsletterTemplate[];
+    },
+  });
+}
+
+export function useSaveTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (tpl: Partial<NewsletterTemplate> & { name: string; key: string }) => {
+      const payload = {
+        key: tpl.key,
+        name: tpl.name,
+        description: tpl.description ?? null,
+        template_key: tpl.template_key ?? "product_showcase_v1",
+        subject_template: tpl.subject_template ?? null,
+        preheader_template: tpl.preheader_template ?? null,
+        content_json: tpl.content_json ?? {},
+        is_active: tpl.is_active ?? true,
+      };
+      if (tpl.id) {
+        const { data, error } = await (supabase as any)
+          .from("newsletter_templates").update(payload).eq("id", tpl.id).select("*").maybeSingle();
+        if (error) throw error;
+        return data as NewsletterTemplate;
+      }
+      const { data, error } = await (supabase as any)
+        .from("newsletter_templates").insert(payload).select("*").maybeSingle();
+      if (error) throw error;
+      return data as NewsletterTemplate;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_templates"] }),
+  });
+}
+
+export function useDeleteTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any).from("newsletter_templates").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_templates"] }),
+  });
+}
+
+/** Duplica uma campanha existente como novo rascunho (campanhas reutilizáveis). */
+export function useDuplicateCampaign() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (campaign: NewsletterCampaign) => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_campaigns")
+        .insert({
+          title: `${campaign.title} (cópia)`,
+          subject: campaign.subject,
+          preheader: campaign.preheader,
+          product_ids: campaign.product_ids ?? [],
+          content_json: campaign.content_json ?? {},
+          template_key: campaign.template_key,
+          template_id: campaign.template_id ?? null,
+          list_id: campaign.list_id ?? null,
+          status: "draft",
+        })
+        .select("*")
+        .maybeSingle();
+      if (error) throw error;
+      return data as NewsletterCampaign;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_campaigns"] }),
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Automações (scaffold — sem execução nesta fase)                     */
+/* ------------------------------------------------------------------ */
+
+export function useAutomations() {
+  return useQuery({
+    queryKey: ["newsletter_automations"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_automations")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as NewsletterAutomation[];
+    },
+  });
 }

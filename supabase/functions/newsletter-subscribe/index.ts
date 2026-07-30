@@ -26,6 +26,13 @@ Deno.serve(async (req) => {
     const firstName = (body?.first_name as string | undefined)?.slice(0, 80);
     const lastName = (body?.last_name as string | undefined)?.slice(0, 80);
     const consent = body?.consent === true;
+    const rawTags = Array.isArray(body?.tags) ? (body.tags as unknown[]) : [];
+    const tags = rawTags
+      .filter((t): t is string => typeof t === "string")
+      .map((t) => t.trim().slice(0, 40))
+      .filter(Boolean)
+      .slice(0, 10);
+    const listKey = typeof body?.list_key === "string" ? body.list_key.slice(0, 60) : null;
 
     if (!isValidEmail(email)) return jsonResponse(400, { error: "invalid_email" });
     if (!consent) return jsonResponse(400, { error: "consent_required" });
@@ -52,6 +59,7 @@ Deno.serve(async (req) => {
           consent: true,
           status: "active",
           source: "footer_form",
+          tags,
         })
         .select("id, status, unsubscribe_token")
         .maybeSingle();
@@ -64,6 +72,22 @@ Deno.serve(async (req) => {
         .from("newsletter_subscribers")
         .update({ status: "active", unsubscribed_at: null, consent: true })
         .eq("id", existing.id);
+    }
+
+    // 1b. Attach to a list (explicit key, otherwise the default list).
+    if (subscriberRow?.id) {
+      const listQuery = supabase.from("newsletter_lists").select("id").limit(1);
+      const { data: list } = listKey
+        ? await listQuery.eq("key", listKey).maybeSingle()
+        : await listQuery.eq("is_default", true).maybeSingle();
+      if (list?.id) {
+        await supabase
+          .from("newsletter_list_subscribers")
+          .upsert(
+            { list_id: list.id, subscriber_id: subscriberRow.id },
+            { onConflict: "list_id,subscriber_id", ignoreDuplicates: true },
+          );
+      }
     }
 
     const apiKey = Deno.env.get("RESEND_API_KEY");
