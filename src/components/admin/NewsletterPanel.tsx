@@ -188,7 +188,7 @@ export default function NewsletterPanel() {
                           <Button size="sm" variant="outline" onClick={() => setEditing(c)}>
                             {c.status === "sent" ? "Ver" : "Editar"}
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => duplicate.mutate(c.id)} title="Duplicar">
+                          <Button size="sm" variant="ghost" onClick={() => duplicate.mutate(c)} title="Duplicar">
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
                           {c.status !== "sent" && c.status !== "sending" && (
