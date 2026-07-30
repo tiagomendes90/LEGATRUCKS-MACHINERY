@@ -188,6 +188,8 @@ export interface CampaignDraft {
   product_ids: string[];
   content_json: NewsletterCampaign["content_json"];
   status?: string;
+  list_id?: string | null;
+  template_id?: string | null;
 }
 
 export function useSaveCampaign() {
@@ -201,6 +203,8 @@ export function useSaveCampaign() {
         product_ids: draft.product_ids,
         content_json: draft.content_json ?? {},
         status: draft.status ?? "draft",
+        list_id: draft.list_id ?? null,
+        template_id: draft.template_id ?? null,
       };
       if (draft.id) {
         const { data, error } = await (supabase as any)
