@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Mail, Plus, Send, Trash2, XCircle } from "lucide-react";
+import { Copy, Loader2, Mail, Plus, Send, Trash2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   useCampaigns,
@@ -42,9 +42,12 @@ import {
   useDeleteCampaign,
   useAdminUnsubscribe,
   useCampaignSends,
+  useDuplicateCampaign,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
 import { NewsletterCampaignEditor } from "./NewsletterCampaignEditor";
+import NewsletterListsPanel from "./NewsletterListsPanel";
+import NewsletterTemplatesPanel from "./NewsletterTemplatesPanel";
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; className: string }> = {
@@ -123,6 +126,8 @@ export default function NewsletterPanel() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
+          <TabsTrigger value="lists">Listas</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="subscribers">Subscritores</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
         </TabsList>
@@ -182,6 +187,9 @@ export default function NewsletterPanel() {
                           <Button size="sm" variant="outline" onClick={() => setEditing(c)}>
                             {c.status === "sent" ? "Ver" : "Editar"}
                           </Button>
+                          <Button size="sm" variant="ghost" onClick={() => duplicate.mutate(c.id)} title="Duplicar">
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
                           {c.status !== "sent" && c.status !== "sending" && (
                             <Button
                               size="sm"
@@ -217,6 +225,14 @@ export default function NewsletterPanel() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="lists">
+          <NewsletterListsPanel />
+        </TabsContent>
+
+        <TabsContent value="templates">
+          <NewsletterTemplatesPanel />
         </TabsContent>
 
         {/* Subscritores */}
