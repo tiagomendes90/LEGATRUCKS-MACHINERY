@@ -76,6 +76,7 @@ export default function NewsletterPanel() {
   const save = useSaveCampaign();
   const send = useSendCampaign();
   const cancel = useCancelCampaign();
+  const duplicate = useDuplicateCampaign();
   const del = useDeleteCampaign();
   const adminUnsub = useAdminUnsubscribe();
 
