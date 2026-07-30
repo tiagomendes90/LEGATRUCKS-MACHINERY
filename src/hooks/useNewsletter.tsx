@@ -10,6 +10,8 @@ export interface NewsletterCampaign {
   status: string;
   product_ids: string[];
   template_key: string;
+  list_id: string | null;
+  template_id: string | null;
   content_json: {
     intro?: string;
     outro?: string;
@@ -36,6 +38,45 @@ export interface NewsletterSubscriber {
   subscribed_at: string;
   unsubscribed_at: string | null;
   unsubscribe_token: string;
+  tags?: string[] | null;
+}
+
+export interface NewsletterList {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NewsletterTemplate {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  template_key: string;
+  subject_template: string | null;
+  preheader_template: string | null;
+  content_json: { intro?: string; outro?: string } | null;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NewsletterAutomation {
+  id: string;
+  name: string;
+  trigger_type: string;
+  trigger_config: Record<string, unknown>;
+  list_id: string | null;
+  template_id: string | null;
+  is_active: boolean;
+  last_run_at: string | null;
+  created_at: string;
 }
 
 export interface NewsletterSend {
