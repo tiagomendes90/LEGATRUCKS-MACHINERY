@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Copy, Loader2, Mail, Plus, Send, Trash2, XCircle } from "lucide-react";
+import { Copy, History, Loader2, Mail, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   useCampaigns,
@@ -43,6 +43,8 @@ import {
   useAdminUnsubscribe,
   useCampaignSends,
   useDuplicateCampaign,
+  useRetryFailedSends,
+  useNewsletterAudit,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
 import { NewsletterCampaignEditor } from "./NewsletterCampaignEditor";
@@ -77,6 +79,7 @@ export default function NewsletterPanel() {
   const send = useSendCampaign();
   const cancel = useCancelCampaign();
   const duplicate = useDuplicateCampaign();
+  const retryFailed = useRetryFailedSends();
   const del = useDeleteCampaign();
   const adminUnsub = useAdminUnsubscribe();
 
@@ -131,6 +134,7 @@ export default function NewsletterPanel() {
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="subscribers">Subscritores</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="audit">Auditoria</TabsTrigger>
         </TabsList>
 
         {/* Campanhas */}
@@ -154,6 +158,8 @@ export default function NewsletterPanel() {
                     <TableHead>Título</TableHead>
                     <TableHead>Assunto</TableHead>
                     <TableHead>Produtos</TableHead>
+                    <TableHead>Audiência</TableHead>
+                    <TableHead>Enviados / Falhas</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Atualizado</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -162,13 +168,13 @@ export default function NewsletterPanel() {
                 <TableBody>
                   {campaigns.isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> A carregar…
                       </TableCell>
                     </TableRow>
                   ) : (campaigns.data ?? []).length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                         Ainda não existem campanhas. Cria a primeira newsletter.
                       </TableCell>
                     </TableRow>
@@ -180,6 +186,22 @@ export default function NewsletterPanel() {
                           {c.subject}
                         </TableCell>
                         <TableCell>{c.product_ids?.length ?? 0}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {c.audience_mode === "all"
+                            ? "Todos"
+                            : c.audience_mode === "tags"
+                              ? `${c.tags?.length ?? 0} etiqueta(s)`
+                              : c.audience_mode === "mixed"
+                                ? `${c.list_ids?.length ?? 0} lista(s) + ${c.tags?.length ?? 0} etiqueta(s)`
+                                : `${c.list_ids?.length ?? 0} lista(s)`}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <span className="text-emerald-600 font-medium">{c.sent_count ?? 0}</span>
+                          {" / "}
+                          <span className={c.failed_count ? "text-destructive font-medium" : "text-muted-foreground"}>
+                            {c.failed_count ?? 0}
+                          </span>
+                        </TableCell>
                         <TableCell>{statusBadge(c.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true, locale: pt })}
@@ -207,6 +229,19 @@ export default function NewsletterPanel() {
                               onClick={() => cancel.mutate(c.id)}
                             >
                               <XCircle className="h-3.5 w-3.5 mr-1" /> Cancelar
+                            </Button>
+                          )}
+                          {(c.failed_count ?? 0) > 0 && c.status !== "sending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              title="Reenviar apenas os destinatários que falharam"
+                              onClick={async () => {
+                                await retryFailed.mutateAsync(c.id);
+                                toast({ title: "Reenvio na fila", description: "Apenas os destinatários falhados serão contactados." });
+                              }}
+                            >
+                              <RefreshCw className="h-3.5 w-3.5 mr-1" /> Reenviar falhados
                             </Button>
                           )}
                           {c.status !== "sent" && (
@@ -248,6 +283,11 @@ export default function NewsletterPanel() {
         {/* Histórico */}
         <TabsContent value="history" className="space-y-4">
           <HistoryPanel campaigns={campaigns.data ?? []} />
+        </TabsContent>
+
+        {/* Auditoria */}
+        <TabsContent value="audit" className="space-y-4">
+          <AuditPanel />
         </TabsContent>
       </Tabs>
 
