@@ -196,6 +196,9 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               <Button variant="outline" onClick={() => persistDraft("draft")} disabled={save.isPending}>
                 <Save className="h-4 w-4 mr-1" /> Guardar rascunho
               </Button>
+              <Button variant="outline" onClick={() => setScheduleOpen(true)} disabled={save.isPending}>
+                <CalendarClock className="h-4 w-4 mr-1" /> Agendar
+              </Button>
               <Button
                 onClick={async () => {
                   const saved = await persistDraft("ready");
@@ -485,7 +488,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
             <AlertDialogDescription>
-              A campanha <strong>{draft.title}</strong> será enviada para <strong>{subscriberCount}</strong> subscritores ativos.
+              A campanha <strong>{draft.title}</strong> será enviada para{" "}
+              <strong>{recipientCount ?? subscriberCount}</strong> subscritores da audiência selecionada.
               Assunto: <em>{draft.subject}</em>. Confirmas o envio?
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -509,6 +513,45 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               }}
             >
               Enviar agora
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Agendar envio</AlertDialogTitle>
+            <AlertDialogDescription>
+              A campanha entra na fila com estado <em>scheduled</em> e é enviada automaticamente na data escolhida.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="px-1">
+            <Label>Data e hora</Label>
+            <Input
+              type="datetime-local"
+              value={scheduleAt}
+              onChange={(e) => setScheduleAt(e.target.value)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!scheduleAt}
+              onClick={async () => {
+                const when = new Date(scheduleAt);
+                if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) {
+                  toast({ title: "Data inválida", description: "Escolhe uma data futura.", variant: "destructive" });
+                  return;
+                }
+                setScheduleOpen(false);
+                const saved = await persistDraft("ready");
+                await schedule.mutateAsync({ campaignId: saved.id, when: when.toISOString() });
+                toast({ title: "Envio agendado", description: when.toLocaleString("pt-PT") });
+                onClose();
+              }}
+            >
+              Agendar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
