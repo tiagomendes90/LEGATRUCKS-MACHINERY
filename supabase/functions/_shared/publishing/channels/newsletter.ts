@@ -255,7 +255,9 @@ export const newsletterChannel: ChannelAdapter = {
       batches.push({ ok, status, size: chunk.length, body: json });
 
       const ids = (json?.data ?? []) as any[];
-      await supabase.from("newsletter_sends").upsert(
+      // Insert (não upsert): o índice único parcial garante que um envio
+      // bem-sucedido nunca é duplicado; falhas ficam no histórico.
+      const { error: logErr } = await supabase.from("newsletter_sends").insert(
         chunk.map((s, idx) => ({
           campaign_id: campaignId,
           subscriber_id: s.id,
@@ -266,8 +268,8 @@ export const newsletterChannel: ChannelAdapter = {
           raw_response: json,
           sent_at: ok ? new Date().toISOString() : null,
         })),
-        { onConflict: "campaign_id,subscriber_id", ignoreDuplicates: false },
-      ).select("id").catch?.(() => ({}));
+      );
+      if (logErr) console.warn("[newsletter] failed to log sends", logErr.message);
     }
 
     const finishedAt = new Date();
