@@ -87,18 +87,6 @@ export interface NewsletterAutomation {
   trigger_config: Record<string, unknown>;
   list_id: string | null;
   template_id: string | null;
-  list_ids: string[];
-  tags: string[];
-  audience_mode: string;
-  recipients_count: number;
-  sent_count: number;
-  delivered_count: number;
-  failed_count: number;
-  opened_count: number;
-  clicked_count: number;
-  send_started_at: string | null;
-  send_finished_at: string | null;
-  duration_ms: number | null;
   is_active: boolean;
   last_run_at: string | null;
   created_at: string;
@@ -107,6 +95,7 @@ export interface NewsletterAutomation {
 export interface NewsletterSend {
   id: string;
   campaign_id: string;
+  subscriber_id: string | null;
   status: string;
   broadcast_id: string | null;
   recipients_count: number | null;
