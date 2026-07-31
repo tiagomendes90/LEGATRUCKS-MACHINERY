@@ -321,14 +321,18 @@ export async function fetchCampaignPreview(input: {
     preheader?: string | null;
     product_ids: string[];
     content_json: NewsletterCampaign["content_json"];
+    template_id?: string | null;
+    audience_mode?: string;
+    list_ids?: string[];
+    tags?: string[];
   };
-}): Promise<{ html: string; subject: string; product_count: number }> {
+}): Promise<{ html: string; subject: string; product_count: number; recipient_count: number }> {
   const { data, error } = await supabase.functions.invoke("newsletter-preview", {
     body: input,
   });
   if (error) throw error;
   if (!data?.ok) throw new Error((data as any)?.error ?? "preview_failed");
-  return data as { html: string; subject: string; product_count: number };
+  return data as { html: string; subject: string; product_count: number; recipient_count: number };
 }
 
 /* ------------------------------------------------------------------ */
