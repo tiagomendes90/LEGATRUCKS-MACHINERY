@@ -475,6 +475,9 @@ function SubscribersTable({
 function HistoryPanel({ campaigns }: { campaigns: NewsletterCampaign[] }) {
   const [selected, setSelected] = useState<string | null>(null);
   const sends = useCampaignSends(selected);
+  const campaign = campaigns.find((c) => c.id === selected) ?? null;
+  const failed = (sends.data ?? []).filter((s) => s.status === "failed");
+  const succeeded = (sends.data ?? []).filter((s) => s.status === "sent");
   return (
     <div className="grid md:grid-cols-[280px_1fr] gap-4">
       <Card>
