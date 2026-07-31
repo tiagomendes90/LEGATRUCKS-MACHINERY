@@ -17,9 +17,19 @@ export interface CampaignInput {
   } | null;
 }
 
+/** Blocos reutilizáveis provenientes de um newsletter_template. */
+export interface TemplateBlocks {
+  header?: string;
+  footer?: string;
+  intro?: string;
+  outro?: string;
+}
+
 export interface RenderOptions {
   campaign: CampaignInput;
   products: AnyRecord[];
+  /** Template reutilizável — usado como fallback do conteúdo da campanha. */
+  template?: TemplateBlocks | null;
   unsubscribeUrl?: string; // Falls back to Resend placeholder
 }
 
@@ -92,8 +102,11 @@ function renderProductCard(p: AnyRecord, ov?: { title?: string; description?: st
 
 export function renderNewsletterHtml(opts: RenderOptions): string {
   const { campaign, products } = opts;
-  const intro = campaign.content_json?.intro ?? "";
-  const outro = campaign.content_json?.outro ?? "";
+  const tpl = opts.template ?? {};
+  const intro = campaign.content_json?.intro || tpl.intro || "";
+  const outro = campaign.content_json?.outro || tpl.outro || "";
+  const headerText = tpl.header ?? "";
+  const footerText = tpl.footer ?? "";
   const overrides = campaign.content_json?.overrides ?? {};
   const unsub = opts.unsubscribeUrl ?? "{{{RESEND_UNSUBSCRIBE_URL}}}";
 
@@ -115,7 +128,7 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
           <!-- Header -->
           <tr><td style="padding:24px;text-align:center;background:#0f172a;border-radius:12px 12px 0 0;">
             <a href="${esc(SITE_URL)}" style="text-decoration:none;color:#fff;font-weight:800;font-size:22px;letter-spacing:6px;">LEGA</a>
-            <div style="margin-top:6px;color:#94a3b8;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Camiões · Máquinas · Equipamento</div>
+            <div style="margin-top:6px;color:#94a3b8;font-size:12px;letter-spacing:2px;text-transform:uppercase;">${esc(headerText || "Camiões · Máquinas · Equipamento")}</div>
           </td></tr>
 
           <!-- Intro -->
@@ -135,6 +148,7 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
 
           <!-- Footer -->
           <tr><td style="padding:24px;background:#0f172a;color:#cbd5e1;border-radius:0 0 12px 12px;font-size:12px;line-height:1.6;text-align:center;">
+            ${footerText ? `<p style="margin:0 0 10px;color:#cbd5e1;white-space:pre-line;">${esc(footerText)}</p>` : ""}
             <p style="margin:0 0 6px;color:#fff;font-weight:600;">LEGA — Comércio de Veículos e Máquinas</p>
             <p style="margin:0 0 12px;">Portugal · <a href="tel:+351912406089" style="color:#cbd5e1;text-decoration:none;">+351 912 406 089</a> · <a href="mailto:geral@lega.pt" style="color:#cbd5e1;text-decoration:none;">geral@lega.pt</a></p>
             <p style="margin:0 0 12px;">

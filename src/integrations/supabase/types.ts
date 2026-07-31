@@ -177,6 +177,36 @@ export type Database = {
           },
         ]
       }
+      newsletter_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          details: Json
+          entity_id: string | null
+          entity_type: string
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
       newsletter_automations: {
         Row: {
           created_at: string
@@ -233,66 +263,102 @@ export type Database = {
       }
       newsletter_campaigns: {
         Row: {
+          audience_mode: string
           broadcast_id: string | null
+          clicked_count: number
           content_html: string | null
           content_json: Json
           created_at: string
           created_by: string | null
+          delivered_count: number
+          duration_ms: number | null
+          failed_count: number
           id: string
           last_error: string | null
           list_id: string | null
+          list_ids: string[]
+          opened_count: number
           preheader: string | null
           product_ids: string[]
+          recipients_count: number
           scheduled_for: string | null
+          send_finished_at: string | null
+          send_started_at: string | null
           sent_at: string | null
           sent_by: string | null
+          sent_count: number
           stats: Json
           status: string
           subject: string
+          tags: string[]
           template_id: string | null
           template_key: string
           title: string
           updated_at: string
         }
         Insert: {
+          audience_mode?: string
           broadcast_id?: string | null
+          clicked_count?: number
           content_html?: string | null
           content_json?: Json
           created_at?: string
           created_by?: string | null
+          delivered_count?: number
+          duration_ms?: number | null
+          failed_count?: number
           id?: string
           last_error?: string | null
           list_id?: string | null
+          list_ids?: string[]
+          opened_count?: number
           preheader?: string | null
           product_ids?: string[]
+          recipients_count?: number
           scheduled_for?: string | null
+          send_finished_at?: string | null
+          send_started_at?: string | null
           sent_at?: string | null
           sent_by?: string | null
+          sent_count?: number
           stats?: Json
           status?: string
           subject: string
+          tags?: string[]
           template_id?: string | null
           template_key?: string
           title: string
           updated_at?: string
         }
         Update: {
+          audience_mode?: string
           broadcast_id?: string | null
+          clicked_count?: number
           content_html?: string | null
           content_json?: Json
           created_at?: string
           created_by?: string | null
+          delivered_count?: number
+          duration_ms?: number | null
+          failed_count?: number
           id?: string
           last_error?: string | null
           list_id?: string | null
+          list_ids?: string[]
+          opened_count?: number
           preheader?: string | null
           product_ids?: string[]
+          recipients_count?: number
           scheduled_for?: string | null
+          send_finished_at?: string | null
+          send_started_at?: string | null
           sent_at?: string | null
           sent_by?: string | null
+          sent_count?: number
           stats?: Json
           status?: string
           subject?: string
+          tags?: string[]
           template_id?: string | null
           template_key?: string
           title?: string
@@ -353,6 +419,7 @@ export type Database = {
       }
       newsletter_lists: {
         Row: {
+          archived_at: string | null
           created_at: string
           description: string | null
           id: string
@@ -364,6 +431,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -375,6 +443,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           description?: string | null
           id?: string

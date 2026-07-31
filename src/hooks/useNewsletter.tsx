@@ -12,6 +12,18 @@ export interface NewsletterCampaign {
   template_key: string;
   list_id: string | null;
   template_id: string | null;
+  list_ids: string[];
+  tags: string[];
+  audience_mode: string;
+  recipients_count: number;
+  sent_count: number;
+  delivered_count: number;
+  failed_count: number;
+  opened_count: number;
+  clicked_count: number;
+  send_started_at: string | null;
+  send_finished_at: string | null;
+  duration_ms: number | null;
   content_json: {
     intro?: string;
     outro?: string;
@@ -48,6 +60,7 @@ export interface NewsletterList {
   description: string | null;
   is_active: boolean;
   is_default: boolean;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -60,7 +73,7 @@ export interface NewsletterTemplate {
   template_key: string;
   subject_template: string | null;
   preheader_template: string | null;
-  content_json: { intro?: string; outro?: string } | null;
+  content_json: { intro?: string; outro?: string; header?: string; footer?: string } | null;
   is_active: boolean;
   is_default: boolean;
   created_at: string;
@@ -82,6 +95,7 @@ export interface NewsletterAutomation {
 export interface NewsletterSend {
   id: string;
   campaign_id: string;
+  subscriber_id: string | null;
   status: string;
   broadcast_id: string | null;
   recipients_count: number | null;
@@ -190,6 +204,10 @@ export interface CampaignDraft {
   status?: string;
   list_id?: string | null;
   template_id?: string | null;
+  audience_mode?: string;
+  list_ids?: string[];
+  tags?: string[];
+  scheduled_for?: string | null;
 }
 
 export function useSaveCampaign() {
@@ -205,6 +223,10 @@ export function useSaveCampaign() {
         status: draft.status ?? "draft",
         list_id: draft.list_id ?? null,
         template_id: draft.template_id ?? null,
+        audience_mode: draft.audience_mode ?? "all",
+        list_ids: draft.list_ids ?? [],
+        tags: draft.tags ?? [],
+        scheduled_for: draft.scheduled_for ?? null,
       };
       if (draft.id) {
         const { data, error } = await (supabase as any)
@@ -299,14 +321,18 @@ export async function fetchCampaignPreview(input: {
     preheader?: string | null;
     product_ids: string[];
     content_json: NewsletterCampaign["content_json"];
+    template_id?: string | null;
+    audience_mode?: string;
+    list_ids?: string[];
+    tags?: string[];
   };
-}): Promise<{ html: string; subject: string; product_count: number }> {
+}): Promise<{ html: string; subject: string; product_count: number; recipient_count: number }> {
   const { data, error } = await supabase.functions.invoke("newsletter-preview", {
     body: input,
   });
   if (error) throw error;
   if (!data?.ok) throw new Error((data as any)?.error ?? "preview_failed");
-  return data as { html: string; subject: string; product_count: number };
+  return data as { html: string; subject: string; product_count: number; recipient_count: number };
 }
 
 /* ------------------------------------------------------------------ */
@@ -494,6 +520,9 @@ export function useDuplicateCampaign() {
           template_key: campaign.template_key,
           template_id: campaign.template_id ?? null,
           list_id: campaign.list_id ?? null,
+          list_ids: campaign.list_ids ?? [],
+          tags: campaign.tags ?? [],
+          audience_mode: campaign.audience_mode ?? "all",
           status: "draft",
         })
         .select("*")
@@ -521,4 +550,176 @@ export function useAutomations() {
       return (data ?? []) as NewsletterAutomation[];
     },
   });
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Auditoria                                                           */
+/* ------------------------------------------------------------------ */
+
+export interface NewsletterAuditEntry {
+  id: string;
+  entity_type: string;
+  entity_id: string | null;
+  action: string;
+  actor_id: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export function useNewsletterAudit(entityId?: string | null) {
+  return useQuery({
+    queryKey: ["newsletter_audit", entityId ?? "all"],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      let q = (supabase as any)
+        .from("newsletter_audit_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (entityId) q = q.eq("entity_id", entityId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as NewsletterAuditEntry[];
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Listas — arquivo e proteção de eliminação                           */
+/* ------------------------------------------------------------------ */
+
+export function useArchiveList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, archived }: { id: string; archived: boolean }) => {
+      const { error } = await (supabase as any)
+        .from("newsletter_lists")
+        .update({ archived_at: archived ? new Date().toISOString() : null, is_active: !archived })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_lists"] }),
+  });
+}
+
+/** Nº de campanhas que usam cada lista — bloqueia eliminação em uso. */
+export function useListUsage() {
+  return useQuery({
+    queryKey: ["newsletter_list_usage"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_campaigns")
+        .select("list_id, list_ids");
+      if (error) throw error;
+      const usage: Record<string, number> = {};
+      for (const row of (data ?? []) as any[]) {
+        const ids = [...(row.list_ids ?? []), row.list_id].filter(Boolean);
+        for (const id of new Set(ids)) usage[id as string] = (usage[id as string] ?? 0) + 1;
+      }
+      return usage;
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Templates — estado ativo / por defeito                              */
+/* ------------------------------------------------------------------ */
+
+export function useSetTemplateDefault() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await (supabase as any).from("newsletter_templates").update({ is_default: false }).neq("id", id);
+      const { error } = await (supabase as any)
+        .from("newsletter_templates").update({ is_default: true, is_active: true }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_templates"] }),
+  });
+}
+
+export function useToggleTemplateActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await (supabase as any)
+        .from("newsletter_templates").update({ is_active: active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["newsletter_templates"] }),
+  });
+}
+
+/** Nº de campanhas por template — bloqueia eliminação em uso. */
+export function useTemplateUsage() {
+  return useQuery({
+    queryKey: ["newsletter_template_usage"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_campaigns").select("template_id");
+      if (error) throw error;
+      const usage: Record<string, number> = {};
+      for (const row of (data ?? []) as any[]) {
+        if (row.template_id) usage[row.template_id] = (usage[row.template_id] ?? 0) + 1;
+      }
+      return usage;
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Envio: agendamento, teste e reenvio de falhados                     */
+/* ------------------------------------------------------------------ */
+
+/** Agenda o envio: o evento fica `scheduled` até à data indicada. */
+export function useScheduleCampaign() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ campaignId, when }: { campaignId: string; when: string }) => {
+      await (supabase as any)
+        .from("newsletter_campaigns")
+        .update({ status: "scheduled", scheduled_for: when })
+        .eq("id", campaignId);
+      return emitPublishingEvent({
+        type: "newsletter.campaign.send",
+        payload: { campaign_id: campaignId },
+        dedupeKey: `newsletter:send:${campaignId}:${when}`,
+        scheduledFor: when,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["newsletter_campaigns"] });
+      qc.invalidateQueries({ queryKey: ["newsletter_audit", "all"] });
+    },
+  });
+}
+
+/** Reenvia apenas os destinatários que falharam (nunca duplica sucessos). */
+export function useRetryFailedSends() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (campaignId: string) =>
+      emitPublishingEvent({
+        type: "newsletter.campaign.send",
+        payload: { campaign_id: campaignId, retry_failed_only: true },
+        dedupeKey: `newsletter:retry:${campaignId}:${Date.now()}`,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["newsletter_campaigns"] });
+      qc.invalidateQueries({ queryKey: ["newsletter_sends"] });
+    },
+  });
+}
+
+/** Envia um email de teste para um endereço à escolha. */
+export async function sendTestEmail(input: {
+  campaign_id?: string;
+  draft?: Record<string, unknown>;
+  test_email: string;
+}) {
+  const { data, error } = await supabase.functions.invoke("newsletter-preview", { body: input });
+  if (error) throw error;
+  if (!(data as any)?.ok) throw new Error((data as any)?.error ?? "test_send_failed");
+  return data as { ok: true; to: string };
 }

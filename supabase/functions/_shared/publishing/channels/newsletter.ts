@@ -3,36 +3,104 @@ import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.
 import { renderNewsletterHtml } from "../newsletterTemplate.ts";
 
 const RESEND = "https://api.resend.com";
+const BATCH_SIZE = 100;
 
-// Adapter is fully decoupled from product events. It only reacts to
-// explicit newsletter.* events emitted from the admin panel.
-// Isolated from Facebook/Instagram/sitemap adapters.
+interface Recipient {
+  id: string;
+  email: string;
+  first_name: string | null;
+  unsubscribe_token: string;
+}
+
+/**
+ * Resolve os destinatários de uma campanha a partir da BD (fonte de verdade).
+ * Suporta: uma lista, várias listas, etiquetas e todos os subscritores.
+ * Nunca devolve duplicados (dedupe por subscriber id).
+ */
+export async function resolveRecipients(
+  supabase: any,
+  campaign: Record<string, any>,
+): Promise<Recipient[]> {
+  const mode: string = campaign.audience_mode ?? (campaign.list_id ? "lists" : "all");
+  const listIds: string[] = [
+    ...(campaign.list_ids ?? []),
+    ...(campaign.list_id ? [campaign.list_id] : []),
+  ].filter((v, i, a) => v && a.indexOf(v) === i);
+  const tags: string[] = campaign.tags ?? [];
+
+  const byId = new Map<string, Recipient>();
+  const push = (rows: any[]) => {
+    for (const s of rows ?? []) {
+      if (s && s.status === "active" && !byId.has(s.id)) {
+        byId.set(s.id, {
+          id: s.id,
+          email: s.email,
+          first_name: s.first_name ?? null,
+          unsubscribe_token: s.unsubscribe_token,
+        });
+      }
+    }
+  };
+
+  const SELECT = "id, email, first_name, status, unsubscribe_token";
+
+  if (mode === "all") {
+    const { data } = await supabase
+      .from("newsletter_subscribers").select(SELECT).eq("status", "active").limit(10000);
+    push(data ?? []);
+    return [...byId.values()];
+  }
+
+  if ((mode === "lists" || mode === "mixed") && listIds.length > 0) {
+    const { data } = await supabase
+      .from("newsletter_list_subscribers")
+      .select(`subscriber:newsletter_subscribers(${SELECT})`)
+      .in("list_id", listIds)
+      .limit(10000);
+    push(((data ?? []) as any[]).map((r) => r.subscriber));
+  }
+
+  if ((mode === "tags" || mode === "mixed") && tags.length > 0) {
+    const { data } = await supabase
+      .from("newsletter_subscribers")
+      .select(SELECT)
+      .eq("status", "active")
+      .overlaps("tags", tags)
+      .limit(10000);
+    push(data ?? []);
+  }
+
+  return [...byId.values()];
+}
+
+function unsubUrl(supabaseUrl: string, token: string) {
+  return `${supabaseUrl}/functions/v1/newsletter-unsubscribe?token=${token}`;
+}
+
+/**
+ * Canal Newsletter. Reage apenas a eventos newsletter.* emitidos pelo Admin —
+ * totalmente desacoplado dos canais Facebook/Instagram/sitemap.
+ */
 export const newsletterChannel: ChannelAdapter = {
   key: "newsletter",
   label: "Newsletter",
   supports: (e) =>
     e.event_type === "newsletter.campaign.send" ||
     e.event_type === "newsletter.campaign.cancel",
+
   async publish(ctx: PublishingContext): Promise<ChannelResult> {
     const apiKey = Deno.env.get("RESEND_API_KEY");
-    const audienceId =
-      (ctx.channelConfig?.audience_id as string | undefined) ??
-      Deno.env.get("RESEND_AUDIENCE_ID");
     const from =
       (ctx.channelConfig?.from as string | undefined) ??
       Deno.env.get("RESEND_FROM_EMAIL");
 
-    if (!apiKey) {
-      return { status: "skipped", response: { reason: "missing RESEND_API_KEY" } };
-    }
+    if (!apiKey) return { status: "skipped", response: { reason: "missing RESEND_API_KEY" } };
 
     const supabase = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
     const campaignId = ctx.event.payload?.campaign_id as string | undefined;
-    if (!campaignId) {
-      return { status: "failed", error: "campaign_id missing in payload" };
-    }
+    if (!campaignId) return { status: "failed", error: "campaign_id missing in payload" };
 
-    // ---- CANCEL --------------------------------------------------------
+    /* ---------------------------- CANCEL ---------------------------- */
     if (ctx.event.event_type === "newsletter.campaign.cancel") {
       const { data: c } = await supabase
         .from("newsletter_campaigns")
@@ -40,38 +108,31 @@ export const newsletterChannel: ChannelAdapter = {
         .eq("id", campaignId)
         .maybeSingle();
       if (!c) return { status: "failed", error: "campaign not found" };
-      if (!c.broadcast_id) {
-        await supabase
-          .from("newsletter_campaigns")
-          .update({ status: "canceled" })
-          .eq("id", campaignId);
-        return { status: "success", response: { canceled: true, remote: false } };
+      if (c.status === "sent") {
+        return { status: "skipped", response: { reason: "campaign already sent" } };
       }
-      try {
-        const res = await fetch(`${RESEND}/broadcasts/${c.broadcast_id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
-        const body = await res.json().catch(() => ({}));
-        await supabase
-          .from("newsletter_campaigns")
-          .update({ status: "canceled" })
-          .eq("id", campaignId);
-        return { status: "success", response: { canceled: true, remote: body } };
-      } catch (err) {
-        return { status: "failed", error: err instanceof Error ? err.message : String(err) };
+      let remote: unknown = false;
+      if (c.broadcast_id) {
+        try {
+          const res = await fetch(`${RESEND}/broadcasts/${c.broadcast_id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          remote = await res.json().catch(() => ({}));
+        } catch (err) {
+          remote = { error: err instanceof Error ? err.message : String(err) };
+        }
       }
+      await supabase
+        .from("newsletter_campaigns")
+        .update({ status: "canceled" })
+        .eq("id", campaignId);
+      return { status: "success", response: { canceled: true, remote } };
     }
 
-    // ---- SEND ----------------------------------------------------------
-    if (!from) {
-      return {
-        status: "skipped",
-        response: { reason: "missing RESEND_FROM_EMAIL" },
-      };
-    }
+    /* ----------------------------- SEND ----------------------------- */
+    if (!from) return { status: "skipped", response: { reason: "missing RESEND_FROM_EMAIL" } };
 
-    // Load campaign + products
     const { data: campaign, error: campErr } = await supabase
       .from("newsletter_campaigns")
       .select("*")
@@ -80,11 +141,17 @@ export const newsletterChannel: ChannelAdapter = {
     if (campErr || !campaign) {
       return { status: "failed", error: campErr?.message ?? "campaign not found" };
     }
-    if (campaign.status === "sent") {
+    if (campaign.status === "canceled") {
+      return { status: "skipped", response: { reason: "campaign canceled" } };
+    }
+
+    // Reenvio apenas dos falhados: `retry_failed_only` na payload do evento.
+    const retryFailedOnly = ctx.event.payload?.retry_failed_only === true;
+    if (campaign.status === "sent" && !retryFailedOnly) {
       return { status: "skipped", response: { reason: "campaign already sent" } };
     }
 
-    // Fetch products (preserve admin order)
+    // Produtos (ordem definida pelo admin)
     const productIds: string[] = campaign.product_ids ?? [];
     let products: Record<string, unknown>[] = [];
     if (productIds.length > 0) {
@@ -96,232 +163,154 @@ export const newsletterChannel: ChannelAdapter = {
       products = productIds.map((id) => byId.get(id)).filter(Boolean) as any;
     }
 
-    const html = campaign.content_html && campaign.content_html.length > 100
-      ? campaign.content_html
-      : renderNewsletterHtml({
-          campaign: {
-            title: campaign.title,
-            subject: campaign.subject,
-            preheader: campaign.preheader,
-            content_json: campaign.content_json,
-          },
-          products,
-        });
+    // Template reutilizável (cabeçalho / rodapé / intro / fecho)
+    let template: Record<string, any> | null = null;
+    if (campaign.template_id) {
+      const { data: t } = await supabase
+        .from("newsletter_templates").select("*").eq("id", campaign.template_id).maybeSingle();
+      template = t ?? null;
+    }
 
-    // Mark as sending (best-effort)
-    await supabase
-      .from("newsletter_campaigns")
-      .update({ status: "sending" })
-      .eq("id", campaignId);
+    const html = renderNewsletterHtml({
+      campaign: {
+        title: campaign.title,
+        subject: campaign.subject,
+        preheader: campaign.preheader,
+        content_json: campaign.content_json,
+      },
+      template: template?.content_json ?? null,
+      products,
+    });
 
-    // ---- Segmented send (campaign bound to a list) ----------------------
-    // Uses Resend batch e-mails so each recipient gets its own message with a
-    // personal unsubscribe link. Falls back to audience broadcast when no list.
-    if (campaign.list_id) {
+    // Destinatários já entregues com sucesso — nunca reenviar.
+    const { data: doneRows } = await supabase
+      .from("newsletter_sends")
+      .select("subscriber_id")
+      .eq("campaign_id", campaignId)
+      .eq("status", "sent")
+      .limit(10000);
+    const alreadySent = new Set(
+      ((doneRows ?? []) as any[]).map((r) => r.subscriber_id).filter(Boolean),
+    );
+
+    let recipients = await resolveRecipients(supabase, campaign);
+    const totalAudience = recipients.length;
+    recipients = recipients.filter((r) => !alreadySent.has(r.id));
+
+    if (recipients.length === 0) {
+      await supabase.from("newsletter_campaigns").update({
+        status: totalAudience > 0 ? "sent" : "failed",
+        last_error: totalAudience > 0 ? null : "audiência sem subscritores ativos",
+      }).eq("id", campaignId);
+      return {
+        status: totalAudience > 0 ? "success" : "failed",
+        response: { reason: totalAudience > 0 ? "all recipients already delivered" : "empty audience" },
+        error: totalAudience > 0 ? undefined : "audiência sem subscritores ativos",
+      };
+    }
+
+    const startedAt = new Date();
+    await supabase.from("newsletter_campaigns").update({
+      status: "sending",
+      send_started_at: startedAt.toISOString(),
+      recipients_count: totalAudience,
+    }).eq("id", campaignId);
+
+    const batches: Record<string, unknown>[] = [];
+    let sent = 0;
+    let failed = 0;
+
+    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+      const chunk = recipients.slice(i, i + BATCH_SIZE);
+      let ok = false;
+      let json: any = {};
+      let status = 0;
       try {
-        const { data: members } = await supabase
-          .from("newsletter_list_subscribers")
-          .select("subscriber:newsletter_subscribers(id, email, status, unsubscribe_token)")
-          .eq("list_id", campaign.list_id);
-
-        const recipients = ((members ?? []) as any[])
-          .map((m) => m.subscriber)
-          .filter((s) => s && s.status === "active");
-
-        if (recipients.length === 0) {
-          await supabase
-            .from("newsletter_campaigns")
-            .update({ status: "failed", last_error: "list has no active subscribers" })
-            .eq("id", campaignId);
-          return { status: "failed", error: "list has no active subscribers" };
-        }
-
-        const results: Record<string, unknown>[] = [];
-        let failures = 0;
-        // Resend batch endpoint accepts up to 100 messages per call.
-        for (let i = 0; i < recipients.length; i += 100) {
-          const chunk = recipients.slice(i, i + 100);
-          const res = await fetch(`${RESEND}/emails/batch`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify(
-              chunk.map((s: any) => ({
-                from,
-                to: [s.email],
-                subject: campaign.subject,
-                html: html.replaceAll(
-                  "{{RESEND_UNSUBSCRIBE_URL}}",
-                  `${ctx.supabaseUrl}/functions/v1/newsletter-unsubscribe?token=${s.unsubscribe_token}`,
-                ),
-              })),
-            ),
-          });
-          const json = await res.json().catch(() => ({}));
-          if (!res.ok) failures += chunk.length;
-          results.push({ ok: res.ok, status: res.status, body: json });
-
-          await supabase.from("newsletter_sends").insert(
-            chunk.map((s: any) => ({
-              campaign_id: campaignId,
-              subscriber_id: s.id,
-              status: res.ok ? "sent" : "failed",
-              error: res.ok ? null : (json?.message ?? `HTTP ${res.status}`),
-              raw_response: json,
-              sent_at: res.ok ? new Date().toISOString() : null,
+        const res = await fetch(`${RESEND}/emails/batch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify(
+            chunk.map((s) => ({
+              from,
+              to: [s.email],
+              subject: campaign.subject,
+              html: html.replaceAll(
+                "{{{RESEND_UNSUBSCRIBE_URL}}}",
+                unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
+              ).replaceAll(
+                "{{RESEND_UNSUBSCRIBE_URL}}",
+                unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
+              ),
             })),
-          );
-        }
-
-        const sentCount = recipients.length - failures;
-        await supabase
-          .from("newsletter_campaigns")
-          .update({
-            status: failures === recipients.length ? "failed" : "sent",
-            sent_at: new Date().toISOString(),
-            content_html: html,
-            last_error: failures > 0 ? `${failures} destinatários falharam` : null,
-            stats: { recipients: recipients.length, sent: sentCount, failed: failures, mode: "list_batch" },
-          })
-          .eq("id", campaignId);
-
-        return {
-          status: failures === recipients.length ? "failed" : "success",
-          request: { mode: "list_batch", list_id: campaign.list_id, recipients: recipients.length, from },
-          response: { batches: results, sent: sentCount, failed: failures },
-          error: failures > 0 ? `${failures} destinatários falharam` : undefined,
-        };
+          ),
+        });
+        status = res.status;
+        json = await res.json().catch(() => ({}));
+        ok = res.ok;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        await supabase
-          .from("newsletter_campaigns")
-          .update({ status: "failed", last_error: msg })
-          .eq("id", campaignId);
-        return { status: "failed", error: msg };
+        json = { error: err instanceof Error ? err.message : String(err) };
       }
-    }
 
-    if (!audienceId) {
-      await supabase
-        .from("newsletter_campaigns")
-        .update({ status: "draft" })
-        .eq("id", campaignId);
-      return {
-        status: "skipped",
-        response: { reason: "missing RESEND_AUDIENCE_ID (or select a list for segmented send)" },
-      };
-    }
+      ok ? (sent += chunk.length) : (failed += chunk.length);
+      batches.push({ ok, status, size: chunk.length, body: json });
 
-    try {
-      const createRes = await fetch(`${RESEND}/broadcasts`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          audience_id: audienceId,
-          from,
-          subject: campaign.subject,
-          html,
-        }),
-      });
-      const createJson = await createRes.json().catch(() => ({}));
-      if (!createRes.ok || !createJson?.id) {
-        await supabase
-          .from("newsletter_campaigns")
-          .update({ status: "failed", last_error: createJson?.message ?? `HTTP ${createRes.status}` })
-          .eq("id", campaignId);
-        await supabase.from("newsletter_sends").insert({
+      const ids = (json?.data ?? []) as any[];
+      // Insert (não upsert): o índice único parcial garante que um envio
+      // bem-sucedido nunca é duplicado; falhas ficam no histórico.
+      const { error: logErr } = await supabase.from("newsletter_sends").insert(
+        chunk.map((s, idx) => ({
           campaign_id: campaignId,
-          status: "failed",
-          error: createJson?.message ?? `HTTP ${createRes.status}`,
-          raw_response: createJson,
-        });
-        return {
-          status: "failed",
-          request: { step: "create_broadcast", audienceId, from },
-          response: createJson,
-          error: createJson?.message ?? `HTTP ${createRes.status}`,
-        };
-      }
-
-      const broadcastId = createJson.id as string;
-
-      const sendRes = await fetch(`${RESEND}/broadcasts/${broadcastId}/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({}),
-      });
-      const sendJson = await sendRes.json().catch(() => ({}));
-      if (!sendRes.ok) {
-        await supabase
-          .from("newsletter_campaigns")
-          .update({
-            status: "failed",
-            broadcast_id: broadcastId,
-            last_error: sendJson?.message ?? `HTTP ${sendRes.status}`,
-          })
-          .eq("id", campaignId);
-        await supabase.from("newsletter_sends").insert({
-          campaign_id: campaignId,
-          status: "failed",
-          broadcast_id: broadcastId,
-          error: sendJson?.message ?? `HTTP ${sendRes.status}`,
-          raw_response: sendJson,
-        });
-        return {
-          status: "failed",
-          request: { step: "send_broadcast", broadcast_id: broadcastId },
-          response: sendJson,
-          error: sendJson?.message ?? `HTTP ${sendRes.status}`,
-        };
-      }
-
-      // Recipient count (best-effort — audience size not returned by Resend send call).
-      const { count: activeCount } = await supabase
-        .from("newsletter_subscribers")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "active");
-
-      await supabase
-        .from("newsletter_campaigns")
-        .update({
-          status: "sent",
-          broadcast_id: broadcastId,
-          sent_at: new Date().toISOString(),
-          content_html: html,
-          last_error: null,
-          stats: { audience_size_at_send: activeCount ?? null },
-        })
-        .eq("id", campaignId);
-
-      await supabase.from("newsletter_sends").insert({
-        campaign_id: campaignId,
-        status: "sent",
-        broadcast_id: broadcastId,
-        recipients_count: activeCount ?? null,
-        sent_at: new Date().toISOString(),
-        raw_response: { create: createJson, send: sendJson },
-      });
-
-      return {
-        status: "success",
-        request: { audienceId, from, subject: campaign.subject, broadcast_id: broadcastId },
-        response: { broadcast: createJson, send: sendJson, recipients: activeCount ?? null },
-      };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await supabase
-        .from("newsletter_campaigns")
-        .update({ status: "failed", last_error: msg })
-        .eq("id", campaignId);
-      return { status: "failed", error: msg };
+          subscriber_id: s.id,
+          channel_key: "newsletter",
+          status: ok ? "sent" : "failed",
+          resend_message_id: ok ? (ids[idx]?.id ?? null) : null,
+          error: ok ? null : (json?.message ?? `HTTP ${status}`),
+          raw_response: json,
+          sent_at: ok ? new Date().toISOString() : null,
+        })),
+      );
+      if (logErr) console.warn("[newsletter] failed to log sends", logErr.message);
     }
+
+    const finishedAt = new Date();
+    const durationMs = finishedAt.getTime() - startedAt.getTime();
+    const finalStatus = sent === 0 ? "failed" : "sent";
+
+    await supabase.from("newsletter_campaigns").update({
+      status: finalStatus,
+      sent_at: finishedAt.toISOString(),
+      send_finished_at: finishedAt.toISOString(),
+      duration_ms: durationMs,
+      content_html: html,
+      recipients_count: totalAudience,
+      sent_count: (campaign.sent_count ?? 0) + sent,
+      delivered_count: (campaign.delivered_count ?? 0) + sent,
+      failed_count: failed,
+      last_error: failed > 0 ? `${failed} destinatários falharam` : null,
+      stats: {
+        mode: campaign.audience_mode ?? "all",
+        audience: totalAudience,
+        attempted: recipients.length,
+        skipped_already_sent: totalAudience - recipients.length,
+        sent,
+        failed,
+        duration_ms: durationMs,
+        retry_failed_only: retryFailedOnly,
+      },
+    }).eq("id", campaignId);
+
+    return {
+      status: finalStatus === "failed" ? "failed" : "success",
+      request: {
+        mode: campaign.audience_mode ?? "all",
+        list_ids: campaign.list_ids ?? [],
+        tags: campaign.tags ?? [],
+        audience: totalAudience,
+        attempted: recipients.length,
+        from,
+      },
+      response: { batches, sent, failed, duration_ms: durationMs },
+      error: failed > 0 ? `${failed} destinatários falharam` : undefined,
+    };
   },
 };

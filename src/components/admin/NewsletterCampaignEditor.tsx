@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Loader2, Monitor, Save, Send, Smartphone } from "lucide-react";
+import { ArrowLeft, CalendarClock, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,9 +22,12 @@ import {
   fetchCampaignPreview,
   useSaveCampaign,
   useSendCampaign,
+  useScheduleCampaign,
+  sendTestEmail,
   usePublishableProducts,
   useLists,
   useTemplates,
+  useSubscribers,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
 
@@ -44,6 +47,14 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const [outro, setOutro] = useState(campaign?.content_json?.outro ?? "");
   const [productIds, setProductIds] = useState<string[]>(campaign?.product_ids ?? []);
   const [listId, setListId] = useState<string | null>(campaign?.list_id ?? null);
+  const [audienceMode, setAudienceMode] = useState<string>(campaign?.audience_mode ?? "all");
+  const [listIds, setListIds] = useState<string[]>(campaign?.list_ids ?? []);
+  const [tags, setTags] = useState<string[]>(campaign?.tags ?? []);
+  const [testEmail, setTestEmail] = useState("");
+  const [testSending, setTestSending] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState("");
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(campaign?.template_id ?? null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -52,9 +63,17 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
 
   const save = useSaveCampaign();
   const send = useSendCampaign();
+  const schedule = useScheduleCampaign();
   const products = usePublishableProducts();
   const lists = useLists();
   const templates = useTemplates();
+  const subscribers = useSubscribers();
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of subscribers.data ?? []) (s.tags ?? []).forEach((t) => set.add(t));
+    return [...set].sort();
+  }, [subscribers.data]);
 
   const draft = useMemo(
     () => ({
@@ -66,8 +85,11 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
       content_json: { intro, outro, overrides: campaign?.content_json?.overrides ?? {} },
       list_id: listId,
       template_id: templateId,
+      audience_mode: audienceMode,
+      list_ids: listIds,
+      tags,
     }),
-    [campaign, title, subject, preheader, intro, outro, productIds, listId, templateId],
+    [campaign, title, subject, preheader, intro, outro, productIds, listId, templateId, audienceMode, listIds, tags],
   );
 
   const applyTemplate = (id: string) => {
@@ -81,8 +103,6 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     toast({ title: "Template aplicado", description: tpl.name });
   };
 
-  const selectedList = (lists.data ?? []).find((l) => l.id === listId) ?? null;
-
   const refreshPreview = async () => {
     setPreviewLoading(true);
     try {
@@ -93,9 +113,14 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           preheader: draft.preheader,
           product_ids: draft.product_ids,
           content_json: draft.content_json,
+          template_id: templateId,
+          audience_mode: audienceMode,
+          list_ids: listIds,
+          tags,
         },
       });
       setPreviewHtml(res.html);
+      setRecipientCount(res.recipient_count ?? null);
     } catch (err: any) {
       toast({
         title: "Falha no preview",
@@ -171,6 +196,9 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               <Button variant="outline" onClick={() => persistDraft("draft")} disabled={save.isPending}>
                 <Save className="h-4 w-4 mr-1" /> Guardar rascunho
               </Button>
+              <Button variant="outline" onClick={() => setScheduleOpen(true)} disabled={save.isPending}>
+                <CalendarClock className="h-4 w-4 mr-1" /> Agendar
+              </Button>
               <Button
                 onClick={async () => {
                   const saved = await persistDraft("ready");
@@ -223,23 +251,81 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
             <CardHeader><CardTitle className="text-base">Destinatários e template</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Label>Lista de destinatários</Label>
+                <Label>Audiência</Label>
                 <select
                   className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={listId ?? ""}
+                  value={audienceMode}
                   disabled={isReadOnly}
-                  onChange={(e) => setListId(e.target.value || null)}
+                  onChange={(e) => setAudienceMode(e.target.value)}
                 >
-                  <option value="">Audiência completa (Resend broadcast)</option>
-                  {(lists.data ?? []).filter((l) => l.is_active).map((l) => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
-                  ))}
+                  <option value="all">Todos os subscritores ativos</option>
+                  <option value="lists">Listas selecionadas</option>
+                  <option value="tags">Etiquetas selecionadas</option>
+                  <option value="mixed">Listas + etiquetas (união)</option>
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {selectedList
-                    ? "Envio segmentado: cada subscritor recebe um email individual com link de cancelamento próprio."
-                    : "Envio para toda a audiência configurada no Resend."}
+                  Cada subscritor recebe um email individual com link de cancelamento próprio. Destinatários repetidos são eliminados automaticamente.
                 </p>
+              </div>
+
+              {(audienceMode === "lists" || audienceMode === "mixed") && (
+                <div>
+                  <Label>Listas</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {(lists.data ?? []).filter((l) => l.is_active && !l.archived_at).map((l) => {
+                      const on = listIds.includes(l.id);
+                      return (
+                        <Badge
+                          key={l.id}
+                          variant={on ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            !isReadOnly &&
+                            setListIds((prev) => (on ? prev.filter((x) => x !== l.id) : [...prev, l.id]))
+                          }
+                        >
+                          {l.name}
+                        </Badge>
+                      );
+                    })}
+                    {(lists.data ?? []).length === 0 && (
+                      <span className="text-xs text-muted-foreground">Ainda não existem listas.</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {(audienceMode === "tags" || audienceMode === "mixed") && (
+                <div>
+                  <Label>Etiquetas</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {allTags.map((t) => {
+                      const on = tags.includes(t);
+                      return (
+                        <Badge
+                          key={t}
+                          variant={on ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            !isReadOnly &&
+                            setTags((prev) => (on ? prev.filter((x) => x !== t) : [...prev, t]))
+                          }
+                        >
+                          {t}
+                        </Badge>
+                      );
+                    })}
+                    {allTags.length === 0 && (
+                      <span className="text-xs text-muted-foreground">Sem etiquetas nos subscritores.</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs">
+                Destinatários estimados:{" "}
+                <strong>{recipientCount ?? "—"}</strong>{" "}
+                <span className="text-muted-foreground">(atualiza com o preview)</span>
               </div>
               <div>
                 <Label>Template base</Label>
@@ -254,6 +340,45 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <Label>Enviar teste para</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    type="email"
+                    placeholder="email@exemplo.pt"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                  />
+                  <Button
+                    variant="outline"
+                    disabled={!testEmail.trim() || testSending}
+                    onClick={async () => {
+                      setTestSending(true);
+                      try {
+                        await sendTestEmail({
+                          test_email: testEmail.trim(),
+                          draft: {
+                            title: draft.title,
+                            subject: draft.subject,
+                            preheader: draft.preheader,
+                            product_ids: draft.product_ids,
+                            content_json: draft.content_json,
+                            template_id: templateId,
+                          },
+                        });
+                        toast({ title: "Teste enviado", description: testEmail.trim() });
+                      } catch (err: any) {
+                        toast({ title: "Falha no envio de teste", description: String(err?.message ?? err), variant: "destructive" });
+                      } finally {
+                        setTestSending(false);
+                      }
+                    }}
+                  >
+                    {testSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube2 className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -363,7 +488,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
             <AlertDialogDescription>
-              A campanha <strong>{draft.title}</strong> será enviada para <strong>{subscriberCount}</strong> subscritores ativos.
+              A campanha <strong>{draft.title}</strong> será enviada para{" "}
+              <strong>{recipientCount ?? subscriberCount}</strong> subscritores da audiência selecionada.
               Assunto: <em>{draft.subject}</em>. Confirmas o envio?
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -387,6 +513,45 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               }}
             >
               Enviar agora
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Agendar envio</AlertDialogTitle>
+            <AlertDialogDescription>
+              A campanha entra na fila com estado <em>scheduled</em> e é enviada automaticamente na data escolhida.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="px-1">
+            <Label>Data e hora</Label>
+            <Input
+              type="datetime-local"
+              value={scheduleAt}
+              onChange={(e) => setScheduleAt(e.target.value)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!scheduleAt}
+              onClick={async () => {
+                const when = new Date(scheduleAt);
+                if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) {
+                  toast({ title: "Data inválida", description: "Escolhe uma data futura.", variant: "destructive" });
+                  return;
+                }
+                setScheduleOpen(false);
+                const saved = await persistDraft("ready");
+                await schedule.mutateAsync({ campaignId: saved.id, when: when.toISOString() });
+                toast({ title: "Envio agendado", description: when.toLocaleString("pt-PT") });
+                onClose();
+              }}
+            >
+              Agendar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

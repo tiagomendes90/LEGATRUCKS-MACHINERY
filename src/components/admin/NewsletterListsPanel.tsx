@@ -7,13 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Users } from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   useLists,
   useListMemberCounts,
   useSaveList,
   useDeleteList,
+  useArchiveList,
+  useListUsage,
   useSetListMembership,
   useSubscribers,
 } from "@/hooks/useNewsletter";
@@ -34,10 +36,13 @@ export default function NewsletterListsPanel() {
   const subscribers = useSubscribers();
   const saveList = useSaveList();
   const deleteList = useDeleteList();
+  const archiveList = useArchiveList();
+  const usage = useListUsage();
   const membership = useSetListMembership();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedList, setSelectedList] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
@@ -53,12 +58,45 @@ export default function NewsletterListsPanel() {
   const create = async () => {
     if (!name.trim()) return;
     try {
-      await saveList.mutateAsync({ name: name.trim(), key: slugify(name), description: description.trim() || null });
+      await saveList.mutateAsync({
+        id: editingId ?? undefined,
+        name: name.trim(),
+        key: slugify(name),
+        description: description.trim() || null,
+      } as any);
       setName("");
       setDescription("");
-      toast({ title: "Lista criada" });
+      setEditingId(null);
+      toast({ title: editingId ? "Lista atualizada" : "Lista criada" });
     } catch (err: any) {
-      toast({ title: "Falha ao criar lista", description: String(err?.message ?? err), variant: "destructive" });
+      toast({ title: "Falha ao guardar lista", description: String(err?.message ?? err), variant: "destructive" });
+    }
+  };
+
+  const removeList = async (id: string) => {
+    const used = usage.data?.[id] ?? 0;
+    const members = counts.data?.[id]?.total ?? 0;
+    if (used > 0) {
+      toast({
+        title: "Lista em uso",
+        description: `Está associada a ${used} campanha(s). Arquiva-a em vez de eliminar.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (members > 0) {
+      toast({
+        title: "Lista com membros",
+        description: `Remove primeiro os ${members} subscritores associados.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await deleteList.mutateAsync(id);
+      toast({ title: "Lista eliminada" });
+    } catch (err: any) {
+      toast({ title: "Falha ao eliminar", description: String(err?.message ?? err), variant: "destructive" });
     }
   };
 
@@ -76,13 +114,14 @@ export default function NewsletterListsPanel() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Chave</TableHead>
                 <TableHead>Membros ativos</TableHead>
+                <TableHead>Campanhas</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {(lists.data ?? []).length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
                     Ainda não existem listas.
                   </TableCell>
                 </TableRow>
@@ -92,13 +131,37 @@ export default function NewsletterListsPanel() {
                     <TableCell className="font-medium">
                       {l.name}
                       {l.is_default && <Badge variant="secondary" className="ml-2">Padrão</Badge>}
+                      {l.archived_at && <Badge variant="outline" className="ml-2">Arquivada</Badge>}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">{l.key}</TableCell>
                     <TableCell>{counts.data?.[l.id]?.active ?? 0}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => setSelectedList(l.id)}>Gerir membros</Button>
+                    <TableCell className="text-muted-foreground text-sm">{usage.data?.[l.id] ?? 0}</TableCell>
+                    <TableCell className="text-right space-x-1">
+                      <Button size="sm" variant="outline" onClick={() => setSelectedList(l.id)}>Membros</Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title="Editar"
+                        onClick={() => {
+                          setEditingId(l.id);
+                          setName(l.name);
+                          setDescription(l.description ?? "");
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title={l.archived_at ? "Restaurar" : "Arquivar"}
+                        onClick={() => archiveList.mutate({ id: l.id, archived: !l.archived_at })}
+                      >
+                        {l.archived_at
+                          ? <ArchiveRestore className="h-3.5 w-3.5" />
+                          : <Archive className="h-3.5 w-3.5" />}
+                      </Button>
                       {!l.is_default && (
-                        <Button size="sm" variant="ghost" onClick={() => deleteList.mutate(l.id)}>
+                        <Button size="sm" variant="ghost" title="Eliminar" onClick={() => removeList(l.id)}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       )}
@@ -113,7 +176,7 @@ export default function NewsletterListsPanel() {
 
       <div className="space-y-4">
         <Card>
-          <CardHeader><CardTitle className="text-base">Nova lista</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{editingId ? "Editar lista" : "Nova lista"}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div>
               <Label>Nome</Label>
@@ -123,9 +186,16 @@ export default function NewsletterListsPanel() {
               <Label>Descrição</Label>
               <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
-            <Button onClick={create} disabled={saveList.isPending || !name.trim()} className="w-full">
-              <Plus className="h-4 w-4 mr-1" /> Criar lista
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={create} disabled={saveList.isPending || !name.trim()} className="flex-1">
+                <Plus className="h-4 w-4 mr-1" /> {editingId ? "Guardar" : "Criar lista"}
+              </Button>
+              {editingId && (
+                <Button variant="outline" onClick={() => { setEditingId(null); setName(""); setDescription(""); }}>
+                  Cancelar
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
 

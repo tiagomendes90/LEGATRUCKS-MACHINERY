@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Copy, Loader2, Mail, Plus, Send, Trash2, XCircle } from "lucide-react";
+import { Copy, History, Loader2, Mail, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   useCampaigns,
@@ -43,6 +43,8 @@ import {
   useAdminUnsubscribe,
   useCampaignSends,
   useDuplicateCampaign,
+  useRetryFailedSends,
+  useNewsletterAudit,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
 import { NewsletterCampaignEditor } from "./NewsletterCampaignEditor";
@@ -77,6 +79,7 @@ export default function NewsletterPanel() {
   const send = useSendCampaign();
   const cancel = useCancelCampaign();
   const duplicate = useDuplicateCampaign();
+  const retryFailed = useRetryFailedSends();
   const del = useDeleteCampaign();
   const adminUnsub = useAdminUnsubscribe();
 
@@ -131,6 +134,7 @@ export default function NewsletterPanel() {
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="subscribers">Subscritores</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="audit">Auditoria</TabsTrigger>
         </TabsList>
 
         {/* Campanhas */}
@@ -154,6 +158,8 @@ export default function NewsletterPanel() {
                     <TableHead>Título</TableHead>
                     <TableHead>Assunto</TableHead>
                     <TableHead>Produtos</TableHead>
+                    <TableHead>Audiência</TableHead>
+                    <TableHead>Enviados / Falhas</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Atualizado</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -162,13 +168,13 @@ export default function NewsletterPanel() {
                 <TableBody>
                   {campaigns.isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> A carregar…
                       </TableCell>
                     </TableRow>
                   ) : (campaigns.data ?? []).length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                         Ainda não existem campanhas. Cria a primeira newsletter.
                       </TableCell>
                     </TableRow>
@@ -180,6 +186,22 @@ export default function NewsletterPanel() {
                           {c.subject}
                         </TableCell>
                         <TableCell>{c.product_ids?.length ?? 0}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {c.audience_mode === "all"
+                            ? "Todos"
+                            : c.audience_mode === "tags"
+                              ? `${c.tags?.length ?? 0} etiqueta(s)`
+                              : c.audience_mode === "mixed"
+                                ? `${c.list_ids?.length ?? 0} lista(s) + ${c.tags?.length ?? 0} etiqueta(s)`
+                                : `${c.list_ids?.length ?? 0} lista(s)`}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <span className="text-emerald-600 font-medium">{c.sent_count ?? 0}</span>
+                          {" / "}
+                          <span className={c.failed_count ? "text-destructive font-medium" : "text-muted-foreground"}>
+                            {c.failed_count ?? 0}
+                          </span>
+                        </TableCell>
                         <TableCell>{statusBadge(c.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true, locale: pt })}
@@ -207,6 +229,19 @@ export default function NewsletterPanel() {
                               onClick={() => cancel.mutate(c.id)}
                             >
                               <XCircle className="h-3.5 w-3.5 mr-1" /> Cancelar
+                            </Button>
+                          )}
+                          {(c.failed_count ?? 0) > 0 && c.status !== "sending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              title="Reenviar apenas os destinatários que falharam"
+                              onClick={async () => {
+                                await retryFailed.mutateAsync(c.id);
+                                toast({ title: "Reenvio na fila", description: "Apenas os destinatários falhados serão contactados." });
+                              }}
+                            >
+                              <RefreshCw className="h-3.5 w-3.5 mr-1" /> Reenviar falhados
                             </Button>
                           )}
                           {c.status !== "sent" && (
@@ -248,6 +283,11 @@ export default function NewsletterPanel() {
         {/* Histórico */}
         <TabsContent value="history" className="space-y-4">
           <HistoryPanel campaigns={campaigns.data ?? []} />
+        </TabsContent>
+
+        {/* Auditoria */}
+        <TabsContent value="audit" className="space-y-4">
+          <AuditPanel />
         </TabsContent>
       </Tabs>
 
@@ -435,6 +475,9 @@ function SubscribersTable({
 function HistoryPanel({ campaigns }: { campaigns: NewsletterCampaign[] }) {
   const [selected, setSelected] = useState<string | null>(null);
   const sends = useCampaignSends(selected);
+  const campaign = campaigns.find((c) => c.id === selected) ?? null;
+  const failed = (sends.data ?? []).filter((s) => s.status === "failed");
+  const succeeded = (sends.data ?? []).filter((s) => s.status === "sent");
   return (
     <div className="grid md:grid-cols-[280px_1fr] gap-4">
       <Card>
@@ -477,10 +520,34 @@ function HistoryPanel({ campaigns }: { campaigns: NewsletterCampaign[] }) {
             <p className="text-sm text-muted-foreground">Seleciona uma campanha para ver o histórico técnico.</p>
           ) : sends.isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (sends.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem registos.</p>
           ) : (
-            (sends.data ?? []).map((s) => (
+            <>
+              {campaign && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                  {[
+                    ["Audiência", campaign.recipients_count ?? 0],
+                    ["Entregues", campaign.delivered_count ?? succeeded.length],
+                    ["Falhados", campaign.failed_count ?? failed.length],
+                    ["Abertos", campaign.opened_count ?? 0],
+                    ["Cliques", campaign.clicked_count ?? 0],
+                    ["Início", campaign.send_started_at ? new Date(campaign.send_started_at).toLocaleString("pt-PT") : "—"],
+                    ["Fim", campaign.send_finished_at ? new Date(campaign.send_finished_at).toLocaleString("pt-PT") : "—"],
+                    ["Duração", campaign.duration_ms != null ? `${(campaign.duration_ms / 1000).toFixed(1)}s` : "—"],
+                  ].map(([label, value]) => (
+                    <div key={String(label)} className="rounded-md border p-2">
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <p className="font-medium truncate">{String(value)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {(sends.data ?? []).length === 0 && (
+                <p className="text-sm text-muted-foreground">Sem registos de envio individuais.</p>
+              )}
+              {failed.length > 0 && (
+                <p className="text-sm text-destructive">{failed.length} envios falhados — usa "Reenviar falhados" na lista de campanhas.</p>
+              )}
+              {(sends.data ?? []).slice(0, 50).map((s) => (
               <div key={s.id} className="border rounded-md p-3">
                 <div className="flex items-center justify-between text-sm">
                   <div>
@@ -501,10 +568,79 @@ function HistoryPanel({ campaigns }: { campaigns: NewsletterCampaign[] }) {
                   </pre>
                 </details>
               </div>
-            ))
+              ))}
+            </>
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/** Histórico completo de atividade (triggers SQL + ações do admin). */
+function AuditPanel() {
+  const audit = useNewsletterAudit();
+  const labels: Record<string, string> = {
+    "campaign.created": "Campanha criada",
+    "campaign.updated": "Campanha editada",
+    "campaign.status_changed": "Estado alterado",
+    "campaign.deleted": "Campanha eliminada",
+    "campaign.test_sent": "Email de teste enviado",
+    "list.created": "Lista criada",
+    "list.updated": "Lista editada",
+    "list.deleted": "Lista eliminada",
+    "template.created": "Template criado",
+    "template.updated": "Template editado",
+    "template.deleted": "Template eliminado",
+  };
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <History className="h-4 w-4" /> Auditoria
+        </CardTitle>
+        <CardDescription>Registo completo de criações, edições, envios, agendamentos e cancelamentos.</CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Quando</TableHead>
+              <TableHead>Entidade</TableHead>
+              <TableHead>Ação</TableHead>
+              <TableHead>Detalhes</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {audit.isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> A carregar…
+                </TableCell>
+              </TableRow>
+            ) : (audit.data ?? []).length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
+                  Sem atividade registada.
+                </TableCell>
+              </TableRow>
+            ) : (
+              (audit.data ?? []).map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    {new Date(a.created_at).toLocaleString("pt-PT")}
+                  </TableCell>
+                  <TableCell className="capitalize">{a.entity_type}</TableCell>
+                  <TableCell>{labels[a.action] ?? a.action}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground max-w-[420px] truncate">
+                    {JSON.stringify(a.details)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
