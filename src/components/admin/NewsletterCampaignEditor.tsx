@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Loader2, Monitor, Save, Send, Smartphone } from "lucide-react";
+import { ArrowLeft, CalendarClock, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,9 +22,12 @@ import {
   fetchCampaignPreview,
   useSaveCampaign,
   useSendCampaign,
+  useScheduleCampaign,
+  sendTestEmail,
   usePublishableProducts,
   useLists,
   useTemplates,
+  useSubscribers,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
 
@@ -44,6 +47,14 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const [outro, setOutro] = useState(campaign?.content_json?.outro ?? "");
   const [productIds, setProductIds] = useState<string[]>(campaign?.product_ids ?? []);
   const [listId, setListId] = useState<string | null>(campaign?.list_id ?? null);
+  const [audienceMode, setAudienceMode] = useState<string>(campaign?.audience_mode ?? "all");
+  const [listIds, setListIds] = useState<string[]>(campaign?.list_ids ?? []);
+  const [tags, setTags] = useState<string[]>(campaign?.tags ?? []);
+  const [testEmail, setTestEmail] = useState("");
+  const [testSending, setTestSending] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState("");
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(campaign?.template_id ?? null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -52,9 +63,17 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
 
   const save = useSaveCampaign();
   const send = useSendCampaign();
+  const schedule = useScheduleCampaign();
   const products = usePublishableProducts();
   const lists = useLists();
   const templates = useTemplates();
+  const subscribers = useSubscribers();
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of subscribers.data ?? []) (s.tags ?? []).forEach((t) => set.add(t));
+    return [...set].sort();
+  }, [subscribers.data]);
 
   const draft = useMemo(
     () => ({
@@ -66,8 +85,11 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
       content_json: { intro, outro, overrides: campaign?.content_json?.overrides ?? {} },
       list_id: listId,
       template_id: templateId,
+      audience_mode: audienceMode,
+      list_ids: listIds,
+      tags,
     }),
-    [campaign, title, subject, preheader, intro, outro, productIds, listId, templateId],
+    [campaign, title, subject, preheader, intro, outro, productIds, listId, templateId, audienceMode, listIds, tags],
   );
 
   const applyTemplate = (id: string) => {
@@ -81,8 +103,6 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     toast({ title: "Template aplicado", description: tpl.name });
   };
 
-  const selectedList = (lists.data ?? []).find((l) => l.id === listId) ?? null;
-
   const refreshPreview = async () => {
     setPreviewLoading(true);
     try {
@@ -93,9 +113,14 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           preheader: draft.preheader,
           product_ids: draft.product_ids,
           content_json: draft.content_json,
+          template_id: templateId,
+          audience_mode: audienceMode,
+          list_ids: listIds,
+          tags,
         },
       });
       setPreviewHtml(res.html);
+      setRecipientCount(res.recipient_count ?? null);
     } catch (err: any) {
       toast({
         title: "Falha no preview",
