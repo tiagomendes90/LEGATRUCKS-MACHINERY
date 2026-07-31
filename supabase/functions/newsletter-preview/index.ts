@@ -3,6 +3,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { renderNewsletterHtml } from "../_shared/publishing/newsletterTemplate.ts";
+import { resolveRecipients } from "../_shared/publishing/channels/newsletter.ts";
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -37,6 +38,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const campaignId = body?.campaign_id as string | undefined;
+    const testEmail = body?.test_email as string | undefined;
     const draft = body?.draft as
       | {
           title?: string;
@@ -44,6 +46,10 @@ Deno.serve(async (req) => {
           preheader?: string | null;
           product_ids?: string[];
           content_json?: Record<string, unknown> | null;
+          template_id?: string | null;
+          audience_mode?: string;
+          list_ids?: string[];
+          tags?: string[];
         }
       | undefined;
 
@@ -65,6 +71,10 @@ Deno.serve(async (req) => {
         subject: draft.subject ?? "Preview LEGA",
         preheader: draft.preheader ?? null,
         content_json: draft.content_json ?? {},
+        template_id: draft.template_id ?? null,
+        audience_mode: draft.audience_mode ?? "all",
+        list_ids: draft.list_ids ?? [],
+        tags: draft.tags ?? [],
       };
       productIds = draft.product_ids ?? [];
     } else {
@@ -81,6 +91,17 @@ Deno.serve(async (req) => {
       products = productIds.map((id) => byId.get(id)).filter(Boolean) as any;
     }
 
+    // Template reutilizável (cabeçalho / rodapé / intro / fecho)
+    let templateBlocks: Record<string, string> | null = null;
+    if (campaign.template_id) {
+      const { data: t } = await admin
+        .from("newsletter_templates")
+        .select("content_json")
+        .eq("id", campaign.template_id)
+        .maybeSingle();
+      templateBlocks = (t?.content_json ?? null) as any;
+    }
+
     const html = renderNewsletterHtml({
       campaign: {
         title: campaign.title,
@@ -88,15 +109,58 @@ Deno.serve(async (req) => {
         preheader: campaign.preheader,
         content_json: campaign.content_json,
       },
+      template: templateBlocks,
       products,
-      unsubscribeUrl: "#preview-unsubscribe",
+      unsubscribeUrl: testEmail ? "#preview-unsubscribe" : undefined,
     });
+
+    // Estimativa de audiência (mesma resolução usada no envio real).
+    let recipientCount = 0;
+    try {
+      recipientCount = (await resolveRecipients(admin, campaign)).length;
+    } catch (_) {
+      recipientCount = 0;
+    }
+
+    // ---- Envio de teste -------------------------------------------------
+    if (testEmail) {
+      const apiKey = Deno.env.get("RESEND_API_KEY");
+      const from = Deno.env.get("RESEND_FROM_EMAIL");
+      if (!apiKey || !from) return json(400, { error: "missing_resend_config" });
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(testEmail)) {
+        return json(400, { error: "invalid_email" });
+      }
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          from,
+          to: [testEmail],
+          subject: `[TESTE] ${campaign.subject}`,
+          html: html.replaceAll("{{{RESEND_UNSUBSCRIBE_URL}}}", "#teste").replaceAll("{{RESEND_UNSUBSCRIBE_URL}}", "#teste"),
+        }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error(`[newsletter-preview] test send failed [${res.status}]`, JSON.stringify(out));
+        return json(res.status, { error: "test_send_failed", details: out });
+      }
+      await admin.from("newsletter_audit_log").insert({
+        entity_type: "campaign",
+        entity_id: campaignId ?? null,
+        action: "campaign.test_sent",
+        actor_id: uid,
+        details: { to: testEmail, subject: campaign.subject },
+      });
+      return json(200, { ok: true, test_sent: true, to: testEmail, id: out?.id ?? null });
+    }
 
     return json(200, {
       ok: true,
       html,
       subject: campaign.subject,
       product_count: products.length,
+      recipient_count: recipientCount,
     });
   } catch (err) {
     return json(500, { error: "unexpected", detail: err instanceof Error ? err.message : String(err) });
