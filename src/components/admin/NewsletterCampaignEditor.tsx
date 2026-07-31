@@ -248,23 +248,81 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
             <CardHeader><CardTitle className="text-base">Destinatários e template</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Label>Lista de destinatários</Label>
+                <Label>Audiência</Label>
                 <select
                   className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={listId ?? ""}
+                  value={audienceMode}
                   disabled={isReadOnly}
-                  onChange={(e) => setListId(e.target.value || null)}
+                  onChange={(e) => setAudienceMode(e.target.value)}
                 >
-                  <option value="">Audiência completa (Resend broadcast)</option>
-                  {(lists.data ?? []).filter((l) => l.is_active).map((l) => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
-                  ))}
+                  <option value="all">Todos os subscritores ativos</option>
+                  <option value="lists">Listas selecionadas</option>
+                  <option value="tags">Etiquetas selecionadas</option>
+                  <option value="mixed">Listas + etiquetas (união)</option>
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {selectedList
-                    ? "Envio segmentado: cada subscritor recebe um email individual com link de cancelamento próprio."
-                    : "Envio para toda a audiência configurada no Resend."}
+                  Cada subscritor recebe um email individual com link de cancelamento próprio. Destinatários repetidos são eliminados automaticamente.
                 </p>
+              </div>
+
+              {(audienceMode === "lists" || audienceMode === "mixed") && (
+                <div>
+                  <Label>Listas</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {(lists.data ?? []).filter((l) => l.is_active && !l.archived_at).map((l) => {
+                      const on = listIds.includes(l.id);
+                      return (
+                        <Badge
+                          key={l.id}
+                          variant={on ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            !isReadOnly &&
+                            setListIds((prev) => (on ? prev.filter((x) => x !== l.id) : [...prev, l.id]))
+                          }
+                        >
+                          {l.name}
+                        </Badge>
+                      );
+                    })}
+                    {(lists.data ?? []).length === 0 && (
+                      <span className="text-xs text-muted-foreground">Ainda não existem listas.</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {(audienceMode === "tags" || audienceMode === "mixed") && (
+                <div>
+                  <Label>Etiquetas</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {allTags.map((t) => {
+                      const on = tags.includes(t);
+                      return (
+                        <Badge
+                          key={t}
+                          variant={on ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() =>
+                            !isReadOnly &&
+                            setTags((prev) => (on ? prev.filter((x) => x !== t) : [...prev, t]))
+                          }
+                        >
+                          {t}
+                        </Badge>
+                      );
+                    })}
+                    {allTags.length === 0 && (
+                      <span className="text-xs text-muted-foreground">Sem etiquetas nos subscritores.</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs">
+                Destinatários estimados:{" "}
+                <strong>{recipientCount ?? "—"}</strong>{" "}
+                <span className="text-muted-foreground">(atualiza com o preview)</span>
               </div>
               <div>
                 <Label>Template base</Label>
@@ -279,6 +337,45 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <Label>Enviar teste para</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    type="email"
+                    placeholder="email@exemplo.pt"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                  />
+                  <Button
+                    variant="outline"
+                    disabled={!testEmail.trim() || testSending}
+                    onClick={async () => {
+                      setTestSending(true);
+                      try {
+                        await sendTestEmail({
+                          test_email: testEmail.trim(),
+                          draft: {
+                            title: draft.title,
+                            subject: draft.subject,
+                            preheader: draft.preheader,
+                            product_ids: draft.product_ids,
+                            content_json: draft.content_json,
+                            template_id: templateId,
+                          },
+                        });
+                        toast({ title: "Teste enviado", description: testEmail.trim() });
+                      } catch (err: any) {
+                        toast({ title: "Falha no envio de teste", description: String(err?.message ?? err), variant: "destructive" });
+                      } finally {
+                        setTestSending(false);
+                      }
+                    }}
+                  >
+                    {testSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube2 className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
