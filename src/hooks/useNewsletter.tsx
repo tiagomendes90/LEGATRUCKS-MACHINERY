@@ -520,6 +520,9 @@ export function useDuplicateCampaign() {
           template_key: campaign.template_key,
           template_id: campaign.template_id ?? null,
           list_id: campaign.list_id ?? null,
+          list_ids: campaign.list_ids ?? [],
+          tags: campaign.tags ?? [],
+          audience_mode: campaign.audience_mode ?? "all",
           status: "draft",
         })
         .select("*")
