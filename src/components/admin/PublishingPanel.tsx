@@ -116,7 +116,7 @@ function EventRow({ evt }: { evt: any }) {
           {typeof evt.retry_cycle === "number" && evt.retry_cycle > 0 && (
             <span className="text-xs text-muted-foreground">ciclo {evt.retry_cycle}</span>
           )}
-          <Badge variant={statusVariant(evt.status) as any}>{evt.status}</Badge>
+          <Badge variant={statusVariant(evt.status) as any}>{statusLabel(evt.status)}</Badge>
         </div>
       </button>
       {open && (
@@ -137,7 +137,7 @@ function EventRow({ evt }: { evt: any }) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{l.channel_key}</span>
-                    <Badge variant={statusVariant(l.status) as any}>{l.status}</Badge>
+                    <Badge variant={statusVariant(l.status) as any}>{statusLabel(l.status)}</Badge>
                     <span className="text-xs text-muted-foreground">tent. {l.attempts}</span>
                   </div>
                   {l.error && <p className="text-xs text-destructive mt-1">{l.error}</p>}
