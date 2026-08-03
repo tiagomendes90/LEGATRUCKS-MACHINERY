@@ -1,8 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.ts";
 import { renderNewsletterHtml } from "../newsletterTemplate.ts";
+import { resendFetch } from "../../resendClient.ts";
 
-const RESEND = "https://api.resend.com";
 const BATCH_SIZE = 100;
 
 interface Recipient {
@@ -94,7 +94,13 @@ export const newsletterChannel: ChannelAdapter = {
       (ctx.channelConfig?.from as string | undefined) ??
       Deno.env.get("RESEND_FROM_EMAIL");
 
-    if (!apiKey) return { status: "skipped", response: { reason: "missing RESEND_API_KEY" } };
+    if (!apiKey) {
+      return {
+        status: "missing_credentials",
+        response: { reason: "missing RESEND_API_KEY", required: ["RESEND_API_KEY"] },
+        error: "Newsletter não configurada: falta RESEND_API_KEY",
+      };
+    }
 
     const supabase = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
     const campaignId = ctx.event.payload?.campaign_id as string | undefined;
@@ -114,9 +120,8 @@ export const newsletterChannel: ChannelAdapter = {
       let remote: unknown = false;
       if (c.broadcast_id) {
         try {
-          const res = await fetch(`${RESEND}/broadcasts/${c.broadcast_id}`, {
+          const res = await resendFetch(`/broadcasts/${c.broadcast_id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${apiKey}` },
           });
           remote = await res.json().catch(() => ({}));
         } catch (err) {
@@ -131,7 +136,13 @@ export const newsletterChannel: ChannelAdapter = {
     }
 
     /* ----------------------------- SEND ----------------------------- */
-    if (!from) return { status: "skipped", response: { reason: "missing RESEND_FROM_EMAIL" } };
+    if (!from) {
+      return {
+        status: "missing_credentials",
+        response: { reason: "missing RESEND_FROM_EMAIL", required: ["RESEND_FROM_EMAIL"] },
+        error: "Newsletter não configurada: falta RESEND_FROM_EMAIL (remetente verificado)",
+      };
+    }
 
     const { data: campaign, error: campErr } = await supabase
       .from("newsletter_campaigns")
@@ -226,9 +237,8 @@ export const newsletterChannel: ChannelAdapter = {
       let json: any = {};
       let status = 0;
       try {
-        const res = await fetch(`${RESEND}/emails/batch`, {
+        const res = await resendFetch(`/emails/batch`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify(
             chunk.map((s) => ({
               from,

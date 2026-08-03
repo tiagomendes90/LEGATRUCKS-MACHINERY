@@ -120,12 +120,16 @@ export const instagramChannel: ChannelAdapter = {
       Deno.env.get("INSTAGRAM_USER_ID");
     if (!token || !igUserId) {
       return {
-        status: "skipped",
-        response: { reason: "missing META_PAGE_ACCESS_TOKEN or META_IG_USER_ID" },
+        status: "missing_credentials",
+        response: {
+          reason: "missing META_PAGE_ACCESS_TOKEN or META_IG_USER_ID",
+          required: ["META_PAGE_ACCESS_TOKEN", "META_IG_USER_ID"],
+        },
+        error: "Instagram não configurado: faltam META_PAGE_ACCESS_TOKEN / META_IG_USER_ID",
       };
     }
     if (!ctx.product) {
-      return { status: "skipped", response: { reason: "no product data" } };
+      return { status: "failed", error: "Instagram: produto inexistente para este evento" };
     }
 
     const admin = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
@@ -186,8 +190,9 @@ export const instagramChannel: ChannelAdapter = {
       : getOrderedImageUrls(ctx.product).slice(0, MAX_CAROUSEL);
     if (!allImages.length) {
       return {
-        status: "skipped",
+        status: "failed",
         response: { reason: "instagram requires at least one public image" },
+        error: "Instagram: o produto não tem imagens públicas — publicação não efetuada",
       };
     }
 

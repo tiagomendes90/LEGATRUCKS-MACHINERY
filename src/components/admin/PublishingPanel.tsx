@@ -20,12 +20,37 @@ const statusVariant = (status: string) => {
       return "default";
     case "failed":
       return "destructive";
+    case "missing_credentials":
+      return "destructive";
     case "processing":
     case "pending":
     case "scheduled":
       return "secondary";
     default:
       return "outline";
+  }
+};
+
+const statusLabel = (status: string) => {
+  switch (status) {
+    case "success":
+      return "Sucesso";
+    case "completed":
+      return "Concluído";
+    case "failed":
+      return "Falhado";
+    case "missing_credentials":
+      return "Credenciais em falta";
+    case "skipped":
+      return "Ignorado";
+    case "processing":
+      return "A processar";
+    case "pending":
+      return "Pendente";
+    case "scheduled":
+      return "Agendado";
+    default:
+      return status;
   }
 };
 
@@ -91,7 +116,7 @@ function EventRow({ evt }: { evt: any }) {
           {typeof evt.retry_cycle === "number" && evt.retry_cycle > 0 && (
             <span className="text-xs text-muted-foreground">ciclo {evt.retry_cycle}</span>
           )}
-          <Badge variant={statusVariant(evt.status) as any}>{evt.status}</Badge>
+          <Badge variant={statusVariant(evt.status) as any}>{statusLabel(evt.status)}</Badge>
         </div>
       </button>
       {open && (
@@ -112,7 +137,7 @@ function EventRow({ evt }: { evt: any }) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{l.channel_key}</span>
-                    <Badge variant={statusVariant(l.status) as any}>{l.status}</Badge>
+                    <Badge variant={statusVariant(l.status) as any}>{statusLabel(l.status)}</Badge>
                     <span className="text-xs text-muted-foreground">tent. {l.attempts}</span>
                   </div>
                   {l.error && <p className="text-xs text-destructive mt-1">{l.error}</p>}

@@ -19,7 +19,7 @@ export function getPrimaryImageUrl(product: AnyRecord | null): string | null {
 
 export function getProductUrl(product: AnyRecord | null): string {
   if (!product?.id) return SITE_URL;
-  return `${SITE_URL}/veiculo/${product.id}`;
+  return `${SITE_URL}/vehicle/${product.id}`;
 }
 
 function formatPrice(product: AnyRecord | null): string | null {

@@ -1,9 +1,9 @@
 // Adds a subscriber to the configured Resend Audience.
+import { resendFetch } from "../_shared/resendClient.ts";
 // Public endpoint invoked from the site footer form.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const RESEND = "https://api.resend.com";
 
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -102,12 +102,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const res = await fetch(`${RESEND}/audiences/${audienceId}/contacts`, {
+    const res = await resendFetch(`/audiences/${audienceId}/contacts`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
       body: JSON.stringify({
         email,
         first_name: firstName,

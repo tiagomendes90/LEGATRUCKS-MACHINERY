@@ -17,7 +17,7 @@ export const sitemapChannel: ChannelAdapter = {
         status: "skipped",
         response: {
           reason:
-            "missing SITEMAP_REBUILD_WEBHOOK_URL — sitemap regenerates on the next build",
+            "sitemap é dinâmico (/sitemap.xml servido pela Edge Function) — nenhum rebuild necessário",
         },
       };
     }

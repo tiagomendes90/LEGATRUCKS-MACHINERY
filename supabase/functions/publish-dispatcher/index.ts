@@ -112,6 +112,24 @@ async function processEvent(supabase: any, event: PublishingEvent) {
   }
 
   const anyFailed = results.some((r) => r.result.status === "failed");
+  const anySuccess = results.some((r) => r.result.status === "success");
+  const anyMissingCreds = results.some((r) => r.result.status === "missing_credentials");
+  // Estado final do evento, sem falsos positivos:
+  //   failed              → houve tentativa real que falhou (elegível a retry)
+  //   missing_credentials → canal aplicável mas não configurado (NÃO faz retry)
+  //   completed           → pelo menos um canal publicou com sucesso
+  //   skipped             → nenhum canal aplicável a este evento
+  const finalStatus = anyFailed
+    ? "failed"
+    : anySuccess
+      ? "completed"
+      : anyMissingCreds
+        ? "missing_credentials"
+        : "skipped";
+  const missingCredsMsg = results
+    .filter((r) => r.result.status === "missing_credentials")
+    .map((r) => `${r.channel}: ${r.result.error ?? "credenciais em falta"}`)
+    .join("; ");
   const attempts = event.attempts ?? 1;
   const retryCycle = (event as any).retry_cycle ?? 0;
   // MAX_ATTEMPTS aplica-se por ciclo (retry_cycle). `attempts` nunca é
@@ -139,14 +157,16 @@ async function processEvent(supabase: any, event: PublishingEvent) {
     await supabase
       .from("publishing_events")
       .update({
-        status: anyFailed ? "failed" : "completed",
+        status: finalStatus,
         processed_at: new Date().toISOString(),
         next_attempt_at: null,
         locked_at: null,
         locked_by: null,
         last_error: anyFailed
           ? results.find((r) => r.result.status === "failed")?.result.error ?? "max attempts reached"
-          : null,
+          : anyMissingCreds && !anySuccess
+            ? missingCredsMsg
+            : null,
       })
       .eq("id", event.id);
   }

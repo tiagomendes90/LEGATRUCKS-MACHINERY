@@ -49,12 +49,16 @@ export const facebookChannel: ChannelAdapter = {
       (ctx.channelConfig?.page_id as string | undefined) ?? Deno.env.get("META_PAGE_ID");
     if (!token || !pageId) {
       return {
-        status: "skipped",
-        response: { reason: "missing META_PAGE_ACCESS_TOKEN or META_PAGE_ID" },
+        status: "missing_credentials",
+        response: {
+          reason: "missing META_PAGE_ACCESS_TOKEN or META_PAGE_ID",
+          required: ["META_PAGE_ACCESS_TOKEN", "META_PAGE_ID"],
+        },
+        error: "Facebook não configurado: faltam META_PAGE_ACCESS_TOKEN / META_PAGE_ID",
       };
     }
     if (!ctx.product) {
-      return { status: "skipped", response: { reason: "no product data" } };
+      return { status: "failed", error: "Facebook: produto inexistente para este evento" };
     }
 
     const admin = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);

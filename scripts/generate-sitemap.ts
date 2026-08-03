@@ -14,7 +14,6 @@ interface SitemapEntry {
   path: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
-  lastmod?: string;
 }
 
 const staticEntries: SitemapEntry[] = [
@@ -33,7 +32,7 @@ const staticEntries: SitemapEntry[] = [
 async function fetchProductEntries(): Promise<SitemapEntry[]> {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/products?select=id,updated_at,status&status=eq.active&order=updated_at.desc&limit=5000`,
+      `${SUPABASE_URL}/rest/v1/products?select=id,created_at&is_active=eq.true&order=created_at.desc&limit=5000`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -45,12 +44,11 @@ async function fetchProductEntries(): Promise<SitemapEntry[]> {
       console.warn(`sitemap: skipping products (HTTP ${res.status})`);
       return [];
     }
-    const rows: Array<{ id: string; updated_at?: string }> = await res.json();
+    const rows: Array<{ id: string }> = await res.json();
     return rows.map((r) => ({
       path: `/vehicle/${r.id}`,
-      changefreq: "weekly",
+      changefreq: "weekly" as const,
       priority: "0.8",
-      lastmod: r.updated_at ? new Date(r.updated_at).toISOString().slice(0, 10) : undefined,
     }));
   } catch (err) {
     console.warn("sitemap: product fetch failed", err);
@@ -68,7 +66,6 @@ const xml = [
     [
       `  <url>`,
       `    <loc>${BASE_URL}${e.path}</loc>`,
-      e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
       e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
       e.priority ? `    <priority>${e.priority}</priority>` : null,
       `  </url>`,

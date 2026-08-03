@@ -22,7 +22,15 @@ export interface PublishingEvent {
   dedupe_key?: string | null;
 }
 
-export type ChannelResultStatus = "success" | "failed" | "skipped";
+// "skipped"             → o canal não se aplica a este evento (por desenho)
+// "missing_credentials" → o canal aplica-se mas não está configurado
+// "failed"              → tentou publicar e falhou
+// "success"             → publicou realmente
+export type ChannelResultStatus =
+  | "success"
+  | "failed"
+  | "skipped"
+  | "missing_credentials";
 
 export interface ChannelResult {
   status: ChannelResultStatus;
