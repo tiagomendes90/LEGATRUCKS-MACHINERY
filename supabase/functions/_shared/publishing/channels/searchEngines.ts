@@ -40,14 +40,25 @@ export const searchEnginesChannel: ChannelAdapter = {
     const results = await Promise.all(active.map((e) => e.submit(urls, ctx)));
 
     const anyFailed = results.some((r) => r.status === "failed");
-    const allSkipped = results.every((r) => r.status === "skipped");
+    const anySuccess = results.some((r) => r.status === "success");
+    const allMissing = results.every((r) => r.status === "missing_credentials");
     return {
-      status: allSkipped ? "skipped" : anyFailed ? "failed" : "success",
+      status: anyFailed
+        ? "failed"
+        : anySuccess
+          ? "success"
+          : allMissing
+            ? "missing_credentials"
+            : "skipped",
       request: { urls, engines: active.map((e) => e.key) },
       response: { engines: results },
-      error: anyFailed
-        ? results.filter((r) => r.status === "failed").map((r) => `${r.engine}: ${r.error}`).join("; ")
-        : undefined,
+      error:
+        anyFailed || allMissing
+          ? results
+              .filter((r) => r.status === "failed" || r.status === "missing_credentials")
+              .map((r) => `${r.engine}: ${r.error}`)
+              .join("; ")
+          : undefined,
     };
   },
 };

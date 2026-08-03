@@ -94,7 +94,13 @@ export const newsletterChannel: ChannelAdapter = {
       (ctx.channelConfig?.from as string | undefined) ??
       Deno.env.get("RESEND_FROM_EMAIL");
 
-    if (!apiKey) return { status: "skipped", response: { reason: "missing RESEND_API_KEY" } };
+    if (!apiKey) {
+      return {
+        status: "missing_credentials",
+        response: { reason: "missing RESEND_API_KEY", required: ["RESEND_API_KEY"] },
+        error: "Newsletter não configurada: falta RESEND_API_KEY",
+      };
+    }
 
     const supabase = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
     const campaignId = ctx.event.payload?.campaign_id as string | undefined;
@@ -131,7 +137,13 @@ export const newsletterChannel: ChannelAdapter = {
     }
 
     /* ----------------------------- SEND ----------------------------- */
-    if (!from) return { status: "skipped", response: { reason: "missing RESEND_FROM_EMAIL" } };
+    if (!from) {
+      return {
+        status: "missing_credentials",
+        response: { reason: "missing RESEND_FROM_EMAIL", required: ["RESEND_FROM_EMAIL"] },
+        error: "Newsletter não configurada: falta RESEND_FROM_EMAIL (remetente verificado)",
+      };
+    }
 
     const { data: campaign, error: campErr } = await supabase
       .from("newsletter_campaigns")

@@ -23,8 +23,9 @@ export const indexNowEngine: SearchEngine = {
     if (!key) {
       return {
         engine: "indexnow",
-        status: "skipped",
-        response: { reason: "missing INDEXNOW_KEY" },
+        status: "missing_credentials",
+        response: { reason: "missing INDEXNOW_KEY", required: ["INDEXNOW_KEY"] },
+        error: "IndexNow não configurado: falta INDEXNOW_KEY",
       };
     }
     if (urls.length === 0) {

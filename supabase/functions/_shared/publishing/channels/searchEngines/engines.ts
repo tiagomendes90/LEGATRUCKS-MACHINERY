@@ -6,7 +6,7 @@ import { indexNowEngine } from "./indexnow.ts";
 
 export interface SearchEngineResult {
   engine: string;
-  status: "success" | "failed" | "skipped";
+  status: "success" | "failed" | "skipped" | "missing_credentials";
   request?: Record<string, unknown>;
   response?: Record<string, unknown>;
   error?: string;
