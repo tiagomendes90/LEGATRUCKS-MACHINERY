@@ -4,7 +4,6 @@ import { resendFetch } from "../_shared/resendClient.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const RESEND = "https://api.resend.com";
 
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {

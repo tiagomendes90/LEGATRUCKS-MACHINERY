@@ -3,7 +3,6 @@ import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.
 import { renderNewsletterHtml } from "../newsletterTemplate.ts";
 import { resendFetch } from "../../_shared/resendClient.ts";
 
-const RESEND = "https://api.resend.com";
 const BATCH_SIZE = 100;
 
 interface Recipient {

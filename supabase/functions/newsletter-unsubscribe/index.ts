@@ -3,7 +3,6 @@ import { resendFetch } from "../_shared/resendClient.ts";
 // as unsubscribed and returns a small confirmation HTML page.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const RESEND = "https://api.resend.com";
 
 function htmlResponse(status: number, body: string) {
   return new Response(body, {
