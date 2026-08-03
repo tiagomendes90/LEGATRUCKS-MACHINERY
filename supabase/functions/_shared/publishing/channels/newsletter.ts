@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.ts";
 import { renderNewsletterHtml } from "../newsletterTemplate.ts";
+import { resendFetch } from "../../_shared/resendClient.ts";
 
 const RESEND = "https://api.resend.com";
 const BATCH_SIZE = 100;
@@ -120,9 +121,8 @@ export const newsletterChannel: ChannelAdapter = {
       let remote: unknown = false;
       if (c.broadcast_id) {
         try {
-          const res = await fetch(`${RESEND}/broadcasts/${c.broadcast_id}`, {
+          const res = await resendFetch(`/broadcasts/${c.broadcast_id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${apiKey}` },
           });
           remote = await res.json().catch(() => ({}));
         } catch (err) {
@@ -238,9 +238,8 @@ export const newsletterChannel: ChannelAdapter = {
       let json: any = {};
       let status = 0;
       try {
-        const res = await fetch(`${RESEND}/emails/batch`, {
+        const res = await resendFetch(`/emails/batch`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify(
             chunk.map((s) => ({
               from,

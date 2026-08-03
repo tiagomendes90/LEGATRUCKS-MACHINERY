@@ -102,12 +102,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const res = await fetch(`${RESEND}/audiences/${audienceId}/contacts`, {
+    const res = await resendFetch(`/audiences/${audienceId}/contacts`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
       body: JSON.stringify({
         email,
         first_name: firstName,

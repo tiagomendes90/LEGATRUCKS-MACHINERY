@@ -59,12 +59,8 @@ Deno.serve(async (req) => {
     const audienceId = Deno.env.get("RESEND_AUDIENCE_ID");
     if (apiKey && audienceId && sub.resend_contact_id) {
       try {
-        await fetch(`${RESEND}/audiences/${audienceId}/contacts/${sub.resend_contact_id}`, {
+        await resendFetch(`/audiences/${audienceId}/contacts/${sub.resend_contact_id}`, {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
           body: JSON.stringify({ unsubscribed: true }),
         });
       } catch (err) {
