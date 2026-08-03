@@ -45,6 +45,8 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
   succeeded: "default",
   failed: "destructive",
   skipped: "outline",
+  missing_credentials: "destructive",
+  completed: "default",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -55,6 +57,8 @@ const STATUS_LABEL: Record<string, string> = {
   succeeded: "Concluído",
   failed: "Falhado",
   skipped: "Ignorado",
+  missing_credentials: "Credenciais em falta",
+  completed: "Concluído",
 };
 
 function formatDateTime(iso: string | null): string {
