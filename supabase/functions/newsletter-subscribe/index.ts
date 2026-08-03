@@ -1,4 +1,5 @@
 // Adds a subscriber to the configured Resend Audience.
+import { resendFetch } from "../_shared/resendClient.ts";
 // Public endpoint invoked from the site footer form.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
