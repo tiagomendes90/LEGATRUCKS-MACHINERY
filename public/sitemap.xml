@@ -50,4 +50,19 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <url>
+    <loc>https://www.lega.pt/vehicle/82037e1a-077b-490c-b5bd-5a07a32a5ea0</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.lega.pt/vehicle/11a6a987-1076-4b2b-9807-9cc4ed0920fd</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.lega.pt/vehicle/be0fcda5-b790-4d30-a308-8eb10e41dcfc</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
