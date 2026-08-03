@@ -20,12 +20,37 @@ const statusVariant = (status: string) => {
       return "default";
     case "failed":
       return "destructive";
+    case "missing_credentials":
+      return "destructive";
     case "processing":
     case "pending":
     case "scheduled":
       return "secondary";
     default:
       return "outline";
+  }
+};
+
+const statusLabel = (status: string) => {
+  switch (status) {
+    case "success":
+      return "Sucesso";
+    case "completed":
+      return "Concluído";
+    case "failed":
+      return "Falhado";
+    case "missing_credentials":
+      return "Credenciais em falta";
+    case "skipped":
+      return "Ignorado";
+    case "processing":
+      return "A processar";
+    case "pending":
+      return "Pendente";
+    case "scheduled":
+      return "Agendado";
+    default:
+      return status;
   }
 };
 

@@ -70,13 +70,19 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Products — only active/published, with lastmod
-    const { data: products } = await supabase
+    // Products — only active/published.
+    // NOTA: a tabela `products` não tem coluna `updated_at`; selecioná-la
+    // fazia o pedido falhar silenciosamente e o sitemap ficava sem produtos.
+    const { data: products, error: productsError } = await supabase
       .from("products")
-      .select("id, updated_at, created_at, is_active")
+      .select("id, created_at")
       .eq("is_active", true)
-      .order("updated_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(10000);
+    if (productsError) {
+      console.error("[sitemap] products query failed", productsError);
+      throw new Error(`products query failed: ${productsError.message}`);
+    }
 
     // Subcategory slug pages
     const { data: subs } = await supabase
@@ -98,10 +104,10 @@ Deno.serve(async (req) => {
     }
 
     for (const p of products ?? []) {
-      const ts = (p as any).updated_at ?? (p as any).created_at;
+      // Sem timestamp autoritativo de última alteração do conteúdo,
+      // <lastmod> é omitido de propósito.
       entries.push({
-        loc: `/veiculo/${(p as any).id}`,
-        lastmod: ts ? new Date(ts).toISOString().slice(0, 10) : undefined,
+        loc: `/vehicle/${(p as any).id}`,
         changefreq: "weekly",
         priority: "0.8",
       });
