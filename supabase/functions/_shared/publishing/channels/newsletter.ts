@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.ts";
 import { renderNewsletterHtml } from "../newsletterTemplate.ts";
-import { resendFetch } from "../../_shared/resendClient.ts";
+import { resendFetch } from "../../resendClient.ts";
 
 const BATCH_SIZE = 100;
 
