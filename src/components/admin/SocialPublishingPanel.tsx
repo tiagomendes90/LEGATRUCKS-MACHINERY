@@ -80,7 +80,7 @@ function primaryImage(p: SocialProductRow): string | null {
 }
 
 function autoCaption(p: SocialProductRow): string {
-  const link = `${SITE_URL}/veiculo/${p.id}`;
+  const link = `${SITE_URL}/vehicle/${p.id}`;
   const parts: string[] = [`🚚 ${p.title}`];
   const meta = [
     p.brand?.name,
@@ -127,7 +127,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   const { toast } = useToast();
 
   const image = primaryImage(product);
-  const link = `${SITE_URL}/veiculo/${product.id}`;
+  const link = `${SITE_URL}/vehicle/${product.id}`;
   const orderedImages = useMemo(() => {
     const imgs = product.images ?? [];
     return [...imgs]
