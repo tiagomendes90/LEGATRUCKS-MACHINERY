@@ -168,7 +168,7 @@ export const newsletterChannel: ChannelAdapter = {
     if (productIds.length > 0) {
       const { data: prods } = await supabase
         .from("products")
-        .select("id, title, description, price, currency, year, brand:brands(name, slug), images:product_images(image_url, is_primary, sort_order)")
+        .select("id, title, description, price, currency, year, model, condition, location_city, location_country, stock_status, brand:brands(name, slug), images:product_images(image_url, is_primary, sort_order)")
         .in("id", productIds);
       const byId = new Map((prods ?? []).map((p: any) => [p.id, p]));
       products = productIds.map((id) => byId.get(id)).filter(Boolean) as any;
