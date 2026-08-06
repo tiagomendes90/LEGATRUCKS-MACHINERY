@@ -180,18 +180,6 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   }, [pending]);
   const busy = publishMut.isPending || pending?.channel === channel;
 
-  const _unusedChangedFields = useMemo(() => {
-    const raw = audit?.changed_fields;
-    if (!raw) return [] as string[];
-    if (Array.isArray(raw)) return raw as string[];
-    try {
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }, [audit]);
-
   const runPublish = (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
     if (busy) return;
