@@ -3,8 +3,8 @@
 // para que a ligação nunca exija reconfiguração manual enquanto estiver válida.
 import { GRAPH, graphJson, formatMetaError } from "./metaClient.ts";
 
-const APP_ID = Deno.env.get("META_APP_ID");
-const APP_SECRET = Deno.env.get("META_APP_SECRET");
+const APP_ID = Deno.env.get("META_APP_ID")?.trim();
+const APP_SECRET = Deno.env.get("META_APP_SECRET")?.trim();
 
 export async function refreshMetaConnection(admin: any) {
   const { data: conn } = await admin

@@ -13,8 +13,8 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const APP_ID = Deno.env.get("META_APP_ID");
-const APP_SECRET = Deno.env.get("META_APP_SECRET");
+const APP_ID = Deno.env.get("META_APP_ID")?.trim();
+const APP_SECRET = Deno.env.get("META_APP_SECRET")?.trim();
 // Facebook Login for Business: ID da configuração criada na App Meta.
 // Quando definido, o diálogo usa `config_id` (as permissões vêm da configuração)
 // em vez de enviar `scope`, que a Meta rejeita com "Invalid Scopes".
