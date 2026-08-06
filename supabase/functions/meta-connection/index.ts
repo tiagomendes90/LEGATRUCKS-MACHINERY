@@ -70,6 +70,8 @@ Deno.serve(async (req) => {
       .from("meta_connections")
       .select("*")
       .eq("is_active", true)
+      .order("updated_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     const safe = (c: any) =>
