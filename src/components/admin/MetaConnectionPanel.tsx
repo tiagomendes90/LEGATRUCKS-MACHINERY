@@ -42,6 +42,7 @@ export default function MetaConnectionPanel() {
   const [pages, setPages] = useState<MetaPage[]>([]);
   const [pagesLoaded, setPagesLoaded] = useState(false);
   const [pagesIssue, setPagesIssue] = useState<{ reason: string; message: string } | null>(null);
+  const [diagnostic, setDiagnostic] = useState<unknown>(null);
 
   const call = useCallback(async (action: string, extra: Record<string, unknown> = {}) => {
     const { data, error } = await supabase.functions.invoke("meta-connection", {
@@ -173,6 +174,12 @@ export default function MetaConnectionPanel() {
       setPagesLoaded(false);
       await loadStatus();
       toast({ title: "Ligação Meta removida" });
+    });
+
+  const diagnose = () =>
+    run("diagnose", async () => {
+      const data = await call("diagnose");
+      setDiagnostic(data);
     });
 
   if (loading) {
