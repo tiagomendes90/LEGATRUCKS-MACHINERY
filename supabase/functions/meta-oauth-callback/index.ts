@@ -5,8 +5,8 @@ import { GRAPH, graphJson, formatMetaError } from "../_shared/publishing/metaCli
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const APP_ID = Deno.env.get("META_APP_ID");
-const APP_SECRET = Deno.env.get("META_APP_SECRET");
+const APP_ID = Deno.env.get("META_APP_ID")?.trim();
+const APP_SECRET = Deno.env.get("META_APP_SECRET")?.trim();
 const REDIRECT_URI = `${SUPABASE_URL}/functions/v1/meta-oauth-callback`;
 
 function page(title: string, message: string, ok: boolean) {

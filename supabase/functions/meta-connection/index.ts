@@ -13,8 +13,8 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const APP_ID = Deno.env.get("META_APP_ID");
-const APP_SECRET = Deno.env.get("META_APP_SECRET");
+const APP_ID = Deno.env.get("META_APP_ID")?.trim();
+const APP_SECRET = Deno.env.get("META_APP_SECRET")?.trim();
 // Facebook Login for Business: ID da configuração criada na App Meta.
 // Quando definido, o diálogo usa `config_id` (as permissões vêm da configuração)
 // em vez de enviar `scope`, que a Meta rejeita com "Invalid Scopes".
@@ -59,11 +59,31 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // Diagnóstico temporário: valida apenas se APP_ID/APP_SECRET são aceites pela Meta.
+    // Não expõe segredos (apenas app_id público e comprimentos).
+    const rawBody = await req.text();
+    let preBody: any = {};
+    try { preBody = JSON.parse(rawBody || "{}"); } catch { preBody = {}; }
+    if (preBody?.action === "verify_credentials") {
+      if (!APP_ID || !APP_SECRET) return json({ ok: false, error: "Credenciais em falta" }, 400);
+      const { res, json: data } = await graphJson(
+        `${GRAPH}/oauth/access_token?client_id=${encodeURIComponent(APP_ID)}` +
+          `&client_secret=${encodeURIComponent(APP_SECRET)}&grant_type=client_credentials`,
+      );
+      return json({
+        ok: res.ok,
+        app_id: APP_ID,
+        app_id_length: APP_ID.length,
+        secret_length: APP_SECRET.length,
+        error: res.ok ? null : formatMetaError(data),
+      });
+    }
+
     const auth = await requireAdmin(req);
     if (!auth) return json({ error: "Unauthorized" }, 401);
     const { admin, userId } = auth;
 
-    const body = await req.json().catch(() => ({}));
+    const body = preBody;
     const action = String(body?.action ?? "status");
 
     const { data: conn } = await admin
@@ -102,6 +122,22 @@ Deno.serve(async (req) => {
     }
 
     // ---------- OAUTH URL ----------
+    // ---------- VERIFY CREDENTIALS ----------
+    if (action === "verify_credentials") {
+      if (!APP_ID || !APP_SECRET) return json({ ok: false, error: "Credenciais em falta" }, 400);
+      const { res, json: data } = await graphJson(
+        `${GRAPH}/oauth/access_token?client_id=${encodeURIComponent(APP_ID)}` +
+          `&client_secret=${encodeURIComponent(APP_SECRET)}&grant_type=client_credentials`,
+      );
+      return json({
+        ok: res.ok,
+        app_id: APP_ID,
+        app_id_length: APP_ID.length,
+        secret_length: APP_SECRET.length,
+        error: res.ok ? null : formatMetaError(data),
+      });
+    }
+
     if (action === "oauth_url") {
       if (!APP_ID || !APP_SECRET) {
         return json(
