@@ -15,7 +15,7 @@ import MetaConnectionPanel from '@/components/admin/MetaConnectionPanel';
 import NewsletterPanel from '@/components/admin/NewsletterPanel';
 import { Package, TrendingUp, ExternalLink, LogOut, MessageSquare } from 'lucide-react';
 import { sortProductImages } from '@/utils/productImages';
-import { ADMIN_PRODUCT_DRAFT_EVENT, hasAdminProductDraft } from '@/utils/adminProductDraftStorage';
+import { hasAdminProductDraft } from '@/utils/adminProductDraftStorage';
 import { useContactMessages } from '@/hooks/useContactMessages';
 import { usePersistentState } from '@/hooks/usePersistentState';
 
