@@ -148,7 +148,11 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   useEffect(() => setIgIndex(0), [product.id, channel]);
   const postByChannel = (key: ChannelKey) =>
     posts.find((p) => p.channel_key === key && p.status === "published");
+  // Post que estava publicado mas foi eliminado manualmente no Facebook/Instagram.
+  const removedByChannel = (key: ChannelKey) =>
+    posts.find((p) => p.channel_key === key && p.status === "removed");
   const activePost = postByChannel(channel);
+  const removedPost = !activePost ? removedByChannel(channel) : undefined;
   const imageCount = (product.images ?? []).length;
 
   const changedFields = useMemo(() => {
@@ -348,6 +352,11 @@ function ProductCard({ product }: { product: SocialProductRow }) {
                     live
                   </Badge>
                 )}
+                {!p && removedByChannel(k) && (
+                  <Badge variant="destructive" className="ml-2 h-4 px-1 text-[10px]">
+                    removido
+                  </Badge>
+                )}
               </Button>
             );
           })}
@@ -355,6 +364,15 @@ function ProductCard({ product }: { product: SocialProductRow }) {
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-2">
+          {removedPost && (
+            <p className="w-full text-xs text-destructive">
+              Esta publicação foi removida em {CHANNEL_META[channel].label}
+              {removedPost.last_verified_at
+                ? ` (detetado a ${new Date(removedPost.last_verified_at).toLocaleString("pt-PT")})`
+                : ""}
+              . Pode publicar de novo.
+            </p>
+          )}
           {product.social_status === "ready_for_social" && (
             <Button
               onClick={() => runPublish()}
