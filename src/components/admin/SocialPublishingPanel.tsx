@@ -16,6 +16,7 @@ import {
   Heart,
   MessageCircle,
   Bookmark,
+  Loader2,
 } from "lucide-react";
 import {
   useSocialProducts,
