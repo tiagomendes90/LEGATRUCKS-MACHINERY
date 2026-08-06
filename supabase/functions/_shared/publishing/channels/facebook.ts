@@ -1,32 +1,13 @@
 import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.ts";
 import { buildProductCaption, getPrimaryImageUrl, getProductUrl } from "../productFormatting.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GRAPH, graphFetch, formatMetaError, resolveMetaCredentials } from "../metaClient.ts";
+import { syncProductSocialStatus } from "../socialStatus.ts";
 
-const GRAPH = "https://graph.facebook.com/v19.0";
 const CHANNEL_KEY = "facebook";
 
-/**
- * Meta Graph API errors follow a well-known envelope:
- *   { error: { message, type, code, error_subcode, fbtrace_id, ... } }
- * We flatten the important fields into a single human-readable string so it
- * shows up cleanly in `publishing_logs.error` and `publishing_events.last_error`,
- * while the full JSON payload is still persisted in `publishing_logs.response`
- * for deep debugging in the admin panel.
- */
-function formatMetaError(json: any, httpStatus: number): string {
-  const e = json?.error;
-  if (!e) return `HTTP ${httpStatus}`;
-  const parts: string[] = [];
-  if (e.message) parts.push(e.message);
-  const codeBits: string[] = [];
-  if (e.code !== undefined) codeBits.push(`code=${e.code}`);
-  if (e.error_subcode !== undefined) codeBits.push(`subcode=${e.error_subcode}`);
-  if (e.type) codeBits.push(`type=${e.type}`);
-  if (e.fbtrace_id) codeBits.push(`trace=${e.fbtrace_id}`);
-  if (codeBits.length) parts.push(`[${codeBits.join(" ")}]`);
-  parts.push(`(HTTP ${httpStatus})`);
-  return parts.join(" ");
-}
+// Meta Graph API errors are flattened by `formatMetaError` (shared metaClient),
+// while the full JSON payload is still persisted in `publishing_logs.response`.
 
 // Fase 2.3: Facebook agora é acionado exclusivamente pelo administrador via
 // eventos `social.publish.confirmed` / `social.delete` (aprovação manual).
@@ -44,24 +25,24 @@ export const facebookChannel: ChannelAdapter = {
     );
   },
   async publish(ctx: PublishingContext): Promise<ChannelResult> {
-    const token = Deno.env.get("META_PAGE_ACCESS_TOKEN");
-    const pageId =
-      (ctx.channelConfig?.page_id as string | undefined) ?? Deno.env.get("META_PAGE_ID");
+    const admin = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
+    const { token, pageId } = await resolveMetaCredentials(admin, ctx.channelConfig ?? {});
     if (!token || !pageId) {
       return {
         status: "missing_credentials",
         response: {
-          reason: "missing META_PAGE_ACCESS_TOKEN or META_PAGE_ID",
+          reason: "missing Meta page token or page id (OAuth connection or secrets)",
+          missing: [!token ? "page_access_token" : null, !pageId ? "page_id" : null].filter(Boolean),
           required: ["META_PAGE_ACCESS_TOKEN", "META_PAGE_ID"],
         },
-        error: "Facebook não configurado: faltam META_PAGE_ACCESS_TOKEN / META_PAGE_ID",
+        error:
+          "Facebook não configurado: liga a conta Meta no painel (OAuth) ou define META_PAGE_ACCESS_TOKEN / META_PAGE_ID",
       };
     }
     if (!ctx.product) {
       return { status: "failed", error: "Facebook: produto inexistente para este evento" };
     }
 
-    const admin = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
     const productId = ctx.product.id as string;
     const eventType = ctx.event.event_type;
     const payload = (ctx.event.payload ?? {}) as Record<string, unknown>;
@@ -75,7 +56,7 @@ export const facebookChannel: ChannelAdapter = {
         return { status: "skipped", response: { reason: "no external_id to delete" } };
       }
       try {
-        const res = await fetch(
+        const res = await graphFetch(
           `${GRAPH}/${targetPostId}?access_token=${encodeURIComponent(token)}`,
           { method: "DELETE" },
         );
@@ -95,19 +76,9 @@ export const facebookChannel: ChannelAdapter = {
           .eq("channel_key", CHANNEL_KEY)
           .eq("external_id", targetPostId);
 
-        // If no other live post remains, product returns to ready_for_social.
-        const { count } = await admin
-          .from("product_social_posts")
-          .select("*", { count: "exact", head: true })
-          .eq("product_id", productId)
-          .eq("channel_key", CHANNEL_KEY)
-          .eq("status", "published");
-        if (!count) {
-          await admin
-            .from("products")
-            .update({ social_status: "ready_for_social" })
-            .eq("id", productId);
-        }
+        // Estado global multi-canal: só volta a ready_for_social se NENHUM
+        // canal (Facebook ou Instagram) tiver publicação viva.
+        await syncProductSocialStatus(admin, productId);
         return {
           status: "success",
           request: { action: "delete", external_id: targetPostId },
@@ -131,7 +102,7 @@ export const facebookChannel: ChannelAdapter = {
     if (eventType === "social.republish" && payload.delete_previous) {
       const prev = await loadLatestExternalId(admin, productId);
       if (prev) {
-        await fetch(`${GRAPH}/${prev}?access_token=${encodeURIComponent(token)}`, {
+        await graphFetch(`${GRAPH}/${prev}?access_token=${encodeURIComponent(token)}`, {
           method: "DELETE",
         }).catch(() => {});
         await admin
@@ -154,7 +125,7 @@ export const facebookChannel: ChannelAdapter = {
         body = { message: caption, link, access_token: token };
       }
 
-      const res = await fetch(endpoint, {
+      const res = await graphFetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams(body).toString(),
@@ -190,19 +161,8 @@ export const facebookChannel: ChannelAdapter = {
       });
 
       // Snapshot the hash at publish-time so future divergence flips to 'outdated'.
-      const { data: hashRow } = await admin
-        .from("products")
-        .select("social_hash")
-        .eq("id", productId)
-        .maybeSingle();
-      await admin
-        .from("products")
-        .update({
-          social_status: "published",
-          social_caption: caption,
-          social_hash: hashRow?.social_hash ?? null,
-        })
-        .eq("id", productId);
+      await admin.from("products").update({ social_caption: caption }).eq("id", productId);
+      await syncProductSocialStatus(admin, productId);
 
       return {
         status: "success",
