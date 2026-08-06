@@ -5,6 +5,21 @@ import { GRAPH, graphFetch, formatMetaError, resolveMetaCredentials } from "../m
 import { syncProductSocialStatus } from "../socialStatus.ts";
 
 const CHANNEL_KEY = "facebook";
+// Limite prático de fotos por publicação de álbum (a Meta aceita mais, mas
+// acima disto o tempo de processamento cresce muito).
+const MAX_PHOTOS = 10;
+
+/** Todas as imagens do produto, ordenadas (primária primeiro, depois sort_order). */
+function getOrderedImageUrls(product: Record<string, unknown>): string[] {
+  const imgs = (product.images as Array<any> | undefined) ?? [];
+  return [...imgs]
+    .sort((a, b) => {
+      if (!!b?.is_primary !== !!a?.is_primary) return b?.is_primary ? 1 : -1;
+      return (a?.sort_order ?? 0) - (b?.sort_order ?? 0);
+    })
+    .map((i) => i?.image_url as string)
+    .filter(Boolean);
+}
 
 // Meta Graph API errors are flattened by `formatMetaError` (shared metaClient),
 // while the full JSON payload is still persisted in `publishing_logs.response`.
