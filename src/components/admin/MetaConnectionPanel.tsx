@@ -428,6 +428,20 @@ export default function MetaConnectionPanel() {
             </AlertDescription>
           </Alert>
         )}
+
+        <div className="space-y-2 rounded-lg border p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium">Diagnóstico técnico do token</p>
+            <Button size="sm" variant="outline" onClick={diagnose} disabled={busy !== null}>
+              {busy === "diagnose" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Executar diagnóstico"}
+            </Button>
+          </div>
+          {diagnostic !== null && (
+            <pre className="max-h-96 overflow-auto rounded-md bg-muted p-3 text-[11px] leading-relaxed">
+              {JSON.stringify(diagnostic, null, 2)}
+            </pre>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
