@@ -104,6 +104,114 @@ Deno.serve(async (req) => {
     }
 
     // ---------- OAUTH URL ----------
+    // ---------- DIAGNOSE ----------
+    if (action === "diagnose") {
+      const userToken = conn?.user_access_token as string | undefined;
+      if (!userToken) return json({ error: "Sem sessão Meta (user_access_token ausente)." }, 400);
+      if (!APP_ID || !APP_SECRET) return json({ error: "App Meta não configurada." }, 400);
+
+      const appToken = `${APP_ID}|${APP_SECRET}`;
+
+      // 1. Identidade e tipo do token guardado
+      const { res: dbgRes, json: dbg } = await graphJson(
+        `${GRAPH}/debug_token?input_token=${encodeURIComponent(userToken)}&access_token=${encodeURIComponent(appToken)}`,
+      );
+      const d = dbg?.data ?? {};
+
+      // 2. Quem é o /me deste token
+      const { res: meRes, json: me } = await graphJson(
+        `${GRAPH}/me?fields=id,name&access_token=${encodeURIComponent(userToken)}`,
+      );
+
+      // 3. /me/accounts cru + cabeçalhos de diagnóstico
+      const accUrl = `${GRAPH}/me/accounts?fields=id,name,tasks,access_token&limit=100&access_token=${encodeURIComponent(userToken)}`;
+      const { res: accRes, json: acc } = await graphJson(accUrl);
+      const headerKeys = ["x-fb-trace-id", "x-fb-rev", "x-app-usage", "www-authenticate", "x-business-use-case-usage"];
+      const accHeaders: Record<string, string | null> = {};
+      for (const k of headerKeys) accHeaders[k] = accRes.headers.get(k);
+
+      // 4. Páginas via portfolio (client_pages/owned_pages) quando existe business_management
+      const { res: bizRes, json: biz } = await graphJson(
+        `${GRAPH}/me/businesses?fields=id,name&limit=25&access_token=${encodeURIComponent(userToken)}`,
+      );
+      const businessPages: any[] = [];
+      if (Array.isArray(biz?.data)) {
+        for (const b of biz.data) {
+          for (const edge of ["owned_pages", "client_pages"]) {
+            const { json: bp } = await graphJson(
+              `${GRAPH}/${b.id}/${edge}?fields=id,name&limit=50&access_token=${encodeURIComponent(userToken)}`,
+            );
+            businessPages.push({
+              business_id: b.id,
+              business_name: b.name,
+              edge,
+              pages: Array.isArray(bp?.data) ? bp.data.map((p: any) => ({ id: p.id, name: p.name })) : null,
+              error: bp?.error ? { code: bp.error.code, message: bp.error.message } : null,
+            });
+          }
+        }
+      }
+
+      // 5. Permissões concedidas/recusadas
+      const { json: perms } = await graphJson(
+        `${GRAPH}/me/permissions?access_token=${encodeURIComponent(userToken)}`,
+      );
+
+      return json({
+        stored_connection: {
+          id: conn.id,
+          status: conn.status,
+          scopes: conn.scopes,
+          connected_at: conn.connected_at,
+          has_page_token: !!conn.page_access_token,
+        },
+        token_debug: {
+          http_status: dbgRes.status,
+          app_id: d.app_id ?? null,
+          app_id_matches_env: d.app_id ? String(d.app_id) === String(APP_ID) : null,
+          application: d.application ?? null,
+          type: d.type ?? null, // USER | PAGE | APP
+          user_id: d.user_id ?? null,
+          profile_id: d.profile_id ?? null,
+          is_valid: d.is_valid ?? null,
+          issued_at: d.issued_at ? new Date(d.issued_at * 1000).toISOString() : null,
+          expires_at: d.expires_at ? new Date(d.expires_at * 1000).toISOString() : "never",
+          data_access_expires_at: d.data_access_expires_at
+            ? new Date(d.data_access_expires_at * 1000).toISOString()
+            : null,
+          scopes: d.scopes ?? null,
+          granular_scopes: d.granular_scopes ?? null,
+          error: dbg?.error ?? null,
+        },
+        me: {
+          http_status: meRes.status,
+          id: me?.id ?? null,
+          name: me?.name ?? null,
+          matches_token_user_id: me?.id && d.user_id ? String(me.id) === String(d.user_id) : null,
+          error: me?.error ?? null,
+        },
+        me_accounts: {
+          http_status: accRes.status,
+          headers: accHeaders,
+          has_data_key: Object.prototype.hasOwnProperty.call(acc ?? {}, "data"),
+          count: Array.isArray(acc?.data) ? acc.data.length : null,
+          pages: Array.isArray(acc?.data)
+            ? acc.data.map((p: any) => ({ id: p.id, name: p.name, tasks: p.tasks ?? null }))
+            : null,
+          paging: acc?.paging ?? null,
+          error: acc?.error ?? null,
+        },
+        businesses: {
+          http_status: bizRes.status,
+          count: Array.isArray(biz?.data) ? biz.data.length : null,
+          list: Array.isArray(biz?.data) ? biz.data.map((b: any) => ({ id: b.id, name: b.name })) : null,
+          error: biz?.error ?? null,
+        },
+        business_pages: businessPages,
+        permissions: perms?.data ?? perms?.error ?? null,
+      });
+    }
+
     // ---------- VERIFY CREDENTIALS ----------
     if (action === "verify_credentials") {
       if (!APP_ID || !APP_SECRET) return json({ ok: false, error: "Credenciais em falta" }, 400);
