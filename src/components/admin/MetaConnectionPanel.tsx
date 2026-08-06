@@ -41,12 +41,23 @@ export default function MetaConnectionPanel() {
   const [connection, setConnection] = useState<MetaConnection | null>(null);
   const [pages, setPages] = useState<MetaPage[]>([]);
   const [pagesLoaded, setPagesLoaded] = useState(false);
+  const [pagesIssue, setPagesIssue] = useState<{ reason: string; message: string } | null>(null);
 
   const call = useCallback(async (action: string, extra: Record<string, unknown> = {}) => {
     const { data, error } = await supabase.functions.invoke("meta-connection", {
       body: { action, ...extra },
     });
-    if (error) throw new Error((error as any)?.message ?? "Erro na chamada");
+    if (error) {
+      // Extrai a mensagem real devolvida pela Edge Function em vez do texto genérico
+      let detail: string | null = null;
+      try {
+        const body = await (error as any)?.context?.json?.();
+        detail = body?.error ?? null;
+      } catch {
+        detail = null;
+      }
+      throw new Error(detail ?? (error as any)?.message ?? "Erro na chamada à Edge Function");
+    }
     if ((data as any)?.error) throw new Error((data as any).error);
     return data as any;
   }, []);
@@ -104,9 +115,24 @@ export default function MetaConnectionPanel() {
 
   const listPages = () =>
     run("pages", async () => {
-      const data = await call("pages");
-      setPages(data.pages ?? []);
+      const { data, error } = await supabase.functions.invoke("meta-connection", {
+        body: { action: "pages" },
+      });
+      if (error) throw new Error((error as any)?.message ?? "Erro na chamada à Edge Function");
+      const result = data as any;
+      setPages(result?.pages ?? []);
       setPagesLoaded(true);
+      if (result?.error) {
+        setPagesIssue({ reason: result.reason ?? "unknown", message: result.error });
+        await loadStatus();
+        toast({
+          title: "Nenhuma Página disponível",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else {
+        setPagesIssue(null);
+      }
     });
 
   const selectPage = (pageId: string) =>
@@ -114,6 +140,7 @@ export default function MetaConnectionPanel() {
       await call("select_page", { page_id: pageId });
       setPages([]);
       setPagesLoaded(false);
+      setPagesIssue(null);
       await loadStatus();
       toast({ title: "Página ligada com sucesso" });
     });
@@ -376,10 +403,21 @@ export default function MetaConnectionPanel() {
         {pagesLoaded && pages.length === 0 && (
           <Alert variant="destructive">
             <AlertDescription>
-              A Meta não devolveu nenhuma Página para esta conta. Na janela de autorização,
-              confirma que selecionaste a Página LEGA e lhe deste acesso. Se a Página pertence a
-              um Business Portfolio, o teu utilizador também precisa de acesso total à Página.
-              Depois usa <strong>Reconectar</strong> e volta a autorizar.
+              <strong className="block">
+                {pagesIssue?.reason === "no_page_access"
+                  ? "O utilizador autenticado não tem acesso total a nenhuma Página."
+                  : pagesIssue?.reason === "graph_error"
+                    ? "A Meta devolveu um erro ao listar as Páginas."
+                    : pagesIssue?.reason === "empty_response"
+                      ? "A Meta respondeu sem lista de Páginas."
+                      : pagesIssue?.reason === "missing_scope"
+                        ? "Falta a permissão pages_show_list na autorização."
+                        : "Nenhuma Página foi autorizada durante o login Meta."}
+              </strong>
+              <span className="mt-1 block">
+                {pagesIssue?.message ??
+                  "Volta a ligar a conta Meta e seleciona explicitamente a Página LEGA no ecrã de seleção de ativos."}
+              </span>
             </AlertDescription>
           </Alert>
         )}

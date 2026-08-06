@@ -138,27 +138,78 @@ Deno.serve(async (req) => {
         redirect_uri: REDIRECT_URI,
         state,
         response_type: "code",
+        // Força a Meta a reapresentar o ecrã de autorização / seleção de Páginas
+        // em vez de reutilizar silenciosamente a autorização anterior.
+        auth_type: "rerequest",
       });
       if (LOGIN_CONFIG_ID) {
         // Facebook Login for Business — permissões definidas na configuração
         params.set("config_id", LOGIN_CONFIG_ID);
+        // Necessário para que o fluxo com config_id devolva `code` (e não token).
+        params.set("override_default_response_type", "true");
       } else {
         // Facebook Login clássico — permissões pedidas explicitamente
         params.set("scope", SCOPES.join(","));
       }
       const url = `https://www.facebook.com/v23.0/dialog/oauth?${params.toString()}`;
+      console.log("[meta-connection] oauth_url", {
+        flow: LOGIN_CONFIG_ID ? "business_login" : "classic",
+        auth_type: "rerequest",
+        redirect_uri: REDIRECT_URI,
+      });
       return json({ url, state });
     }
 
     // ---------- LIST PAGES (with linked IG business account) ----------
     if (action === "pages") {
       const userToken = conn?.user_access_token;
-      if (!userToken) return json({ error: "Sem sessão Meta. Liga a conta primeiro." }, 400);
+      if (!userToken) {
+        return json({
+          pages: [],
+          reason: "no_session",
+          error: "Sem sessão Meta. Liga a conta primeiro.",
+        });
+      }
       const { res, json: data } = await graphJson(
         `${GRAPH}/me/accounts?fields=id,name,access_token,picture{url},instagram_business_account{id,username,profile_picture_url}&limit=100&access_token=${encodeURIComponent(userToken)}`,
       );
-      if (!res.ok) return json({ error: formatMetaError(data, res.status), details: data }, 400);
-      const pages = (data?.data ?? []).map((p: any) => ({
+      // Diagnóstico interno (sem tokens nem dados sensíveis)
+      console.log("[meta-connection] /me/accounts", {
+        http_status: res.status,
+        has_data_key: Object.prototype.hasOwnProperty.call(data ?? {}, "data"),
+        pages_count: Array.isArray(data?.data) ? data.data.length : null,
+        page_ids: Array.isArray(data?.data) ? data.data.map((p: any) => p.id) : null,
+        page_names: Array.isArray(data?.data) ? data.data.map((p: any) => p.name) : null,
+        meta_error: data?.error
+          ? {
+              code: data.error.code,
+              subcode: data.error.error_subcode,
+              type: data.error.type,
+              message: data.error.message,
+            }
+          : null,
+        granted_scopes: conn?.scopes ?? null,
+      });
+
+      if (!res.ok || data?.error) {
+        const message = formatMetaError(data, res.status);
+        await admin
+          .from("meta_connections")
+          .update({ last_error: message, last_checked_at: new Date().toISOString() })
+          .eq("id", conn.id);
+        return json({ pages: [], reason: "graph_error", error: message });
+      }
+
+      if (!Array.isArray(data?.data)) {
+        return json({
+          pages: [],
+          reason: "empty_response",
+          error:
+            "A Meta respondeu sem a lista de Páginas (resposta vazia ou inesperada). Tenta novamente dentro de instantes.",
+        });
+      }
+
+      const pages = data.data.map((p: any) => ({
         id: p.id,
         name: p.name,
         picture_url: p?.picture?.data?.url ?? null,
@@ -167,13 +218,49 @@ Deno.serve(async (req) => {
         ig_profile_picture_url: p?.instagram_business_account?.profile_picture_url ?? null,
       }));
       if (pages.length === 0) {
-        const message = "A Meta não disponibilizou nenhuma Página. Confirma o acesso total do utilizador à Página LEGA e seleciona essa Página ao reconectar.";
+        const scopes: string[] = conn?.scopes ?? [];
+        if (!scopes.includes("pages_show_list")) {
+          const message =
+            "A autorização Meta não inclui a permissão pages_show_list, por isso nenhuma Página pode ser listada. Adiciona-a na configuração de Business Login e volta a ligar a conta.";
+          await admin
+            .from("meta_connections")
+            .update({ status: "no_pages_available", last_error: message, last_checked_at: new Date().toISOString() })
+            .eq("id", conn.id);
+          return json({ pages, reason: "missing_scope", error: message });
+        }
+
+        // Distingue "sem acesso a Páginas" de "nenhuma Página selecionada no login".
+        const { res: bizRes, json: biz } = await graphJson(
+          `${GRAPH}/me/businesses?limit=25&access_token=${encodeURIComponent(userToken)}`,
+        );
+        const businessCount = Array.isArray(biz?.data) ? biz.data.length : null;
+        console.log("[meta-connection] /me/businesses", {
+          http_status: bizRes.status,
+          business_count: businessCount,
+          meta_error: biz?.error ? { code: biz.error.code, message: biz.error.message } : null,
+        });
+
+        const reason = businessCount && businessCount > 0 ? "no_pages_selected" : "no_page_access";
+        const message =
+          reason === "no_pages_selected"
+            ? "Nenhuma Página foi autorizada durante o login Meta. Volta a ligar a conta Meta e seleciona explicitamente a Página LEGA no ecrã de seleção de ativos."
+            : "O utilizador autenticado não tem acesso total a nenhuma Página do Facebook. Pede acesso total à Página LEGA no Business Manager e depois volta a ligar a conta Meta.";
+
         await admin
           .from("meta_connections")
-          .update({ status: "no_pages_available", last_error: message, last_checked_at: new Date().toISOString() })
+          .update({
+            status: "no_pages_available",
+            last_error: message,
+            last_checked_at: new Date().toISOString(),
+            metadata: { pages_count: 0, reason, business_count: businessCount },
+          })
           .eq("id", conn.id);
-        return json({ pages, error: message }, 400);
+        return json({ pages, reason, error: message });
       }
+      await admin
+        .from("meta_connections")
+        .update({ last_error: null, last_checked_at: new Date().toISOString() })
+        .eq("id", conn.id);
       return json({ pages });
     }
 
