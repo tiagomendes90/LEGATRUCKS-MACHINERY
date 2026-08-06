@@ -163,7 +163,9 @@ function ProductCard({ product }: { product: SocialProductRow }) {
 
   const runPublish = (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
-    if (publishMut.isPending) return;
+    if (busy) return;
+    const startedAt = Date.now();
+    setPending({ channel, at: startedAt });
     publishMut.mutate(
       {
         productId: product.id,
@@ -174,7 +176,8 @@ function ProductCard({ product }: { product: SocialProductRow }) {
         ...opts,
       },
       {
-        onSuccess: (res: any) =>
+        onSuccess: (res: any) => {
+          if (res?.deduped) setPending(null);
           toast({
             title: res?.deduped ? "Publicação já em curso" : "A publicar…",
             description: res?.deduped
@@ -184,13 +187,16 @@ function ProductCard({ product }: { product: SocialProductRow }) {
                     ? ` ${orderedImages.length} fotografias`
                     : ""
                 }. O estado atualiza automaticamente.`,
-          }),
-        onError: (e: any) =>
+          });
+        },
+        onError: (e: any) => {
+          setPending(null);
           toast({
             title: "Erro",
             description: String(e?.message ?? e),
             variant: "destructive",
-          }),
+          });
+        },
       },
     );
   };
