@@ -10,7 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Archive, ArchiveRestore, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
-import { usePersistentState } from "@/hooks/usePersistentState";
   useLists,
   useListMemberCounts,
   useSaveList,
@@ -20,6 +19,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
   useSetListMembership,
   useSubscribers,
 } from "@/hooks/useNewsletter";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 function slugify(v: string) {
   return v

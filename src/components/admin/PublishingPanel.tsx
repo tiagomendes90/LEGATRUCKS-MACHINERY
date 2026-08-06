@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, ChevronDown, ChevronRight } from "lucide-react";
 import {
-import { usePersistentState } from "@/hooks/usePersistentState";
   usePublishingChannels,
   useToggleChannel,
   usePublishingEvents,
@@ -13,6 +12,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
   useRetryEvent,
   usePublishingTransitions,
 } from "@/hooks/usePublishing";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 const statusVariant = (status: string) => {
   switch (status) {

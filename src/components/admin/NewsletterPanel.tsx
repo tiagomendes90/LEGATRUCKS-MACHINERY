@@ -33,7 +33,6 @@ import {
 import { Copy, History, Loader2, Mail, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
-import { usePersistentState } from "@/hooks/usePersistentState";
   useCampaigns,
   useSubscribers,
   useSubscriberStats,
@@ -51,6 +50,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { NewsletterCampaignEditor } from "./NewsletterCampaignEditor";
 import NewsletterListsPanel from "./NewsletterListsPanel";
 import NewsletterTemplatesPanel from "./NewsletterTemplatesPanel";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; className: string }> = {
