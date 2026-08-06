@@ -29,6 +29,7 @@ import {
 } from "@/hooks/useSocialPublishing";
 import { useToast } from "@/hooks/use-toast";
 import SocialOperationsOverview from "./SocialOperationsOverview";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 const SITE_URL =
   (import.meta as any)?.env?.VITE_PUBLIC_SITE_URL || "https://www.lega.pt";
@@ -562,7 +563,8 @@ function InstagramPreview({
 
 export default function SocialPublishingPanel() {
   const { data: products = [], isLoading } = useSocialProducts();
-  const [tab, setTab] = useState<"overview" | "ready_for_social" | "outdated" | "published">(
+  const [tab, setTab] = usePersistentState<"overview" | "ready_for_social" | "outdated" | "published">(
+    "social.tab",
     "overview",
   );
 

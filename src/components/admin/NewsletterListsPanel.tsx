@@ -19,6 +19,7 @@ import {
   useSetListMembership,
   useSubscribers,
 } from "@/hooks/useNewsletter";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 function slugify(v: string) {
   return v
@@ -43,8 +44,8 @@ export default function NewsletterListsPanel() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedList, setSelectedList] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [selectedList, setSelectedList] = usePersistentState<string | null>("newsletter.lists.selected", null);
+  const [search, setSearch] = usePersistentState<string>("newsletter.lists.search", "");
   const [picked, setPicked] = useState<string[]>([]);
 
   const activeSubscribers = useMemo(() => {

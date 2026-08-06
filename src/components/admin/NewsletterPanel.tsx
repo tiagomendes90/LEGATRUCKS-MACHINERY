@@ -50,6 +50,7 @@ import {
 import { NewsletterCampaignEditor } from "./NewsletterCampaignEditor";
 import NewsletterListsPanel from "./NewsletterListsPanel";
 import NewsletterTemplatesPanel from "./NewsletterTemplatesPanel";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; className: string }> = {
@@ -66,7 +67,7 @@ function statusBadge(status: string) {
 }
 
 export default function NewsletterPanel() {
-  const [tab, setTab] = useState("campaigns");
+  const [tab, setTab] = usePersistentState<string>("newsletter.tab", "campaigns");
   const [editing, setEditing] = useState<NewsletterCampaign | null>(null);
   const [creatingNew, setCreatingNew] = useState(false);
   const [confirmSend, setConfirmSend] = useState<NewsletterCampaign | null>(null);
@@ -363,7 +364,7 @@ function SubscribersTable({
   loading: boolean;
   onUnsubscribe: (id: string) => void;
 }) {
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = usePersistentState<string>("newsletter.subscribers.filter", "");
   const list = useMemo(() => {
     if (!subscribers) return [];
     const q = filter.trim().toLowerCase();

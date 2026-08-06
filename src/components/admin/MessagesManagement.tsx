@@ -13,6 +13,7 @@ import {
   ContactMessage, MessageStatus,
   useContactMessages, useDeleteContactMessage, useUpdateContactMessage,
 } from '@/hooks/useContactMessages';
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 const STATUS_LABEL: Record<MessageStatus, string> = {
   unread: 'Nova',
@@ -59,11 +60,11 @@ const MessagesManagement = () => {
   const updateMutation = useUpdateContactMessage();
   const deleteMutation = useDeleteContactMessage();
 
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sourceFilter, setSourceFilter] = useState<string>('all');
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
+  const [search, setSearch] = usePersistentState<string>('messages.search', '');
+  const [statusFilter, setStatusFilter] = usePersistentState<string>('messages.status', 'all');
+  const [sourceFilter, setSourceFilter] = usePersistentState<string>('messages.source', 'all');
+  const [dateFrom, setDateFrom] = usePersistentState<string>('messages.dateFrom', '');
+  const [dateTo, setDateTo] = usePersistentState<string>('messages.dateTo', '');
   const [selected, setSelected] = useState<ContactMessage | null>(null);
 
   const sourceOptions = useMemo(() => {
