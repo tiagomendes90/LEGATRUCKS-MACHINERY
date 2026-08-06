@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, ChevronDown, ChevronRight } from "lucide-react";
 import {
+import { usePersistentState } from "@/hooks/usePersistentState";
   usePublishingChannels,
   useToggleChannel,
   usePublishingEvents,
@@ -85,7 +86,7 @@ function MetaErrorBlock({ error }: { error: any }) {
 }
 
 function EventRow({ evt }: { evt: any }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = usePersistentState<boolean>(`publishing.event.${evt.id}`, false);
   const { data: logs = [] } = usePublishingLogs(open ? evt.id : null);
   const { data: transitions = [] } = usePublishingTransitions(open ? evt.id : null);
   const retry = useRetryEvent();

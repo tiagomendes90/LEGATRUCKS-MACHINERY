@@ -8,12 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, Download, Filter, Plus, Edit, Trash2 } from "lucide-react";
 import { useOrders, useUpdateOrder, useDeleteOrder, Order } from "@/hooks/useOrders";
 import { useToast } from "@/hooks/use-toast";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 const RealOrderManagement = () => {
   const { data: orders = [], isLoading } = useOrders();
   const updateOrderMutation = useUpdateOrder();
   const deleteOrderMutation = useDeleteOrder();
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = usePersistentState<string>("orders.status", "all");
   const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {

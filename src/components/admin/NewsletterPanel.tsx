@@ -33,6 +33,7 @@ import {
 import { Copy, History, Loader2, Mail, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
+import { usePersistentState } from "@/hooks/usePersistentState";
   useCampaigns,
   useSubscribers,
   useSubscriberStats,
@@ -66,7 +67,7 @@ function statusBadge(status: string) {
 }
 
 export default function NewsletterPanel() {
-  const [tab, setTab] = useState("campaigns");
+  const [tab, setTab] = usePersistentState<string>("newsletter.tab", "campaigns");
   const [editing, setEditing] = useState<NewsletterCampaign | null>(null);
   const [creatingNew, setCreatingNew] = useState(false);
   const [confirmSend, setConfirmSend] = useState<NewsletterCampaign | null>(null);
@@ -363,7 +364,7 @@ function SubscribersTable({
   loading: boolean;
   onUnsubscribe: (id: string) => void;
 }) {
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = usePersistentState<string>("newsletter.subscribers.filter", "");
   const list = useMemo(() => {
     if (!subscribers) return [];
     const q = filter.trim().toLowerCase();
