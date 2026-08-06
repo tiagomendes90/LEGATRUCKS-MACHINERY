@@ -148,7 +148,7 @@ export const facebookChannel: ChannelAdapter = {
 
       // Persist success in product_social_posts and mark product as published.
       const nowIso = new Date().toISOString();
-      await admin.from("product_social_posts").insert({
+      const { error: postLogError } = await admin.from("product_social_posts").insert({
         product_id: productId,
         channel_key: CHANNEL_KEY,
         event_id: ctx.event.id,
@@ -159,6 +159,9 @@ export const facebookChannel: ChannelAdapter = {
         raw_response: json,
         media: { image_url: imageUrl, caption },
       });
+      if (postLogError) {
+        throw new Error(`Facebook publicado, mas falhou o registo interno: ${postLogError.message}`);
+      }
 
       // Snapshot the hash at publish-time so future divergence flips to 'outdated'.
       await admin.from("products").update({ social_caption: caption }).eq("id", productId);

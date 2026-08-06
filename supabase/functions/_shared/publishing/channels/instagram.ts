@@ -341,7 +341,7 @@ export const instagramChannel: ChannelAdapter = {
       const externalUrl = await fetchPermalink(mediaId, token);
 
       const nowIso = new Date().toISOString();
-      await admin.from("product_social_posts").insert({
+      const { error: postLogError } = await admin.from("product_social_posts").insert({
         product_id: productId,
         channel_key: CHANNEL_KEY,
         event_id: ctx.event.id,
@@ -352,6 +352,9 @@ export const instagramChannel: ChannelAdapter = {
         raw_response: pubJson,
         media: { images: allImages, caption, mode: publishRequest.mode },
       });
+      if (postLogError) {
+        throw new Error(`Instagram publicado, mas falhou o registo interno: ${postLogError.message}`);
+      }
 
       // Snapshot the hash at publish time (mirrors Facebook adapter).
       await admin.from("products").update({ social_caption: caption }).eq("id", productId);
