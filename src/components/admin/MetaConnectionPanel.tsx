@@ -40,6 +40,7 @@ export default function MetaConnectionPanel() {
   const [redirectUri, setRedirectUri] = useState("");
   const [connection, setConnection] = useState<MetaConnection | null>(null);
   const [pages, setPages] = useState<MetaPage[]>([]);
+  const [pagesLoaded, setPagesLoaded] = useState(false);
 
   const call = useCallback(async (action: string, extra: Record<string, unknown> = {}) => {
     const { data, error } = await supabase.functions.invoke("meta-connection", {
@@ -105,12 +106,14 @@ export default function MetaConnectionPanel() {
     run("pages", async () => {
       const data = await call("pages");
       setPages(data.pages ?? []);
+      setPagesLoaded(true);
     });
 
   const selectPage = (pageId: string) =>
     run(`select-${pageId}`, async () => {
       await call("select_page", { page_id: pageId });
       setPages([]);
+      setPagesLoaded(false);
       await loadStatus();
       toast({ title: "Página ligada com sucesso" });
     });
@@ -140,6 +143,7 @@ export default function MetaConnectionPanel() {
     run("disconnect", async () => {
       await call("disconnect");
       setPages([]);
+      setPagesLoaded(false);
       await loadStatus();
       toast({ title: "Ligação Meta removida" });
     });
@@ -166,6 +170,7 @@ export default function MetaConnectionPanel() {
   const statusLabel: Record<string, string> = {
     connected: "Ligado",
     pending_page_selection: "Falta escolher página",
+    no_pages_available: "Sem acesso à Página",
     expired: "Token expirado",
     disconnected: "Desligado",
     replaced: "Substituído",
@@ -207,6 +212,15 @@ export default function MetaConnectionPanel() {
         {connection?.last_error && (
           <Alert variant="destructive">
             <AlertDescription className="break-words">{connection.last_error}</AlertDescription>
+          </Alert>
+        )}
+
+        {connection?.status === "pending_page_selection" && (
+          <Alert>
+            <AlertDescription>
+              A autenticação foi concluída. Clica em <strong>Escolher página</strong> para
+              selecionar a Página Facebook que a Meta disponibilizou a esta ligação.
+            </AlertDescription>
           </Alert>
         )}
 
@@ -357,6 +371,17 @@ export default function MetaConnectionPanel() {
               </div>
             ))}
           </div>
+        )}
+
+        {pagesLoaded && pages.length === 0 && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              A Meta não devolveu nenhuma Página para esta conta. Na janela de autorização,
+              confirma que selecionaste a Página LEGA e lhe deste acesso. Se a Página pertence a
+              um Business Portfolio, o teu utilizador também precisa de acesso total à Página.
+              Depois usa <strong>Reconectar</strong> e volta a autorizar.
+            </AlertDescription>
+          </Alert>
         )}
       </CardContent>
     </Card>

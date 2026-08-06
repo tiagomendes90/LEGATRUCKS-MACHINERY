@@ -85,6 +85,9 @@ Deno.serve(async (req) => {
     );
     const pages = pagesJson?.data ?? [];
     const only = pages.length === 1 ? pages[0] : null;
+    const noPagesMessage = pages.length === 0
+      ? "A Meta autenticou a conta, mas não disponibilizou nenhuma Página. Confirma que o teu utilizador tem acesso total à Página LEGA e, ao reconectar, seleciona explicitamente essa Página na janela da Meta."
+      : null;
 
     // deactivate previous connections, then insert the new one
     await admin
@@ -94,7 +97,7 @@ Deno.serve(async (req) => {
 
     await admin.from("meta_connections").insert({
       provider: "meta",
-      status: only ? "connected" : "pending_page_selection",
+      status: only ? "connected" : pages.length === 0 ? "no_pages_available" : "pending_page_selection",
       user_access_token: userToken,
       token_expires_at: expiresAt,
       scopes,
@@ -107,6 +110,7 @@ Deno.serve(async (req) => {
       ig_username: only?.instagram_business_account?.username ?? null,
       ig_profile_picture_url: only?.instagram_business_account?.profile_picture_url ?? null,
       metadata: { pages_count: pages.length },
+      last_error: noPagesMessage,
       is_active: true,
     });
 
@@ -114,8 +118,8 @@ Deno.serve(async (req) => {
       "Conta Meta ligada",
       only
         ? `Página “${only.name}” ligada${only?.instagram_business_account?.username ? ` e Instagram @${only.instagram_business_account.username} detetado` : " (sem conta Instagram Business associada)"}.`
-        : "Autenticação concluída. Escolhe agora a Página no painel de administração.",
-      true,
+        : noPagesMessage ?? "Autenticação concluída. Escolhe agora a Página no painel de administração.",
+      pages.length > 0,
     );
   } catch (err) {
     return page("Erro inesperado", err instanceof Error ? err.message : String(err), false);
