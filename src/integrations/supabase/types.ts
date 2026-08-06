@@ -177,6 +177,102 @@ export type Database = {
           },
         ]
       }
+      meta_connections: {
+        Row: {
+          connected_at: string
+          connected_by: string | null
+          created_at: string
+          id: string
+          ig_profile_picture_url: string | null
+          ig_user_id: string | null
+          ig_username: string | null
+          is_active: boolean
+          last_checked_at: string | null
+          last_error: string | null
+          metadata: Json
+          page_access_token: string | null
+          page_id: string | null
+          page_name: string | null
+          page_picture_url: string | null
+          provider: string
+          scopes: string[]
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_access_token: string | null
+        }
+        Insert: {
+          connected_at?: string
+          connected_by?: string | null
+          created_at?: string
+          id?: string
+          ig_profile_picture_url?: string | null
+          ig_user_id?: string | null
+          ig_username?: string | null
+          is_active?: boolean
+          last_checked_at?: string | null
+          last_error?: string | null
+          metadata?: Json
+          page_access_token?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          page_picture_url?: string | null
+          provider?: string
+          scopes?: string[]
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_access_token?: string | null
+        }
+        Update: {
+          connected_at?: string
+          connected_by?: string | null
+          created_at?: string
+          id?: string
+          ig_profile_picture_url?: string | null
+          ig_user_id?: string | null
+          ig_username?: string | null
+          is_active?: boolean
+          last_checked_at?: string | null
+          last_error?: string | null
+          metadata?: Json
+          page_access_token?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          page_picture_url?: string | null
+          provider?: string
+          scopes?: string[]
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_access_token?: string | null
+        }
+        Relationships: []
+      }
+      meta_oauth_states: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          redirect_to: string | null
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          redirect_to?: string | null
+          state: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          redirect_to?: string | null
+          state?: string
+        }
+        Relationships: []
+      }
       newsletter_audit_log: {
         Row: {
           action: string
@@ -1262,7 +1358,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      meta_connection_status: {
+        Row: {
+          connected_at: string | null
+          has_page_token: boolean | null
+          id: string | null
+          ig_profile_picture_url: string | null
+          ig_user_id: string | null
+          ig_username: string | null
+          is_active: boolean | null
+          last_checked_at: string | null
+          last_error: string | null
+          page_id: string | null
+          page_name: string | null
+          page_picture_url: string | null
+          provider: string | null
+          scopes: string[] | null
+          status: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          connected_at?: string | null
+          has_page_token?: never
+          id?: string | null
+          ig_profile_picture_url?: string | null
+          ig_user_id?: string | null
+          ig_username?: string | null
+          is_active?: boolean | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          page_picture_url?: string | null
+          provider?: string | null
+          scopes?: string[] | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          connected_at?: string | null
+          has_page_token?: never
+          id?: string | null
+          ig_profile_picture_url?: string | null
+          ig_user_id?: string | null
+          ig_username?: string | null
+          is_active?: boolean | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          page_picture_url?: string | null
+          provider?: string | null
+          scopes?: string[] | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       build_product_social_snapshot: {
