@@ -647,6 +647,18 @@ function InstagramPreview({
 export default function SocialPublishingPanel() {
   useSocialRealtime();
   const { data: products = [], isLoading } = useSocialProducts();
+  const syncAll = useSyncSocialWithMeta();
+  const { toast } = useToast();
+
+  // Sincroniza com a Meta ao abrir o painel e depois a cada 3 minutos,
+  // para que posts eliminados manualmente voltem a "por publicar" sozinhos.
+  useEffect(() => {
+    syncAll.mutate(null);
+    const t = setInterval(() => syncAll.mutate(null), 180000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [tab, setTab] = usePersistentState<"overview" | "ready_for_social" | "outdated" | "published">(
     "social.tab",
     "overview",
@@ -668,7 +680,7 @@ export default function SocialPublishingPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {(
           [
             { key: "overview", label: "Visão geral" },
@@ -691,6 +703,36 @@ export default function SocialPublishingPanel() {
             )}
           </Button>
         ))}
+        <Button
+          size="sm"
+          variant="ghost"
+          className="ml-auto"
+          disabled={syncAll.isPending}
+          onClick={() =>
+            syncAll.mutate(null, {
+              onSuccess: (r) =>
+                toast({
+                  title: r?.ok === false ? "Sincronização indisponível" : "Sincronizado com a Meta",
+                  description:
+                    r?.ok === false
+                      ? r?.message ?? "Verifique a ligação Meta."
+                      : `${r?.checked ?? 0} publicações verificadas · ${r?.removed ?? 0} removidas na Meta${
+                          r?.connection_issue ? ` · aviso: ${r.connection_issue}` : ""
+                        }`,
+                  variant: r?.ok === false ? "destructive" : undefined,
+                }),
+              onError: (e: any) =>
+                toast({ title: "Erro na sincronização", description: String(e?.message ?? e), variant: "destructive" }),
+            })
+          }
+        >
+          {syncAll.isPending ? (
+            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="h-3 w-3 mr-2" />
+          )}
+          Sincronizar com a Meta
+        </Button>
       </div>
 
       {tab === "overview" ? (
