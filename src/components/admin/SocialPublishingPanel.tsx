@@ -474,8 +474,9 @@ function ProductCard({ product }: { product: SocialProductRow }) {
 }
 
 function FacebookPreview({
-  title, caption, image, link,
-}: { title: string; caption: string; image: string | null; link: string }) {
+  title, caption, image, link, images = [],
+}: { title: string; caption: string; image: string | null; link: string; images?: string[] }) {
+  const gallery = images.length ? images : image ? [image] : [];
   return (
     <div className="border rounded-lg overflow-hidden bg-muted/20">
       <div className="flex items-center gap-2 p-3 border-b bg-background">
@@ -490,8 +491,21 @@ function FacebookPreview({
       <div className="p-3">
         <p className="text-sm whitespace-pre-line line-clamp-6">{caption}</p>
       </div>
-      {image ? (
-        <img src={image} alt={title} className="w-full aspect-video object-cover" loading="lazy" />
+      {gallery.length > 1 ? (
+        <div className="grid grid-cols-2 gap-0.5">
+          {gallery.slice(0, 4).map((src, i) => (
+            <div key={src} className="relative">
+              <img src={src} alt={`${title} ${i + 1}`} className="w-full aspect-square object-cover" loading="lazy" />
+              {i === 3 && gallery.length > 4 && (
+                <div className="absolute inset-0 bg-foreground/60 text-background flex items-center justify-center text-lg font-semibold">
+                  +{gallery.length - 4}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : gallery.length === 1 ? (
+        <img src={gallery[0]} alt={title} className="w-full aspect-video object-cover" loading="lazy" />
       ) : (
         <div className="aspect-video bg-muted flex items-center justify-center text-xs text-muted-foreground">
           Sem imagem principal
@@ -501,6 +515,11 @@ function FacebookPreview({
         <p className="text-[10px] uppercase text-muted-foreground">lega.pt</p>
         <p className="text-xs font-medium truncate">{title}</p>
         <p className="text-xs text-muted-foreground truncate">{link}</p>
+        {gallery.length > 1 && (
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Álbum com {gallery.length} fotografias · legenda única
+          </p>
+        )}
       </div>
     </div>
   );
