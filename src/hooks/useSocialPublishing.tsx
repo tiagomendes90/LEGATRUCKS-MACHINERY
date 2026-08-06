@@ -41,7 +41,8 @@ export interface HashAuditRow {
 export function useSocialProducts() {
   return useQuery({
     queryKey: ["social_products"],
-    refetchInterval: 30000,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -61,6 +62,8 @@ export function useSocialPosts(productId: string | null) {
   return useQuery({
     queryKey: ["social_posts", productId],
     enabled: !!productId,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("product_social_posts")
