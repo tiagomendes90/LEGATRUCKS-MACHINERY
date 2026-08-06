@@ -15,6 +15,10 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const APP_ID = Deno.env.get("META_APP_ID");
 const APP_SECRET = Deno.env.get("META_APP_SECRET");
+// Facebook Login for Business: ID da configuração criada na App Meta.
+// Quando definido, o diálogo usa `config_id` (as permissões vêm da configuração)
+// em vez de enviar `scope`, que a Meta rejeita com "Invalid Scopes".
+const LOGIN_CONFIG_ID = Deno.env.get("META_LOGIN_CONFIG_ID");
 const REDIRECT_URI = `${SUPABASE_URL}/functions/v1/meta-oauth-callback`;
 
 const SCOPES = [
@@ -90,6 +94,7 @@ Deno.serve(async (req) => {
     if (action === "status") {
       return json({
         configured: !!(APP_ID && APP_SECRET),
+        login_config_id: LOGIN_CONFIG_ID ?? null,
         redirect_uri: REDIRECT_URI,
         required_scopes: SCOPES,
         connection: safe(conn) ?? null,
@@ -110,10 +115,20 @@ Deno.serve(async (req) => {
         created_by: userId,
         redirect_to: body?.redirect_to ?? null,
       });
-      const url =
-        `https://www.facebook.com/v19.0/dialog/oauth?client_id=${encodeURIComponent(APP_ID)}` +
-        `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-        `&state=${state}&response_type=code&scope=${encodeURIComponent(SCOPES.join(","))}`;
+      const params = new URLSearchParams({
+        client_id: APP_ID,
+        redirect_uri: REDIRECT_URI,
+        state,
+        response_type: "code",
+      });
+      if (LOGIN_CONFIG_ID) {
+        // Facebook Login for Business — permissões definidas na configuração
+        params.set("config_id", LOGIN_CONFIG_ID);
+      } else {
+        // Facebook Login clássico — permissões pedidas explicitamente
+        params.set("scope", SCOPES.join(","));
+      }
+      const url = `https://www.facebook.com/v23.0/dialog/oauth?${params.toString()}`;
       return json({ url, state });
     }
 
