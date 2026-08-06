@@ -161,6 +161,37 @@ function ProductCard({ product }: { product: SocialProductRow }) {
     }
   }, [audit]);
 
+  // Estado "a publicar" que persiste do clique até o post aparecer (ou timeout).
+  const [pending, setPending] = useState<{ channel: ChannelKey; at: number } | null>(null);
+  useEffect(() => {
+    if (!pending) return;
+    const done = posts.some(
+      (p) =>
+        p.channel_key === pending.channel &&
+        p.status === "published" &&
+        new Date(p.published_at).getTime() >= pending.at - 5000,
+    );
+    if (done) setPending(null);
+  }, [posts, pending]);
+  useEffect(() => {
+    if (!pending) return;
+    const t = setTimeout(() => setPending(null), 120000);
+    return () => clearTimeout(t);
+  }, [pending]);
+  const busy = publishMut.isPending || pending?.channel === channel;
+
+  const _unusedChangedFields = useMemo(() => {
+    const raw = audit?.changed_fields;
+    if (!raw) return [] as string[];
+    if (Array.isArray(raw)) return raw as string[];
+    try {
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [audit]);
+
   const runPublish = (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
     if (busy) return;
