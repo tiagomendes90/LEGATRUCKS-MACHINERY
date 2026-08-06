@@ -161,19 +161,28 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   }, [audit]);
 
   const runPublish = (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
+    // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
+    if (publishMut.isPending) return;
     publishMut.mutate(
       {
         productId: product.id,
         channel,
         caption,
         imageUrl: image,
+        imageUrls: orderedImages,
         ...opts,
       },
       {
-        onSuccess: () =>
+        onSuccess: (res: any) =>
           toast({
-            title: "Publicação enfileirada",
-            description: `${CHANNEL_META[channel].label} será atualizado dentro de instantes.`,
+            title: res?.deduped ? "Publicação já em curso" : "A publicar…",
+            description: res?.deduped
+              ? "Já existe um pedido idêntico em processamento."
+              : `${CHANNEL_META[channel].label}: a enviar${
+                  channel === "facebook" && orderedImages.length > 1
+                    ? ` ${orderedImages.length} fotografias`
+                    : ""
+                }. O estado atualiza automaticamente.`,
           }),
         onError: (e: any) =>
           toast({
