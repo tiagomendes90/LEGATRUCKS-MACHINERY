@@ -312,6 +312,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               title={product.title}
               caption={caption}
               image={image}
+              images={orderedImages}
               link={link}
             />
           )}
