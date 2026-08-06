@@ -252,39 +252,49 @@ export const instagramChannel: ChannelAdapter = {
         publishRequest = { mode: "single", imageUrl: allImages[0] };
       } else {
         // Carousel: create N child containers, then a parent CAROUSEL container.
-        const childIds: string[] = [];
-        for (const url of allImages) {
-          const res = await graphFetch(`${GRAPH}/${igUserId}/media`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              image_url: url,
-              is_carousel_item: "true",
-              access_token: token,
-            }).toString(),
-          });
-          const json = await res.json().catch(() => ({}));
-          if (!res.ok || !json?.id) {
-            return {
-              status: "failed",
-              request: { step: "carousel_child", url, so_far: childIds },
-              response: json,
-              error: formatMetaError(json, res.status),
-            };
-          }
-          childIds.push(json.id);
+        // Criação dos filhos em paralelo (a Graph API suporta-o) — reduz
+        // drasticamente a latência face ao processamento sequencial.
+        const childResults = await Promise.all(
+          allImages.map(async (url) => {
+            const res = await graphFetch(`${GRAPH}/${igUserId}/media`, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams({
+                image_url: url,
+                is_carousel_item: "true",
+                access_token: token,
+              }).toString(),
+            });
+            const json = await res.json().catch(() => ({}));
+            return { url, ok: res.ok && !!json?.id, json, httpStatus: res.status };
+          }),
+        );
+        const failedChild = childResults.find((c) => !c.ok);
+        if (failedChild) {
+          return {
+            status: "failed",
+            request: {
+              step: "carousel_child",
+              url: failedChild.url,
+              so_far: childResults.filter((c) => c.ok).map((c) => c.json.id),
+            },
+            response: failedChild.json,
+            error: formatMetaError(failedChild.json, failedChild.httpStatus),
+          };
         }
-        // Wait each child to be FINISHED before creating the parent.
-        for (const cid of childIds) {
-          const ready = await waitForContainerFinished(cid, token);
-          if (!ready.ok) {
-            return {
-              status: "failed",
-              request: { step: "wait_child", child_id: cid },
-              response: (ready as any).error ?? { status: ready.status },
-              error: `Instagram carousel child não ficou pronto (status=${ready.status}).`,
-            };
-          }
+        const childIds: string[] = childResults.map((c) => c.json.id as string);
+        // Espera que todos os filhos fiquem FINISHED — também em paralelo.
+        const readyChildren = await Promise.all(
+          childIds.map(async (cid) => ({ cid, ready: await waitForContainerFinished(cid, token) })),
+        );
+        const notReady = readyChildren.find((c) => !c.ready.ok);
+        if (notReady) {
+          return {
+            status: "failed",
+            request: { step: "wait_child", child_id: notReady.cid },
+            response: (notReady.ready as any).error ?? { status: (notReady.ready as any).status },
+            error: `Instagram carousel child não ficou pronto (status=${(notReady.ready as any).status}).`,
+          };
         }
         const parentRes = await graphFetch(`${GRAPH}/${igUserId}/media`, {
           method: "POST",
