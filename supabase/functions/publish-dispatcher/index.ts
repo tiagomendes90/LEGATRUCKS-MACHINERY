@@ -55,42 +55,37 @@ async function processEvent(supabase: any, event: PublishingEvent) {
   } catch (err) {
     console.warn("[dispatcher] loadProduct failed", err);
   }
-  const results: Array<{ channel: string; result: ChannelResult }> = [];
 
-  for (const adapter of channels) {
-    const channelConfig = enabledMap.get(adapter.key);
-    if (!channelConfig) {
-      results.push({
-        channel: adapter.key,
-        result: { status: "skipped", response: { reason: "channel disabled" } },
-      });
-      continue;
-    }
-    if (!adapter.supports(event)) {
-      results.push({
-        channel: adapter.key,
-        result: { status: "skipped", response: { reason: "event not supported" } },
-      });
-      continue;
-    }
+  // Só os adaptadores realmente aplicáveis a este evento entram no ciclo.
+  // Os restantes não geram trabalho nem logs "skipped" (ruído + latência).
+  const applicable = channels.filter(
+    (a) => enabledMap.has(a.key) && a.supports(event),
+  );
 
-    const ctx: PublishingContext = {
-      event,
-      product,
-      channelConfig,
-      supabaseUrl: SUPABASE_URL,
-      serviceRoleKey: SERVICE_ROLE_KEY,
-    };
-
-    let result: ChannelResult;
-    try {
-      result = await adapter.publish(ctx);
-    } catch (err) {
-      result = { status: "failed", error: err instanceof Error ? err.message : String(err) };
-    }
-
-    results.push({ channel: adapter.key, result });
-  }
+  // Execução em paralelo: canais são independentes entre si, pelo que não há
+  // razão para o Facebook esperar pelo Instagram (ou vice-versa).
+  const results: Array<{ channel: string; result: ChannelResult }> = await Promise.all(
+    applicable.map(async (adapter) => {
+      const ctx: PublishingContext = {
+        event,
+        product,
+        channelConfig: enabledMap.get(adapter.key) ?? {},
+        supabaseUrl: SUPABASE_URL,
+        serviceRoleKey: SERVICE_ROLE_KEY,
+      };
+      try {
+        return { channel: adapter.key, result: await adapter.publish(ctx) };
+      } catch (err) {
+        return {
+          channel: adapter.key,
+          result: {
+            status: "failed",
+            error: err instanceof Error ? err.message : String(err),
+          } as ChannelResult,
+        };
+      }
+    }),
+  );
 
   // Persist logs (best-effort; nunca deve falhar o processamento)
   if (results.length > 0) {
