@@ -2,7 +2,7 @@
 // Fase 2.6 — apenas infraestrutura de ligação. Não publica conteúdo.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { GRAPH, graphJson, formatMetaError } from "../_shared/publishing/metaClient.ts";
-import { refreshMetaConnection } from "../meta-token-refresh/index.ts";
+import { refreshMetaConnection } from "../_shared/publishing/metaTokenRefresh.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
