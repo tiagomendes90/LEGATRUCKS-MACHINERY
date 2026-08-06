@@ -1358,66 +1358,7 @@ export type Database = {
       }
     }
     Views: {
-      meta_connection_status: {
-        Row: {
-          connected_at: string | null
-          has_page_token: boolean | null
-          id: string | null
-          ig_profile_picture_url: string | null
-          ig_user_id: string | null
-          ig_username: string | null
-          is_active: boolean | null
-          last_checked_at: string | null
-          last_error: string | null
-          page_id: string | null
-          page_name: string | null
-          page_picture_url: string | null
-          provider: string | null
-          scopes: string[] | null
-          status: string | null
-          token_expires_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          connected_at?: string | null
-          has_page_token?: never
-          id?: string | null
-          ig_profile_picture_url?: string | null
-          ig_user_id?: string | null
-          ig_username?: string | null
-          is_active?: boolean | null
-          last_checked_at?: string | null
-          last_error?: string | null
-          page_id?: string | null
-          page_name?: string | null
-          page_picture_url?: string | null
-          provider?: string | null
-          scopes?: string[] | null
-          status?: string | null
-          token_expires_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          connected_at?: string | null
-          has_page_token?: never
-          id?: string | null
-          ig_profile_picture_url?: string | null
-          ig_user_id?: string | null
-          ig_username?: string | null
-          is_active?: boolean | null
-          last_checked_at?: string | null
-          last_error?: string | null
-          page_id?: string | null
-          page_name?: string | null
-          page_picture_url?: string | null
-          provider?: string | null
-          scopes?: string[] | null
-          status?: string | null
-          token_expires_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       build_product_social_snapshot: {
@@ -1461,6 +1402,28 @@ export type Database = {
       diff_social_snapshots: {
         Args: { new_s: Json; old_s: Json }
         Returns: Json
+      }
+      get_meta_connection_status: {
+        Args: never
+        Returns: {
+          connected_at: string
+          has_page_token: boolean
+          id: string
+          ig_profile_picture_url: string
+          ig_user_id: string
+          ig_username: string
+          is_active: boolean
+          last_checked_at: string
+          last_error: string
+          page_id: string
+          page_name: string
+          page_picture_url: string
+          provider: string
+          scopes: string[]
+          status: string
+          token_expires_at: string
+          updated_at: string
+        }[]
       }
       is_admin: { Args: never; Returns: boolean }
       refresh_product_social_hash: {
