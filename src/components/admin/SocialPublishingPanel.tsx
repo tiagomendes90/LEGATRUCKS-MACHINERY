@@ -26,6 +26,7 @@ import {
   usePublishToSocial,
   useDeleteSocial,
   useAcceptOutdated,
+  useSyncSocialWithMeta,
   type SocialProductRow,
 } from "@/hooks/useSocialPublishing";
 import { useToast } from "@/hooks/use-toast";
@@ -127,6 +128,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   const publishMut = usePublishToSocial();
   const deleteMut = useDeleteSocial();
   const acceptMut = useAcceptOutdated();
+  const syncMut = useSyncSocialWithMeta();
   const { toast } = useToast();
 
   const image = primaryImage(product);
@@ -178,11 +180,18 @@ function ProductCard({ product }: { product: SocialProductRow }) {
     const t = setTimeout(() => setPending(null), 120000);
     return () => clearTimeout(t);
   }, [pending]);
-  const busy = publishMut.isPending || pending?.channel === channel;
+  const busy = publishMut.isPending || syncMut.isPending || pending?.channel === channel;
 
-  const runPublish = (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
+  const runPublish = async (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
     if (busy) return;
+    // Antes de publicar, confirma na Meta que o estado local está correto
+    // (ex.: post apagado manualmente → o produto volta a "por publicar").
+    try {
+      await syncMut.mutateAsync(product.id);
+    } catch {
+      /* a sincronização é best-effort: nunca bloqueia a publicação */
+    }
     const startedAt = Date.now();
     setPending({ channel, at: startedAt });
     publishMut.mutate(
