@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
         `${GRAPH}/me/permissions?access_token=${encodeURIComponent(userToken)}`,
       );
 
-      return json({
+      const payload = {
         stored_connection: {
           id: conn.id,
           status: conn.status,
@@ -209,7 +209,9 @@ Deno.serve(async (req) => {
         },
         business_pages: businessPages,
         permissions: perms?.data ?? perms?.error ?? null,
-      });
+      };
+      console.log("[meta-connection] diagnose", JSON.stringify(payload));
+      return json(payload);
     }
 
     // ---------- VERIFY CREDENTIALS ----------
