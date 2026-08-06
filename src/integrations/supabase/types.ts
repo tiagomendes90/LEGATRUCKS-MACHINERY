@@ -853,12 +853,14 @@ export type Database = {
           external_id: string | null
           external_url: string | null
           id: string
+          last_verified_at: string | null
           media: Json
           product_id: string | null
           published_at: string
           raw_response: Json
           status: string
           updated_at: string
+          verification_error: string | null
         }
         Insert: {
           caption?: string | null
@@ -868,12 +870,14 @@ export type Database = {
           external_id?: string | null
           external_url?: string | null
           id?: string
+          last_verified_at?: string | null
           media?: Json
           product_id?: string | null
           published_at?: string
           raw_response?: Json
           status?: string
           updated_at?: string
+          verification_error?: string | null
         }
         Update: {
           caption?: string | null
@@ -883,12 +887,14 @@ export type Database = {
           external_id?: string | null
           external_url?: string | null
           id?: string
+          last_verified_at?: string | null
           media?: Json
           product_id?: string | null
           published_at?: string
           raw_response?: Json
           status?: string
           updated_at?: string
+          verification_error?: string | null
         }
         Relationships: [
           {
