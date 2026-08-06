@@ -117,16 +117,22 @@ Deno.serve(async (req) => {
         noPagesMessage =
           "A autorização não inclui a permissão pages_show_list, por isso nenhuma Página pode ser listada.";
       } else {
-        const { json: biz } = await graphJson(
+        const { res: bizRes, json: biz } = await graphJson(
           `${GRAPH}/me/businesses?limit=25&access_token=${encodeURIComponent(userToken)}`,
         );
         const businessCount = Array.isArray(biz?.data) ? biz.data.length : null;
-        console.log("[meta-oauth-callback] /me/businesses", { business_count: businessCount });
-        reason = businessCount && businessCount > 0 ? "no_pages_selected" : "no_page_access";
+        console.log("[meta-oauth-callback] /me/businesses", {
+          http_status: bizRes.status,
+          business_count: businessCount,
+          meta_error: biz?.error ? { code: biz.error.code, message: biz.error.message } : null,
+        });
+        // businessCount === null ⇒ consulta indisponível (falta business_management):
+        // não é prova de ausência de acesso, logo trata-se como "nenhuma Página selecionada".
+        reason = businessCount === 0 ? "no_page_access" : "no_pages_selected";
         noPagesMessage =
-          reason === "no_pages_selected"
-            ? "Nenhuma Página foi autorizada durante o login Meta. Volta a ligar a conta e seleciona explicitamente a Página LEGA no ecrã de seleção de ativos."
-            : "O utilizador autenticado não tem acesso total a nenhuma Página do Facebook. Pede acesso total à Página LEGA no Business Manager e volta a ligar a conta.";
+          reason === "no_page_access"
+            ? "O utilizador autenticado não tem acesso total a nenhuma Página do Facebook. Pede acesso total à Página LEGA no Business Manager e volta a ligar a conta."
+            : "Nenhuma Página foi autorizada durante o login Meta. Ao reconectar, escolhe o Business Portfolio da LEGA e marca explicitamente a Página LEGA no ecrã de seleção de ativos.";
       }
     }
 
