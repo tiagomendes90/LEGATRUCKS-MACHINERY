@@ -1,7 +1,7 @@
 // Cron-invoked token health check for the Meta connection.
 // Renova automaticamente o long-lived user token e re-deriva o page token,
 // para que a ligação nunca exija reconfiguração manual enquanto estiver válida.
-import { GRAPH, graphJson, formatMetaError } from "../_shared/publishing/metaClient.ts";
+import { GRAPH, graphJson, formatMetaError } from "./metaClient.ts";
 
 const APP_ID = Deno.env.get("META_APP_ID");
 const APP_SECRET = Deno.env.get("META_APP_SECRET");
