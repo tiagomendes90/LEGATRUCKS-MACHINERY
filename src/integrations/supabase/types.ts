@@ -1436,6 +1436,7 @@ export type Database = {
         Args: { p_product_id: string; p_source?: string }
         Returns: string
       }
+      trigger_social_sync: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
