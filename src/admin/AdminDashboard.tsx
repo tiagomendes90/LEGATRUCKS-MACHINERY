@@ -11,6 +11,7 @@ import RealOrderManagement from '@/components/RealOrderManagement';
 import MessagesManagement from '@/components/admin/MessagesManagement';
 import PublishingPanel from '@/components/admin/PublishingPanel';
 import SocialPublishingPanel from '@/components/admin/SocialPublishingPanel';
+import MetaConnectionPanel from '@/components/admin/MetaConnectionPanel';
 import NewsletterPanel from '@/components/admin/NewsletterPanel';
 import { Package, TrendingUp, ExternalLink, LogOut, MessageSquare } from 'lucide-react';
 import { sortProductImages } from '@/utils/productImages';
@@ -184,7 +185,8 @@ export default function AdminDashboard() {
           <MessagesManagement />
         </TabsContent>
 
-        <TabsContent value="social">
+        <TabsContent value="social" className="space-y-6">
+          <MetaConnectionPanel />
           <SocialPublishingPanel />
         </TabsContent>
 

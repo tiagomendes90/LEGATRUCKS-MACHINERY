@@ -2,8 +2,9 @@ import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.
 import { buildProductCaption, getProductUrl } from "../productFormatting.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { validateInstagramImages, summarizeIssues } from "../imageValidation.ts";
+import { GRAPH, graphFetch, formatMetaError, resolveMetaCredentials } from "../metaClient.ts";
+import { syncProductSocialStatus } from "../socialStatus.ts";
 
-const GRAPH = "https://graph.facebook.com/v19.0";
 const CHANNEL_KEY = "instagram";
 const MAX_CAROUSEL = 10;
 
@@ -17,7 +18,7 @@ async function waitForContainerFinished(
   for (const wait of POLL_INTERVALS_MS) {
     await new Promise((r) => setTimeout(r, wait));
     try {
-      const res = await fetch(
+      const res = await graphFetch(
         `${GRAPH}/${containerId}?fields=status_code,status&access_token=${encodeURIComponent(token)}`,
       );
       const json = await res.json().catch(() => ({}));
@@ -47,21 +48,6 @@ async function waitForContainerFinished(
  *   • social.delete                                → apaga post no IG
  *   • republish com delete_previous               → apaga o post antigo antes
  */
-function formatMetaError(json: any, httpStatus: number): string {
-  const e = json?.error;
-  if (!e) return `HTTP ${httpStatus}`;
-  const parts: string[] = [];
-  if (e.message) parts.push(e.message);
-  const codeBits: string[] = [];
-  if (e.code !== undefined) codeBits.push(`code=${e.code}`);
-  if (e.error_subcode !== undefined) codeBits.push(`subcode=${e.error_subcode}`);
-  if (e.type) codeBits.push(`type=${e.type}`);
-  if (e.fbtrace_id) codeBits.push(`trace=${e.fbtrace_id}`);
-  if (codeBits.length) parts.push(`[${codeBits.join(" ")}]`);
-  parts.push(`(HTTP ${httpStatus})`);
-  return parts.join(" ");
-}
-
 function getOrderedImageUrls(product: Record<string, unknown>): string[] {
   const imgs = (product.images as Array<any> | undefined) ?? [];
   return [...imgs]
@@ -76,7 +62,7 @@ function getOrderedImageUrls(product: Record<string, unknown>): string[] {
 
 async function fetchPermalink(mediaId: string, token: string): Promise<string | null> {
   try {
-    const res = await fetch(
+    const res = await graphFetch(
       `${GRAPH}/${mediaId}?fields=permalink&access_token=${encodeURIComponent(token)}`,
     );
     const json = await res.json().catch(() => ({}));
@@ -112,27 +98,24 @@ export const instagramChannel: ChannelAdapter = {
     );
   },
   async publish(ctx: PublishingContext): Promise<ChannelResult> {
-    const token =
-      Deno.env.get("META_PAGE_ACCESS_TOKEN") ?? Deno.env.get("INSTAGRAM_ACCESS_TOKEN");
-    const igUserId =
-      (ctx.channelConfig?.ig_user_id as string | undefined) ??
-      Deno.env.get("META_IG_USER_ID") ??
-      Deno.env.get("INSTAGRAM_USER_ID");
+    const admin = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
+    const { token, igUserId } = await resolveMetaCredentials(admin, ctx.channelConfig ?? {});
     if (!token || !igUserId) {
       return {
         status: "missing_credentials",
         response: {
-          reason: "missing META_PAGE_ACCESS_TOKEN or META_IG_USER_ID",
+          reason: "missing Meta token or Instagram business user id (OAuth connection or secrets)",
+          missing: [!token ? "page_access_token" : null, !igUserId ? "ig_user_id" : null].filter(Boolean),
           required: ["META_PAGE_ACCESS_TOKEN", "META_IG_USER_ID"],
         },
-        error: "Instagram não configurado: faltam META_PAGE_ACCESS_TOKEN / META_IG_USER_ID",
+        error:
+          "Instagram não configurado: liga a conta Meta no painel (OAuth) ou define META_PAGE_ACCESS_TOKEN / META_IG_USER_ID",
       };
     }
     if (!ctx.product) {
       return { status: "failed", error: "Instagram: produto inexistente para este evento" };
     }
 
-    const admin = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
     const productId = ctx.product.id as string;
     const eventType = ctx.event.event_type;
     const payload = (ctx.event.payload ?? {}) as Record<string, unknown>;
@@ -146,7 +129,7 @@ export const instagramChannel: ChannelAdapter = {
         return { status: "skipped", response: { reason: "no external_id to delete" } };
       }
       try {
-        const res = await fetch(
+        const res = await graphFetch(
           `${GRAPH}/${targetId}?access_token=${encodeURIComponent(token)}`,
           { method: "DELETE" },
         );
@@ -172,7 +155,8 @@ export const instagramChannel: ChannelAdapter = {
           .eq("product_id", productId)
           .eq("channel_key", CHANNEL_KEY)
           .eq("status", "published");
-        // Note: we don't flip social_status here — Facebook may still be live.
+        // Estado global multi-canal (Facebook pode continuar publicado).
+        await syncProductSocialStatus(admin, productId);
         return {
           status: "success",
           request: { action: "delete", external_id: targetId, remaining: count ?? 0 },
@@ -218,7 +202,7 @@ export const instagramChannel: ChannelAdapter = {
     if (eventType === "social.republish" && payload.delete_previous) {
       const prev = await loadLatestExternalId(admin, productId);
       if (prev) {
-        await fetch(`${GRAPH}/${prev}?access_token=${encodeURIComponent(token)}`, {
+        await graphFetch(`${GRAPH}/${prev}?access_token=${encodeURIComponent(token)}`, {
           method: "DELETE",
         }).catch(() => {});
         await admin
@@ -236,7 +220,7 @@ export const instagramChannel: ChannelAdapter = {
 
       if (allImages.length === 1) {
         // Single image container
-        const res = await fetch(`${GRAPH}/${igUserId}/media`, {
+        const res = await graphFetch(`${GRAPH}/${igUserId}/media`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
@@ -270,7 +254,7 @@ export const instagramChannel: ChannelAdapter = {
         // Carousel: create N child containers, then a parent CAROUSEL container.
         const childIds: string[] = [];
         for (const url of allImages) {
-          const res = await fetch(`${GRAPH}/${igUserId}/media`, {
+          const res = await graphFetch(`${GRAPH}/${igUserId}/media`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
@@ -302,7 +286,7 @@ export const instagramChannel: ChannelAdapter = {
             };
           }
         }
-        const parentRes = await fetch(`${GRAPH}/${igUserId}/media`, {
+        const parentRes = await graphFetch(`${GRAPH}/${igUserId}/media`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
@@ -336,7 +320,7 @@ export const instagramChannel: ChannelAdapter = {
       }
 
       // Publish container
-      const pubRes = await fetch(`${GRAPH}/${igUserId}/media_publish`, {
+      const pubRes = await graphFetch(`${GRAPH}/${igUserId}/media_publish`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
@@ -370,19 +354,8 @@ export const instagramChannel: ChannelAdapter = {
       });
 
       // Snapshot the hash at publish time (mirrors Facebook adapter).
-      const { data: hashRow } = await admin
-        .from("products")
-        .select("social_hash")
-        .eq("id", productId)
-        .maybeSingle();
-      await admin
-        .from("products")
-        .update({
-          social_status: "published",
-          social_caption: caption,
-          social_hash: hashRow?.social_hash ?? null,
-        })
-        .eq("id", productId);
+      await admin.from("products").update({ social_caption: caption }).eq("id", productId);
+      await syncProductSocialStatus(admin, productId);
 
       return {
         status: "success",
