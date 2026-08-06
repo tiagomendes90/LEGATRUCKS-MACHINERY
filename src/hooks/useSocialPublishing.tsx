@@ -26,6 +26,40 @@ export interface SocialPostRow {
   status: string;
   published_at: string;
   media: Record<string, unknown> | null;
+  last_verified_at?: string | null;
+  verification_error?: string | null;
+}
+
+export interface SocialSyncResult {
+  ok?: boolean;
+  reason?: string;
+  message?: string;
+  checked?: number;
+  removed?: number;
+  products_updated?: string[];
+  connection_issue?: string | null;
+}
+
+/**
+ * Reconcilia o estado local com a Meta: posts eliminados manualmente no
+ * Facebook/Instagram voltam a ficar "por publicar" automaticamente.
+ */
+export function useSyncSocialWithMeta() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (productId?: string | null): Promise<SocialSyncResult> => {
+      const { data, error } = await supabase.functions.invoke("social-sync", {
+        body: productId ? { product_id: productId } : {},
+      });
+      if (error) throw error;
+      return (data ?? {}) as SocialSyncResult;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["social_products"] });
+      qc.invalidateQueries({ queryKey: ["social_posts"] });
+      qc.invalidateQueries({ queryKey: ["social_metrics"] });
+    },
+  });
 }
 
 export interface HashAuditRow {
