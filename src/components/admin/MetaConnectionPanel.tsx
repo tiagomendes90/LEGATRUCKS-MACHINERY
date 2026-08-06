@@ -140,6 +140,7 @@ export default function MetaConnectionPanel() {
       await call("select_page", { page_id: pageId });
       setPages([]);
       setPagesLoaded(false);
+      setPagesIssue(null);
       await loadStatus();
       toast({ title: "Página ligada com sucesso" });
     });
@@ -402,10 +403,21 @@ export default function MetaConnectionPanel() {
         {pagesLoaded && pages.length === 0 && (
           <Alert variant="destructive">
             <AlertDescription>
-              A Meta não devolveu nenhuma Página para esta conta. Na janela de autorização,
-              confirma que selecionaste a Página LEGA e lhe deste acesso. Se a Página pertence a
-              um Business Portfolio, o teu utilizador também precisa de acesso total à Página.
-              Depois usa <strong>Reconectar</strong> e volta a autorizar.
+              <strong className="block">
+                {pagesIssue?.reason === "no_page_access"
+                  ? "O utilizador autenticado não tem acesso total a nenhuma Página."
+                  : pagesIssue?.reason === "graph_error"
+                    ? "A Meta devolveu um erro ao listar as Páginas."
+                    : pagesIssue?.reason === "empty_response"
+                      ? "A Meta respondeu sem lista de Páginas."
+                      : pagesIssue?.reason === "missing_scope"
+                        ? "Falta a permissão pages_show_list na autorização."
+                        : "Nenhuma Página foi autorizada durante o login Meta."}
+              </strong>
+              <span className="mt-1 block">
+                {pagesIssue?.message ??
+                  "Volta a ligar a conta Meta e seleciona explicitamente a Página LEGA no ecrã de seleção de ativos."}
+              </span>
             </AlertDescription>
           </Alert>
         )}
