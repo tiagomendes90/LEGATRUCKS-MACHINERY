@@ -21,7 +21,7 @@ import {
   saveAdminProductDraftMetadata,
   type AdminProductDraftForm,
 } from '@/utils/adminProductDraftStorage';
-import { emitPublishingEvent } from '@/lib/publishing';
+import { tryEmitPublishingEvent } from '@/lib/publishing';
 
 type StoredImage = {
   id?: string | null;
@@ -449,7 +449,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
         : editingProduct
           ? 'product.updated'
           : 'product.updated';
-      emitPublishingEvent({ type, productId });
+      void tryEmitPublishingEvent({ type, productId });
       if (publishNow) {
         toast({
           title: 'Publicação em curso',
