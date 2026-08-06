@@ -102,6 +102,22 @@ Deno.serve(async (req) => {
     }
 
     // ---------- OAUTH URL ----------
+    // ---------- VERIFY CREDENTIALS ----------
+    if (action === "verify_credentials") {
+      if (!APP_ID || !APP_SECRET) return json({ ok: false, error: "Credenciais em falta" }, 400);
+      const { res, json: data } = await graphJson(
+        `${GRAPH}/oauth/access_token?client_id=${encodeURIComponent(APP_ID)}` +
+          `&client_secret=${encodeURIComponent(APP_SECRET)}&grant_type=client_credentials`,
+      );
+      return json({
+        ok: res.ok,
+        app_id: APP_ID,
+        app_id_length: APP_ID.length,
+        secret_length: APP_SECRET.length,
+        error: res.ok ? null : formatMetaError(data),
+      });
+    }
+
     if (action === "oauth_url") {
       if (!APP_ID || !APP_SECRET) {
         return json(
