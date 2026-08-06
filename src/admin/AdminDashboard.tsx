@@ -17,11 +17,15 @@ import { Package, TrendingUp, ExternalLink, LogOut, MessageSquare } from 'lucide
 import { sortProductImages } from '@/utils/productImages';
 import { ADMIN_PRODUCT_DRAFT_EVENT, hasAdminProductDraft } from '@/utils/adminProductDraftStorage';
 import { useContactMessages } from '@/hooks/useContactMessages';
+import { usePersistentState } from '@/hooks/usePersistentState';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState(() => hasAdminProductDraft() ? 'add-product' : 'inventory');
+  const [activeTab, setActiveTab] = usePersistentState<string>(
+    'dashboard.tab',
+    hasAdminProductDraft() ? 'add-product' : 'inventory',
+  );
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: messages = [] } = useContactMessages();
@@ -45,15 +49,11 @@ export default function AdminDashboard() {
     };
 
     window.addEventListener(ADMIN_PRODUCT_DRAFT_EVENT, restoreDraftTab);
-    window.addEventListener('focus', restoreDraftTab);
-    document.addEventListener('visibilitychange', restoreDraftTab);
 
     return () => {
       window.removeEventListener(ADMIN_PRODUCT_DRAFT_EVENT, restoreDraftTab);
-      window.removeEventListener('focus', restoreDraftTab);
-      document.removeEventListener('visibilitychange', restoreDraftTab);
     };
-  }, []);
+  }, [setActiveTab]);
 
   if (loading) {
     return (
