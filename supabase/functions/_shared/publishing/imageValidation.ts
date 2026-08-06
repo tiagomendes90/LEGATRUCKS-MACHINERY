@@ -37,7 +37,7 @@ export interface ValidationResult {
 export interface InstagramImageRules {
   maxBytes: number;      // 8 MB
   minWidth: number;      // 320
-  maxWidth: number;      // 1440
+  maxWidth: number;      // limite duro (o IG redimensiona acima de 1440px)
   minAspect: number;     // 4:5  = 0.8
   maxAspect: number;     // 1.91:1
   allowedMime: RegExp;
@@ -47,7 +47,9 @@ export interface InstagramImageRules {
 export const INSTAGRAM_RULES: InstagramImageRules = {
   maxBytes: 8 * 1024 * 1024,
   minWidth: 320,
-  maxWidth: 1440,
+  // O Instagram aceita imagens maiores e redimensiona para 1440px de largura.
+  // Só bloqueamos larguras absurdas que a Meta rejeita de facto.
+  maxWidth: 8192,
   minAspect: 0.8,
   maxAspect: 1.91,
   allowedMime: /^image\/(jpeg|jpg|png)$/i,
@@ -214,7 +216,7 @@ export async function validateInstagramImages(
     if (p.width > rules.maxWidth) {
       issues.push({
         url, probe: p, code: "too_wide",
-        message: `Largura ${p.width}px excede o máximo recomendado ${rules.maxWidth}px do Instagram.`,
+        message: `Largura ${p.width}px excede o máximo ${rules.maxWidth}px suportado pelo Instagram.`,
       });
       continue;
     }
