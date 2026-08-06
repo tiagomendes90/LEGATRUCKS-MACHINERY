@@ -2,6 +2,7 @@
 // Fase 2.6 — apenas infraestrutura de ligação. Não publica conteúdo.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { GRAPH, graphJson, formatMetaError } from "../_shared/publishing/metaClient.ts";
+import { refreshMetaConnection } from "../_shared/publishing/metaTokenRefresh.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -209,6 +210,18 @@ Deno.serve(async (req) => {
       return json({ ok: valid, debug: dbg?.data ?? null });
     }
 
+    // ---------- REFRESH (renovar ligação sem novo OAuth) ----------
+    if (action === "refresh") {
+      if (!conn) return json({ error: "Nenhuma ligação ativa." }, 400);
+      const result = await refreshMetaConnection(admin);
+      const { data: updated } = await admin
+        .from("meta_connections")
+        .select("*")
+        .eq("id", conn.id)
+        .maybeSingle();
+      return json({ ...result, connection: safe(updated) });
+    }
+
     // ---------- DISCONNECT ----------
     if (action === "disconnect") {
       if (!conn) return json({ ok: true });
@@ -219,6 +232,10 @@ Deno.serve(async (req) => {
           status: "disconnected",
           page_access_token: null,
           user_access_token: null,
+          ig_user_id: null,
+          ig_username: null,
+          ig_profile_picture_url: null,
+          last_error: null,
         })
         .eq("id", conn.id);
       return json({ ok: true });

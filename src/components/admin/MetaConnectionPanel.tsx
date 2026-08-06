@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Facebook, Instagram, Loader2, Link2, Unlink, RefreshCw, ShieldCheck } from "lucide-react";
+import { Facebook, Instagram, Loader2, Link2, Unlink, RefreshCw, ShieldCheck, RotateCw, Clock } from "lucide-react";
 
 interface MetaConnection {
   id: string;
@@ -115,6 +115,17 @@ export default function MetaConnectionPanel() {
       toast({ title: "Página ligada com sucesso" });
     });
 
+  const renew = () =>
+    run("renew", async () => {
+      const data = await call("refresh");
+      await loadStatus();
+      toast({
+        title: data.ok ? "Ligação renovada" : "Não foi possível renovar",
+        description: data.error ?? undefined,
+        variant: data.ok ? "default" : "destructive",
+      });
+    });
+
   const verify = () =>
     run("verify", async () => {
       const data = await call("verify");
@@ -144,6 +155,21 @@ export default function MetaConnectionPanel() {
   }
 
   const isConnected = connection?.status === "connected" && connection.has_page_token;
+  const expiresInDays = connection?.token_expires_at
+    ? Math.max(
+        0,
+        Math.round(
+          (new Date(connection.token_expires_at).getTime() - Date.now()) / 86_400_000,
+        ),
+      )
+    : null;
+  const statusLabel: Record<string, string> = {
+    connected: "Ligado",
+    pending_page_selection: "Falta escolher página",
+    expired: "Token expirado",
+    disconnected: "Desligado",
+    replaced: "Substituído",
+  };
 
   return (
     <Card>
@@ -157,8 +183,12 @@ export default function MetaConnectionPanel() {
               Liga as contas por OAuth — sem configurar IDs manualmente.
             </CardDescription>
           </div>
-          <Badge variant={isConnected ? "default" : "secondary"}>
-            {connection?.status ?? "não ligado"}
+          <Badge
+            variant={
+              isConnected ? "default" : connection?.status === "expired" ? "destructive" : "secondary"
+            }
+          >
+            {connection ? statusLabel[connection.status] ?? connection.status : "Não ligado"}
           </Badge>
         </div>
       </CardHeader>
@@ -183,7 +213,16 @@ export default function MetaConnectionPanel() {
         {connection && (
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex items-center gap-3 rounded-lg border p-3">
-              <Facebook className="h-5 w-5 text-blue-600" />
+              {connection.page_picture_url ? (
+                <img
+                  src={connection.page_picture_url}
+                  alt={connection.page_name ?? "Página Facebook"}
+                  className="h-9 w-9 rounded-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <Facebook className="h-5 w-5 text-blue-600" />
+              )}
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">
                   {connection.page_name ?? "Página não selecionada"}
@@ -194,7 +233,16 @@ export default function MetaConnectionPanel() {
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-lg border p-3">
-              <Instagram className="h-5 w-5 text-pink-600" />
+              {connection.ig_profile_picture_url ? (
+                <img
+                  src={connection.ig_profile_picture_url}
+                  alt={connection.ig_username ?? "Conta Instagram"}
+                  className="h-9 w-9 rounded-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <Instagram className="h-5 w-5 text-pink-600" />
+              )}
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">
                   {connection.ig_username ? `@${connection.ig_username}` : "Sem conta Instagram Business"}
@@ -207,10 +255,38 @@ export default function MetaConnectionPanel() {
           </div>
         )}
 
-        {connection?.token_expires_at && (
-          <p className="text-xs text-muted-foreground">
-            Token válido até {new Date(connection.token_expires_at).toLocaleString("pt-PT")}
-          </p>
+        {connection && (
+          <div className="grid gap-2 rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground sm:grid-cols-2">
+            <p className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              Token válido até:{" "}
+              <span className="font-medium text-foreground">
+                {connection.token_expires_at
+                  ? new Date(connection.token_expires_at).toLocaleString("pt-PT")
+                  : "sem expiração"}
+              </span>
+              {expiresInDays !== null && (
+                <span className={expiresInDays <= 14 ? "text-destructive" : ""}>
+                  ({expiresInDays} dias)
+                </span>
+              )}
+            </p>
+            <p className="flex items-center gap-1.5">
+              <RefreshCw className="h-3.5 w-3.5" />
+              Última sincronização:{" "}
+              <span className="font-medium text-foreground">
+                {connection.last_checked_at
+                  ? new Date(connection.last_checked_at).toLocaleString("pt-PT")
+                  : "nunca"}
+              </span>
+            </p>
+            {connection.connected_at && (
+              <p>Ligado em {new Date(connection.connected_at).toLocaleString("pt-PT")}</p>
+            )}
+            {connection.scopes?.length ? (
+              <p className="truncate">Permissões: {connection.scopes.join(", ")}</p>
+            ) : null}
+          </div>
         )}
 
         <div className="flex flex-wrap gap-2">
@@ -231,6 +307,14 @@ export default function MetaConnectionPanel() {
                   <RefreshCw className="mr-2 h-4 w-4" />
                 )}
                 Escolher página
+              </Button>
+              <Button variant="outline" onClick={renew} disabled={busy !== null}>
+                {busy === "renew" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RotateCw className="mr-2 h-4 w-4" />
+                )}
+                Renovar ligação
               </Button>
               <Button variant="outline" onClick={verify} disabled={busy !== null}>
                 {busy === "verify" ? (
