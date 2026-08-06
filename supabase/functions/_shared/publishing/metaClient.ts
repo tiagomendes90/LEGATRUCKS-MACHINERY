@@ -2,7 +2,7 @@
 // credential resolution (OAuth connection first, Supabase Secrets as fallback).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-export const GRAPH = "https://graph.facebook.com/v19.0";
+export const GRAPH = "https://graph.facebook.com/v23.0";
 export const GRAPH_TIMEOUT_MS = Number(Deno.env.get("META_GRAPH_TIMEOUT_MS") ?? "15000");
 
 /** fetch with an explicit AbortController timeout (never blocks the function). */
