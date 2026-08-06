@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = usePersistentState<string>(
     'dashboard.tab',
     hasAdminProductDraft() ? 'add-product' : 'inventory',
+    'local',
   );
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -42,18 +43,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadProducts();
   }, []);
-
-  useEffect(() => {
-    const restoreDraftTab = () => {
-      if (hasAdminProductDraft()) setActiveTab('add-product');
-    };
-
-    window.addEventListener(ADMIN_PRODUCT_DRAFT_EVENT, restoreDraftTab);
-
-    return () => {
-      window.removeEventListener(ADMIN_PRODUCT_DRAFT_EVENT, restoreDraftTab);
-    };
-  }, [setActiveTab]);
 
   if (loading) {
     return (
