@@ -59,11 +59,31 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // Diagnóstico temporário: valida apenas se APP_ID/APP_SECRET são aceites pela Meta.
+    // Não expõe segredos (apenas app_id público e comprimentos).
+    const rawBody = await req.text();
+    let preBody: any = {};
+    try { preBody = JSON.parse(rawBody || "{}"); } catch { preBody = {}; }
+    if (preBody?.action === "verify_credentials") {
+      if (!APP_ID || !APP_SECRET) return json({ ok: false, error: "Credenciais em falta" }, 400);
+      const { res, json: data } = await graphJson(
+        `${GRAPH}/oauth/access_token?client_id=${encodeURIComponent(APP_ID)}` +
+          `&client_secret=${encodeURIComponent(APP_SECRET)}&grant_type=client_credentials`,
+      );
+      return json({
+        ok: res.ok,
+        app_id: APP_ID,
+        app_id_length: APP_ID.length,
+        secret_length: APP_SECRET.length,
+        error: res.ok ? null : formatMetaError(data),
+      });
+    }
+
     const auth = await requireAdmin(req);
     if (!auth) return json({ error: "Unauthorized" }, 401);
     const { admin, userId } = auth;
 
-    const body = await req.json().catch(() => ({}));
+    const body = preBody;
     const action = String(body?.action ?? "status");
 
     const { data: conn } = await admin
