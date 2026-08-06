@@ -33,7 +33,7 @@ const SCOPES = [
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
   });
 }
 
@@ -240,11 +240,13 @@ Deno.serve(async (req) => {
           meta_error: biz?.error ? { code: biz.error.code, message: biz.error.message } : null,
         });
 
-        const reason = businessCount && businessCount > 0 ? "no_pages_selected" : "no_page_access";
+        // Só se pode afirmar "sem acesso a Páginas" quando a consulta de portfolios
+        // responde mesmo (exige business_management). Se falhar (null), é indeterminado.
+        const reason = businessCount === 0 ? "no_page_access" : "no_pages_selected";
         const message =
-          reason === "no_pages_selected"
-            ? "Nenhuma Página foi autorizada durante o login Meta. Volta a ligar a conta Meta e seleciona explicitamente a Página LEGA no ecrã de seleção de ativos."
-            : "O utilizador autenticado não tem acesso total a nenhuma Página do Facebook. Pede acesso total à Página LEGA no Business Manager e depois volta a ligar a conta Meta.";
+          reason === "no_page_access"
+            ? "O utilizador autenticado não tem acesso total a nenhuma Página do Facebook. Pede acesso total à Página LEGA no Business Manager e depois volta a ligar a conta Meta."
+            : "Nenhuma Página foi autorizada durante o login Meta. Ao reconectar, no ecrã da Meta escolhe o Business Portfolio da LEGA e marca explicitamente a Página LEGA antes de continuar.";
 
         await admin
           .from("meta_connections")
