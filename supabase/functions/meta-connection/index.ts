@@ -166,6 +166,14 @@ Deno.serve(async (req) => {
         ig_username: p?.instagram_business_account?.username ?? null,
         ig_profile_picture_url: p?.instagram_business_account?.profile_picture_url ?? null,
       }));
+      if (pages.length === 0) {
+        const message = "A Meta não disponibilizou nenhuma Página. Confirma o acesso total do utilizador à Página LEGA e seleciona essa Página ao reconectar.";
+        await admin
+          .from("meta_connections")
+          .update({ status: "no_pages_available", last_error: message, last_checked_at: new Date().toISOString() })
+          .eq("id", conn.id);
+        return json({ pages, error: message }, 400);
+      }
       return json({ pages });
     }
 

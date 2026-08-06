@@ -170,6 +170,7 @@ export default function MetaConnectionPanel() {
   const statusLabel: Record<string, string> = {
     connected: "Ligado",
     pending_page_selection: "Falta escolher página",
+    no_pages_available: "Sem acesso à Página",
     expired: "Token expirado",
     disconnected: "Desligado",
     replaced: "Substituído",
