@@ -85,9 +85,50 @@ Deno.serve(async (req) => {
     );
     const pages = pagesJson?.data ?? [];
     const only = pages.length === 1 ? pages[0] : null;
-    const noPagesMessage = pages.length === 0
-      ? "A Meta autenticou a conta, mas não disponibilizou nenhuma Página. Confirma que o teu utilizador tem acesso total à Página LEGA e, ao reconectar, seleciona explicitamente essa Página na janela da Meta."
-      : null;
+
+    // Diagnóstico interno (sem tokens nem dados sensíveis)
+    console.log("[meta-oauth-callback] /me/accounts", {
+      has_data_key: Object.prototype.hasOwnProperty.call(pagesJson ?? {}, "data"),
+      pages_count: Array.isArray(pagesJson?.data) ? pagesJson.data.length : null,
+      page_ids: Array.isArray(pagesJson?.data) ? pagesJson.data.map((p: any) => p.id) : null,
+      page_names: Array.isArray(pagesJson?.data) ? pagesJson.data.map((p: any) => p.name) : null,
+      meta_error: pagesJson?.error
+        ? {
+            code: pagesJson.error.code,
+            subcode: pagesJson.error.error_subcode,
+            type: pagesJson.error.type,
+            message: pagesJson.error.message,
+          }
+        : null,
+      granted_scopes: scopes,
+    });
+
+    let reason: string | null = null;
+    let noPagesMessage: string | null = null;
+    if (pages.length === 0) {
+      if (pagesJson?.error) {
+        reason = "graph_error";
+        noPagesMessage = formatMetaError(pagesJson);
+      } else if (!Array.isArray(pagesJson?.data)) {
+        reason = "empty_response";
+        noPagesMessage = "A Meta respondeu sem a lista de Páginas. Tenta ligar a conta novamente.";
+      } else if (!scopes.includes("pages_show_list")) {
+        reason = "missing_scope";
+        noPagesMessage =
+          "A autorização não inclui a permissão pages_show_list, por isso nenhuma Página pode ser listada.";
+      } else {
+        const { json: biz } = await graphJson(
+          `${GRAPH}/me/businesses?limit=25&access_token=${encodeURIComponent(userToken)}`,
+        );
+        const businessCount = Array.isArray(biz?.data) ? biz.data.length : null;
+        console.log("[meta-oauth-callback] /me/businesses", { business_count: businessCount });
+        reason = businessCount && businessCount > 0 ? "no_pages_selected" : "no_page_access";
+        noPagesMessage =
+          reason === "no_pages_selected"
+            ? "Nenhuma Página foi autorizada durante o login Meta. Volta a ligar a conta e seleciona explicitamente a Página LEGA no ecrã de seleção de ativos."
+            : "O utilizador autenticado não tem acesso total a nenhuma Página do Facebook. Pede acesso total à Página LEGA no Business Manager e volta a ligar a conta.";
+      }
+    }
 
     // deactivate previous connections, then insert the new one
     await admin
@@ -109,7 +150,7 @@ Deno.serve(async (req) => {
       ig_user_id: only?.instagram_business_account?.id ?? null,
       ig_username: only?.instagram_business_account?.username ?? null,
       ig_profile_picture_url: only?.instagram_business_account?.profile_picture_url ?? null,
-      metadata: { pages_count: pages.length },
+      metadata: { pages_count: pages.length, reason },
       last_error: noPagesMessage,
       is_active: true,
     });
