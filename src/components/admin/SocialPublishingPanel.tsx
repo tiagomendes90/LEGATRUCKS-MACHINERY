@@ -16,6 +16,7 @@ import {
   Heart,
   MessageCircle,
   Bookmark,
+  Loader2,
 } from "lucide-react";
 import {
   useSocialProducts,
@@ -160,27 +161,61 @@ function ProductCard({ product }: { product: SocialProductRow }) {
     }
   }, [audit]);
 
+  // Estado "a publicar" que persiste do clique até o post aparecer (ou timeout).
+  const [pending, setPending] = useState<{ channel: ChannelKey; at: number } | null>(null);
+  useEffect(() => {
+    if (!pending) return;
+    const done = posts.some(
+      (p) =>
+        p.channel_key === pending.channel &&
+        p.status === "published" &&
+        new Date(p.published_at).getTime() >= pending.at - 5000,
+    );
+    if (done) setPending(null);
+  }, [posts, pending]);
+  useEffect(() => {
+    if (!pending) return;
+    const t = setTimeout(() => setPending(null), 120000);
+    return () => clearTimeout(t);
+  }, [pending]);
+  const busy = publishMut.isPending || pending?.channel === channel;
+
   const runPublish = (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
+    // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
+    if (busy) return;
+    const startedAt = Date.now();
+    setPending({ channel, at: startedAt });
     publishMut.mutate(
       {
         productId: product.id,
         channel,
         caption,
         imageUrl: image,
+        imageUrls: orderedImages,
         ...opts,
       },
       {
-        onSuccess: () =>
+        onSuccess: (res: any) => {
+          if (res?.deduped) setPending(null);
           toast({
-            title: "Publicação enfileirada",
-            description: `${CHANNEL_META[channel].label} será atualizado dentro de instantes.`,
-          }),
-        onError: (e: any) =>
+            title: res?.deduped ? "Publicação já em curso" : "A publicar…",
+            description: res?.deduped
+              ? "Já existe um pedido idêntico em processamento."
+              : `${CHANNEL_META[channel].label}: a enviar${
+                  channel === "facebook" && orderedImages.length > 1
+                    ? ` ${orderedImages.length} fotografias`
+                    : ""
+                }. O estado atualiza automaticamente.`,
+          });
+        },
+        onError: (e: any) => {
+          setPending(null);
           toast({
             title: "Erro",
             description: String(e?.message ?? e),
             variant: "destructive",
-          }),
+          });
+        },
       },
     );
   };
@@ -277,6 +312,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               title={product.title}
               caption={caption}
               image={image}
+              images={orderedImages}
               link={link}
             />
           )}
@@ -313,10 +349,14 @@ function ProductCard({ product }: { product: SocialProductRow }) {
           {product.social_status === "ready_for_social" && (
             <Button
               onClick={() => runPublish()}
-              disabled={publishMut.isPending}
+              disabled={busy}
             >
-              <Send className="h-4 w-4 mr-2" />
-              Publicar em {CHANNEL_META[channel].label}
+              {busy ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              {busy ? "A publicar…" : `Publicar em ${CHANNEL_META[channel].label}`}
             </Button>
           )}
           {product.social_status === "outdated" && (
@@ -334,14 +374,19 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               </Button>
               <Button
                 onClick={() => runPublish({ republish: true })}
-                disabled={publishMut.isPending}
+                disabled={busy}
               >
-                <Send className="h-4 w-4 mr-2" /> Republicar (novo post)
+                {busy ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {busy ? "A publicar…" : "Republicar (novo post)"}
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => runPublish({ republish: true, deletePrevious: true })}
-                disabled={publishMut.isPending}
+                disabled={busy}
               >
                 <Trash2 className="h-4 w-4 mr-2" /> Apagar antigo + publicar novo
               </Button>
@@ -358,9 +403,13 @@ function ProductCard({ product }: { product: SocialProductRow }) {
                 </Button>
               )}
               {!activePost && product.social_status === "published" && (
-                <Button onClick={() => runPublish()} disabled={publishMut.isPending}>
-                  <Send className="h-4 w-4 mr-2" /> Publicar em{" "}
-                  {CHANNEL_META[channel].label}
+                <Button onClick={() => runPublish()} disabled={busy}>
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  {busy ? "A publicar…" : `Publicar em ${CHANNEL_META[channel].label}`}
                 </Button>
               )}
               {activePost && (
@@ -368,9 +417,14 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               <Button
                 variant="ghost"
                 onClick={() => runPublish({ republish: true })}
-                disabled={publishMut.isPending}
+                disabled={busy}
               >
-                <RefreshCw className="h-4 w-4 mr-2" /> Republicar
+                {busy ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                {busy ? "A publicar…" : "Republicar"}
               </Button>
               <Button
                 variant="destructive"
@@ -421,8 +475,9 @@ function ProductCard({ product }: { product: SocialProductRow }) {
 }
 
 function FacebookPreview({
-  title, caption, image, link,
-}: { title: string; caption: string; image: string | null; link: string }) {
+  title, caption, image, link, images = [],
+}: { title: string; caption: string; image: string | null; link: string; images?: string[] }) {
+  const gallery = images.length ? images : image ? [image] : [];
   return (
     <div className="border rounded-lg overflow-hidden bg-muted/20">
       <div className="flex items-center gap-2 p-3 border-b bg-background">
@@ -437,8 +492,21 @@ function FacebookPreview({
       <div className="p-3">
         <p className="text-sm whitespace-pre-line line-clamp-6">{caption}</p>
       </div>
-      {image ? (
-        <img src={image} alt={title} className="w-full aspect-video object-cover" loading="lazy" />
+      {gallery.length > 1 ? (
+        <div className="grid grid-cols-2 gap-0.5">
+          {gallery.slice(0, 4).map((src, i) => (
+            <div key={src} className="relative">
+              <img src={src} alt={`${title} ${i + 1}`} className="w-full aspect-square object-cover" loading="lazy" />
+              {i === 3 && gallery.length > 4 && (
+                <div className="absolute inset-0 bg-foreground/60 text-background flex items-center justify-center text-lg font-semibold">
+                  +{gallery.length - 4}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : gallery.length === 1 ? (
+        <img src={gallery[0]} alt={title} className="w-full aspect-video object-cover" loading="lazy" />
       ) : (
         <div className="aspect-video bg-muted flex items-center justify-center text-xs text-muted-foreground">
           Sem imagem principal
@@ -448,6 +516,11 @@ function FacebookPreview({
         <p className="text-[10px] uppercase text-muted-foreground">lega.pt</p>
         <p className="text-xs font-medium truncate">{title}</p>
         <p className="text-xs text-muted-foreground truncate">{link}</p>
+        {gallery.length > 1 && (
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Álbum com {gallery.length} fotografias · legenda única
+          </p>
+        )}
       </div>
     </div>
   );
