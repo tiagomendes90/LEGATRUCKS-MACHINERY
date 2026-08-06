@@ -28,6 +28,24 @@ export interface EmitEventInput {
  * Uma falha aqui NUNCA bloqueia a publicação do produto no website —
  * a fonte oficial é a BD e o pipeline é um consumidor independente.
  */
+export class PublishingEnqueueError extends Error {
+  code?: string;
+  details?: string;
+  hint?: string;
+  constructor(error: any) {
+    const code = error?.code ? ` (${error.code})` : "";
+    super(
+      `Falha ao enfileirar evento de publicação${code}: ${
+        error?.message ?? "erro desconhecido"
+      }${error?.details ? ` — ${error.details}` : ""}${error?.hint ? ` — ${error.hint}` : ""}`,
+    );
+    this.name = "PublishingEnqueueError";
+    this.code = error?.code;
+    this.details = error?.details;
+    this.hint = error?.hint;
+  }
+}
+
 export async function emitPublishingEvent({
   type,
   productId = null,
@@ -35,8 +53,7 @@ export async function emitPublishingEvent({
   dedupeKey = null,
   scheduledFor = null,
 }: EmitEventInput) {
-  try {
-    const row: Record<string, unknown> = {
+  const row: Record<string, unknown> = {
       event_type: type,
       product_id: productId ?? undefined,
       payload: payload as any,
@@ -56,8 +73,14 @@ export async function emitPublishingEvent({
       if ((error as any)?.code === "23505") {
         return { ok: true, deduped: true };
       }
-      console.warn("[publishing] failed to enqueue event", error);
-      return { ok: false, error };
+      console.error("[publishing] failed to enqueue event", error);
+      throw new PublishingEnqueueError(
+        error ?? {
+          code: "NO_ROW",
+          message:
+            "O insert não devolveu nenhuma linha (possível bloqueio de leitura por RLS).",
+        },
+      );
     }
 
     // Trigger dispatcher asynchronously; ignore errors so publish never blocks.
@@ -68,8 +91,17 @@ export async function emitPublishingEvent({
     }
 
     return { ok: true, eventId: data.id };
+}
+
+/**
+ * Variante tolerante: usar apenas em fluxos onde a falha do pipeline
+ * NÃO deve bloquear a operação principal (ex.: guardar produto no site).
+ */
+export async function tryEmitPublishingEvent(input: EmitEventInput) {
+  try {
+    return await emitPublishingEvent(input);
   } catch (err) {
-    console.warn("[publishing] unexpected error emitting event", err);
-    return { ok: false, error: err };
+    console.warn("[publishing] evento não enfileirado", err);
+    return { ok: false as const, error: err };
   }
 }
