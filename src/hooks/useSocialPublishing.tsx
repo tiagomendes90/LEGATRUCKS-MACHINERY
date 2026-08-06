@@ -114,6 +114,7 @@ interface PublishArgs {
   channel: string;
   caption?: string;
   imageUrl?: string | null;
+  imageUrls?: string[] | null;
   republish?: boolean;
   deletePrevious?: boolean;
 }
@@ -126,6 +127,7 @@ export function usePublishToSocial() {
       channel,
       caption,
       imageUrl,
+      imageUrls,
       republish,
       deletePrevious,
     }: PublishArgs) => {
@@ -137,10 +139,14 @@ export function usePublishToSocial() {
       }
       const payload: Record<string, unknown> = { channel };
       if (caption) payload.caption = caption;
-      if (imageUrl) payload.image_url = imageUrl;
+      if (imageUrls && imageUrls.length > 1) payload.image_urls = imageUrls;
+      else if (imageUrl) payload.image_url = imageUrl;
       if (deletePrevious) payload.delete_previous = true;
       const type = republish ? "social.republish" : "social.publish.confirmed";
-      return emitPublishingEvent({ type: type as any, productId, payload });
+      // Idempotência: cliques repetidos no mesmo minuto colapsam num só evento.
+      const bucket = Math.floor(Date.now() / 60000);
+      const dedupeKey = `${channel}:${republish ? "re" : "new"}:${deletePrevious ? "d" : ""}:${bucket}`;
+      return emitPublishingEvent({ type: type as any, productId, payload, dedupeKey });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["social_products"] });
