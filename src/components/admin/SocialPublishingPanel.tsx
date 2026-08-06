@@ -348,10 +348,14 @@ function ProductCard({ product }: { product: SocialProductRow }) {
           {product.social_status === "ready_for_social" && (
             <Button
               onClick={() => runPublish()}
-              disabled={publishMut.isPending}
+              disabled={busy}
             >
-              <Send className="h-4 w-4 mr-2" />
-              Publicar em {CHANNEL_META[channel].label}
+              {busy ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              {busy ? "A publicar…" : `Publicar em ${CHANNEL_META[channel].label}`}
             </Button>
           )}
           {product.social_status === "outdated" && (
@@ -369,14 +373,19 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               </Button>
               <Button
                 onClick={() => runPublish({ republish: true })}
-                disabled={publishMut.isPending}
+                disabled={busy}
               >
-                <Send className="h-4 w-4 mr-2" /> Republicar (novo post)
+                {busy ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {busy ? "A publicar…" : "Republicar (novo post)"}
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => runPublish({ republish: true, deletePrevious: true })}
-                disabled={publishMut.isPending}
+                disabled={busy}
               >
                 <Trash2 className="h-4 w-4 mr-2" /> Apagar antigo + publicar novo
               </Button>
@@ -393,9 +402,13 @@ function ProductCard({ product }: { product: SocialProductRow }) {
                 </Button>
               )}
               {!activePost && product.social_status === "published" && (
-                <Button onClick={() => runPublish()} disabled={publishMut.isPending}>
-                  <Send className="h-4 w-4 mr-2" /> Publicar em{" "}
-                  {CHANNEL_META[channel].label}
+                <Button onClick={() => runPublish()} disabled={busy}>
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  {busy ? "A publicar…" : `Publicar em ${CHANNEL_META[channel].label}`}
                 </Button>
               )}
               {activePost && (
@@ -403,9 +416,14 @@ function ProductCard({ product }: { product: SocialProductRow }) {
               <Button
                 variant="ghost"
                 onClick={() => runPublish({ republish: true })}
-                disabled={publishMut.isPending}
+                disabled={busy}
               >
-                <RefreshCw className="h-4 w-4 mr-2" /> Republicar
+                {busy ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                {busy ? "A publicar…" : "Republicar"}
               </Button>
               <Button
                 variant="destructive"
