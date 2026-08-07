@@ -28,6 +28,9 @@ export async function uploadCreative(
   return data.publicUrl;
 }
 
+/** Limite de tamanho do Storage (bytes) para vídeos de Reels. */
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
 /**
  * Carrega um vídeo vertical (MP4 9:16) para o bucket público, sob o prefixo
  * `creatives/`, e devolve o URL público — requisito da Meta para publicar Reels.
@@ -36,6 +39,12 @@ export async function uploadCreativeVideo(
   file: File,
   opts: { productId: string; fileBase: string },
 ): Promise<string> {
+  if (file.size > MAX_VIDEO_BYTES) {
+    throw new Error(
+      `O vídeo tem ${(file.size / 1024 / 1024).toFixed(1)} MB e o limite do storage é 50 MB. ` +
+        `Comprima o MP4 (por exemplo, 1080×1920, ~6 Mbps, máx. 60 s) e tente novamente.`,
+    );
+  }
   const ext = (file.name.split(".").pop() || "mp4").toLowerCase();
   const path = `creatives/${opts.productId}/reel-${Date.now()}-${opts.fileBase}.${ext}`;
 

@@ -58,7 +58,7 @@ import {
   slugify,
 } from "@/lib/creative/render";
 import { buildReelKit } from "@/lib/creative/reelKit";
-import { uploadCreative, uploadCreativeVideo } from "@/lib/creative/uploadCreative";
+import { uploadCreative, uploadCreativeVideo, MAX_VIDEO_BYTES } from "@/lib/creative/uploadCreative";
 import { emitPublishingEvent } from "@/lib/publishing";
 
 const BLOCK_ORDER: CreativeBlockKey[] = [
@@ -670,14 +670,25 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
                   A imagem acima é a capa. Selecione o vídeo MP4 vertical que será publicado.
                 </p>
               </div>
-              <Label htmlFor="reel-video">Ficheiro MP4 · formato 9:16</Label>
+              <Label htmlFor="reel-video">Ficheiro MP4 · formato 9:16 · máx. 50 MB</Label>
               <Input
                 id="reel-video"
                 type="file"
                 accept="video/mp4,video/quicktime"
                 onChange={(e) => {
-                  setVideoFile(e.target.files?.[0] ?? null);
+                  const f = e.target.files?.[0] ?? null;
                   setVideoUrl(null);
+                  if (f && f.size > MAX_VIDEO_BYTES) {
+                    setVideoFile(null);
+                    e.target.value = "";
+                    toast({
+                      title: "Vídeo demasiado grande",
+                      description: `${(f.size / 1024 / 1024).toFixed(1)} MB — o limite é 50 MB. Comprima o MP4 (1080×1920, ~6 Mbps, máx. 60 s).`,
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setVideoFile(f);
                 }}
               />
               {videoFile && (
