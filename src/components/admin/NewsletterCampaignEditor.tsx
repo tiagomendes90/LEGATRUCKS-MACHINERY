@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarClock, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
+import { ArrowLeft, CalendarClock, Globe, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,14 @@ import {
   useSubscribers,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
+import {
+  useNewsletterLanguages,
+  useCampaignTranslations,
+  useSaveCampaignTranslation,
+  type CampaignTranslation,
+} from "@/hooks/useNewsletterI18n";
+
+type TranslationDraft = Omit<CampaignTranslation, "campaign_id">;
 
 interface Props {
   campaign: NewsletterCampaign | null;
@@ -60,6 +68,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [confirmSend, setConfirmSend] = useState(false);
+  const [previewLang, setPreviewLang] = useState<string>("");
+  const [translations, setTranslations] = useState<Record<string, TranslationDraft>>({});
 
   const save = useSaveCampaign();
   const send = useSendCampaign();
@@ -68,6 +78,59 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const lists = useLists();
   const templates = useTemplates();
   const subscribers = useSubscribers();
+  const languages = useNewsletterLanguages(false);
+  const savedTranslations = useCampaignTranslations(campaign?.id ?? null);
+  const saveTranslation = useSaveCampaignTranslation();
+
+  const activeLanguages = languages.data ?? [];
+  const defaultLang =
+    activeLanguages.find((l) => l.is_default)?.code ?? activeLanguages[0]?.code ?? "en";
+  const currentLang = previewLang || defaultLang;
+
+  useEffect(() => {
+    if (!savedTranslations.data) return;
+    const next: Record<string, TranslationDraft> = {};
+    for (const t of savedTranslations.data) {
+      next[t.language_code] = {
+        language_code: t.language_code,
+        subject: t.subject,
+        preheader: t.preheader,
+        title: t.title,
+        intro: t.intro,
+        outro: t.outro,
+        cta_label: t.cta_label,
+        footer_note: t.footer_note,
+      };
+    }
+    setTranslations(next);
+  }, [savedTranslations.data]);
+
+  const translationPayload = useMemo(
+    () =>
+      Object.values(translations).filter((t) =>
+        [t.subject, t.preheader, t.title, t.intro, t.outro, t.cta_label, t.footer_note].some(
+          (v) => (v ?? "").toString().trim() !== "",
+        ),
+      ),
+    [translations],
+  );
+
+  const setTranslationField = (code: string, field: keyof TranslationDraft, value: string) =>
+    setTranslations((prev) => ({
+      ...prev,
+      [code]: {
+        language_code: code,
+        subject: null,
+        preheader: null,
+        title: null,
+        intro: null,
+        outro: null,
+        cta_label: null,
+        footer_note: null,
+        ...(prev[code] ?? {}),
+        [field]: value,
+      } as TranslationDraft,
+    }));
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
