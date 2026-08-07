@@ -181,7 +181,6 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   };
 
   const refreshPreview = async () => {
-    // (auto-refresh mais abaixo)
     setPreviewLoading(true);
     try {
       const res = await fetchCampaignPreview({
@@ -241,6 +240,75 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   }, [previewKey]);
 
   const persistDraft = async (nextStatus?: string) => {
+    return await doPersistDraft(nextStatus);
+  };
+
+  const autoTranslate = async (only?: string) => {
+    const targets = (only ? [only] : activeLanguages.map((l) => l.code)).filter(
+      (c) => c !== defaultLang,
+    );
+    if (targets.length === 0) {
+      toast({ title: "Nada a traduzir", description: "Só existe o idioma base ativo." });
+      return;
+    }
+    setTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("newsletter-translate", {
+        body: {
+          source_language: defaultLang,
+          targets,
+          source: {
+            subject,
+            preheader,
+            intro,
+            outro,
+          },
+        },
+      });
+      if (error) throw error;
+      if (!(data as any)?.ok) throw new Error((data as any)?.error ?? "translate_failed");
+
+      const result = (data as any).translations as Record<string, Record<string, string>>;
+      setTranslations((prev) => {
+        const next = { ...prev };
+        for (const [code, fields] of Object.entries(result)) {
+          next[code] = {
+            language_code: code,
+            subject: null,
+            preheader: null,
+            title: null,
+            intro: null,
+            outro: null,
+            cta_label: null,
+            footer_note: null,
+            ...(prev[code] ?? {}),
+            ...fields,
+          } as TranslationDraft;
+        }
+        return next;
+      });
+      toast({
+        title: "Traduções geradas",
+        description: targets.map((t) => t.toUpperCase()).join(", "),
+      });
+    } catch (err: any) {
+      const msg = String(err?.message ?? err);
+      toast({
+        title: "Falha na tradução automática",
+        description:
+          msg.includes("rate_limited")
+            ? "Demasiados pedidos — tenta novamente daqui a pouco."
+            : msg.includes("payment_required")
+              ? "Créditos de IA esgotados."
+              : msg,
+        variant: "destructive",
+      });
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  const doPersistDraft = async (nextStatus?: string) => {
     const saved = await save.mutateAsync({ ...draft, status: nextStatus ?? campaign?.status ?? "draft" });
     for (const t of translationPayload) {
       await saveTranslation.mutateAsync({ ...t, campaign_id: saved.id });
