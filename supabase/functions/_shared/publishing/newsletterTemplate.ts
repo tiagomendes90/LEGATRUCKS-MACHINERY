@@ -9,6 +9,15 @@
 
 const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://www.lega.pt";
 import { orderedImageUrls, specPairs } from "./productQuery.ts";
+import {
+  type NewsletterI18n,
+  resolveProductContent,
+  type StringKey,
+} from "./i18n/index.ts";
+import {
+  resolveCampaignContent,
+  type CampaignTranslationRow,
+} from "./i18n/campaignContent.ts";
 
 /** Mesmo asset do header e footer do website. */
 const LOGO_URL = `${SITE_URL}/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png`;
@@ -59,6 +68,18 @@ export interface RenderOptions {
   /** Template reutilizável — usado como fallback do conteúdo da campanha. */
   template?: TemplateBlocks | null;
   unsubscribeUrl?: string; // Falls back to Resend placeholder
+  /** Motor i18n carregado da BD. */
+  i18n: NewsletterI18n;
+  /** Idioma desta versão da newsletter. */
+  lang: string;
+  /** Traduções da campanha (qualquer idioma — a cadeia decide). */
+  translations?: CampaignTranslationRow[];
+  /** Número público da campanha, para as URLs /newsletter/:n?lang=xx */
+  publicNumber?: number | string | null;
+  /** Token do subscritor — permite guardar a preferência de idioma. */
+  subscriberToken?: string | null;
+  /** Desativa o seletor (ex.: pré-visualização isolada). */
+  hideLanguageSwitcher?: boolean;
 }
 
 function esc(s: unknown): string {
