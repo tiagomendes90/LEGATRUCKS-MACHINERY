@@ -345,6 +345,7 @@ function ProductCard({
 
   return (
     <Card>
+
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="min-w-0">
           <CardTitle className="text-lg truncate">{product.title}</CardTitle>
