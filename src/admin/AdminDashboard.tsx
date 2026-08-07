@@ -183,7 +183,7 @@ export default function AdminDashboard() {
 
         <TabsContent value="social" className="space-y-6">
           <MetaConnectionPanel />
-          <Tabs defaultValue="posts" className="space-y-6">
+          <Tabs value={socialTab} onValueChange={setSocialTab} className="space-y-6">
             <TabsList>
               <TabsTrigger value="posts">Publicações</TabsTrigger>
               <TabsTrigger value="studio">Media Studio</TabsTrigger>
