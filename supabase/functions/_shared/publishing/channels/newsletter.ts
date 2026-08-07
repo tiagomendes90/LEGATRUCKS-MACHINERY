@@ -350,6 +350,7 @@ export const newsletterChannel: ChannelAdapter = {
           campaign_id: campaignId,
           subscriber_id: s.id,
           channel_key: "newsletter",
+          language: lang,
           status: ok ? "sent" : "failed",
           resend_message_id: ok ? (ids[idx]?.id ?? null) : null,
           error: ok ? null : (json?.message ?? `HTTP ${status}`),
@@ -369,7 +370,7 @@ export const newsletterChannel: ChannelAdapter = {
       sent_at: finishedAt.toISOString(),
       send_finished_at: finishedAt.toISOString(),
       duration_ms: durationMs,
-      content_html: html,
+      content_html: versionFor(campaign.default_language ?? i18n.defaultLanguage).html,
       recipients_count: totalAudience,
       sent_count: (campaign.sent_count ?? 0) + sent,
       delivered_count: (campaign.delivered_count ?? 0) + sent,
@@ -384,6 +385,7 @@ export const newsletterChannel: ChannelAdapter = {
         failed,
         duration_ms: durationMs,
         retry_failed_only: retryFailedOnly,
+        languages: perLanguage,
       },
     }).eq("id", campaignId);
 
@@ -397,7 +399,7 @@ export const newsletterChannel: ChannelAdapter = {
         attempted: recipients.length,
         from,
       },
-      response: { batches, sent, failed, duration_ms: durationMs },
+      response: { batches, sent, failed, duration_ms: durationMs, languages: perLanguage },
       error: failed > 0 ? `${failed} destinatários falharam` : undefined,
     };
   },
