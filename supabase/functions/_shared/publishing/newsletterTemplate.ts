@@ -9,6 +9,16 @@
 
 const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://www.lega.pt";
 import { orderedImageUrls, specPairs } from "./productQuery.ts";
+import {
+  type NewsletterI18n,
+  resolveProductContent,
+  type StringKey,
+} from "./i18n/index.ts";
+import {
+  resolveCampaignContent,
+  type CampaignTranslationRow,
+} from "./i18n/campaignContent.ts";
+import { newsletterViewUrl } from "./i18n/urls.ts";
 
 /** Mesmo asset do header e footer do website. */
 const LOGO_URL = `${SITE_URL}/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png`;
@@ -59,6 +69,18 @@ export interface RenderOptions {
   /** Template reutilizável — usado como fallback do conteúdo da campanha. */
   template?: TemplateBlocks | null;
   unsubscribeUrl?: string; // Falls back to Resend placeholder
+  /** Motor i18n carregado da BD. */
+  i18n: NewsletterI18n;
+  /** Idioma desta versão da newsletter. */
+  lang: string;
+  /** Traduções da campanha (qualquer idioma — a cadeia decide). */
+  translations?: CampaignTranslationRow[];
+  /** Número público da campanha, para as URLs /newsletter/:n?lang=xx */
+  publicNumber?: number | string | null;
+  /** Token do subscritor — permite guardar a preferência de idioma. */
+  subscriberToken?: string | null;
+  /** Desativa o seletor (ex.: pré-visualização isolada). */
+  hideLanguageSwitcher?: boolean;
 }
 
 function esc(s: unknown): string {
@@ -73,11 +95,11 @@ function esc(s: unknown): string {
 
 const MAX_GALLERY = 6;
 
-function fmtPrice(p: AnyRecord): string | null {
+function fmtPrice(p: AnyRecord, locale: string): string | null {
   const price = p.price as number | null | undefined;
   if (price == null) return null;
   try {
-    return new Intl.NumberFormat("pt-PT", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: (p.currency as string) ?? "EUR",
       maximumFractionDigits: 0,
@@ -92,25 +114,33 @@ export function productUrl(p: AnyRecord): string {
   return p?.id ? `${SITE_URL}/vehicle/${p.id}` : SITE_URL;
 }
 
-const CONDITION_LABEL: Record<string, string> = {
-  new: "Novo",
-  novo: "Novo",
-  used: "Usado",
-  usado: "Usado",
-  refurbished: "Recondicionado",
+const CONDITION_KEY: Record<string, StringKey> = {
+  new: "condition.new",
+  novo: "condition.new",
+  used: "condition.used",
+  usado: "condition.used",
+  refurbished: "condition.refurbished",
+  recondicionado: "condition.refurbished",
 };
 
-const STOCK_LABEL: Record<string, string> = {
-  available: "Disponível",
-  disponivel: "Disponível",
-  reserved: "Reservado",
-  reservado: "Reservado",
-  sold: "Vendido",
-  vendido: "Vendido",
+const STOCK_KEY: Record<string, StringKey> = {
+  available: "stock.available",
+  disponivel: "stock.available",
+  reserved: "stock.reserved",
+  reservado: "stock.reserved",
+  sold: "stock.sold",
+  vendido: "stock.sold",
 };
+
+interface Ctx {
+  i18n: NewsletterI18n;
+  lang: string;
+  locale: string;
+}
 
 /** Todos os atributos disponíveis, incluindo especificações dinâmicas. */
-function collectSpecs(p: AnyRecord): Array<[string, string]> {
+function collectSpecs(p: AnyRecord, ctx: Ctx): Array<[string, string]> {
+  const t = (k: StringKey) => ctx.i18n.t(ctx.lang, k);
   const brand = p.brand as AnyRecord | undefined;
   const category = p.category as AnyRecord | undefined;
   const subcategory = p.subcategory as AnyRecord | undefined;
@@ -118,21 +148,27 @@ function collectSpecs(p: AnyRecord): Array<[string, string]> {
   const condRaw = (p.condition as string) ?? "";
   const stockRaw = (p.stock_status as string) ?? "";
   const specs: Array<[string, string]> = [];
-  if (brand?.name) specs.push(["Marca", String(brand.name)]);
-  if (p.model) specs.push(["Modelo", String(p.model)]);
-  if (category?.name) specs.push(["Categoria", String(category.name)]);
-  if (subcategory?.name) specs.push(["Subcategoria", String(subcategory.name)]);
-  if (p.year) specs.push(["Ano", String(p.year)]);
-  if (condRaw) specs.push(["Estado", CONDITION_LABEL[condRaw.toLowerCase()] ?? condRaw]);
-  if (stockRaw) specs.push(["Disponibilidade", STOCK_LABEL[stockRaw.toLowerCase()] ?? stockRaw]);
-  if (location) specs.push(["Localização", location]);
+  if (brand?.name) specs.push([t("spec.brand"), String(brand.name)]);
+  if (p.model) specs.push([t("spec.model"), String(p.model)]);
+  if (category?.name) specs.push([t("spec.category"), String(category.name)]);
+  if (subcategory?.name) specs.push([t("spec.subcategory"), String(subcategory.name)]);
+  if (p.year) specs.push([t("spec.year"), String(p.year)]);
+  if (condRaw) {
+    const key = CONDITION_KEY[condRaw.toLowerCase()];
+    specs.push([t("spec.condition"), key ? t(key) : condRaw]);
+  }
+  if (stockRaw) {
+    const key = STOCK_KEY[stockRaw.toLowerCase()];
+    specs.push([t("spec.availability"), key ? t(key) : stockRaw]);
+  }
+  if (location) specs.push([t("spec.location"), location]);
   specs.push(...specPairs(p));
   return specs;
 }
 
 /** Cartão de características em duas colunas. */
-function specRows(p: AnyRecord): string {
-  const specs = collectSpecs(p);
+function specRows(p: AnyRecord, ctx: Ctx): string {
+  const specs = collectSpecs(p, ctx);
   if (specs.length === 0) return "";
 
   // Duas colunas por linha — colapsa bem em mobile por ser tabela simples.
@@ -153,13 +189,13 @@ function specRows(p: AnyRecord): string {
 
   return `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;background:#f8fafc;border:1px solid ${LINE};border-radius:12px;">
-        <tr><td colspan="2" style="padding:14px 12px 2px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${BRAND_DARK};font-weight:700;">Características</td></tr>
+        <tr><td colspan="2" style="padding:14px 12px 2px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${BRAND_DARK};font-weight:700;">${esc(ctx.i18n.t(ctx.lang, "product.specs_title"))}</td></tr>
         ${rows.join("")}
       </table>`;
 }
 
 /** Galeria com as restantes imagens (grelha 3 colunas). */
-function galleryRows(images: string[], title: string, link: string): string {
+function galleryRows(images: string[], title: string, link: string, ctx: Ctx): string {
   const rest = images.slice(1, MAX_GALLERY + 1);
   if (rest.length === 0) return "";
   const cells = rest.map(
@@ -177,25 +213,31 @@ function galleryRows(images: string[], title: string, link: string): string {
     rows.push(`<tr>${group.join("")}</tr>`);
   }
   const extra = images.length - 1 - rest.length;
+  const more = extra > 0
+    ? ctx.i18n.t(ctx.lang, extra === 1 ? "product.gallery_more_one" : "product.gallery_more_many", { count: extra })
+    : "";
   return `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 18px;">
         ${rows.join("")}
       </table>
-      ${extra > 0 ? `<p style="margin:-8px 0 18px;font-size:13px;color:${MUTED};text-align:center;">+${extra} ${extra === 1 ? "imagem" : "imagens"} na página do equipamento</p>` : ""}`;
+      ${more ? `<p style="margin:-8px 0 18px;font-size:13px;color:${MUTED};text-align:center;">${esc(more)}</p>` : ""}`;
 }
 
 function renderProductCard(
   p: AnyRecord,
+  ctx: Ctx,
+  defaultCta: string,
   ov?: { title?: string; description?: string; cta?: string },
 ): string {
-  const title = ov?.title || (p.title as string) || "Equipamento disponível";
+  const content = resolveProductContent(p, ctx.lang, ctx.i18n);
+  const title = ov?.title || content.title || (p.title as string) || "LEGA";
   const images = orderedImageUrls(p);
   const image = images[0] ?? null;
-  const price = fmtPrice(p);
-  const desc = ov?.description || ((p.description as string) ?? "");
+  const price = fmtPrice(p, ctx.locale);
+  const desc = ov?.description || content.description || ((p.description as string) ?? "");
   const cleanDesc = desc.replace(/\s+/g, " ").trim();
   const shortDesc = cleanDesc.slice(0, 600);
-  const cta = ov?.cta || "Ver equipamento";
+  const cta = ov?.cta || defaultCta;
   const link = productUrl(p);
   const brandName = (p.brand as AnyRecord | undefined)?.name as string | undefined;
   const catName = (p.subcategory as AnyRecord | undefined)?.name
@@ -221,13 +263,13 @@ function renderProductCard(
       <!-- Preço em destaque -->
       <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 18px;">
         <tr><td style="background:${price ? "#fff7ed" : "#f1f5f9"};border:1px solid ${price ? "#fed7aa" : LINE};border-radius:10px;padding:10px 16px;">
-          <span style="font-size:${price ? "24px" : "17px"};font-weight:800;color:${price ? BRAND_DARK : MUTED};line-height:1;">${price ? esc(price) : "Sob consulta"}</span>
+          <span style="font-size:${price ? "24px" : "17px"};font-weight:800;color:${price ? BRAND_DARK : MUTED};line-height:1;">${price ? esc(price) : esc(ctx.i18n.t(ctx.lang, "product.price_on_request"))}</span>
         </td></tr>
       </table>
 
-      ${specRows(p)}
+      ${specRows(p, ctx)}
 
-      ${galleryRows(images, title, link)}
+      ${galleryRows(images, title, link, ctx)}
 
       ${
         shortDesc
@@ -242,7 +284,7 @@ function renderProductCard(
         </td></tr>
       </table>
       <p style="margin:12px 0 0;text-align:center;font-size:13px;color:${MUTED};">
-        Ou fale connosco: <a href="${WHATSAPP_URL}" style="color:${BRAND_DARK};text-decoration:none;font-weight:600;">WhatsApp ${esc(PHONE_DISPLAY)}</a>
+        ${esc(ctx.i18n.t(ctx.lang, "product.contact_prefix"))} <a href="${WHATSAPP_URL}" style="color:${BRAND_DARK};text-decoration:none;font-weight:600;">WhatsApp ${esc(PHONE_DISPLAY)}</a>
       </p>
     </td></tr>
   </table>`;
@@ -263,29 +305,67 @@ function socialLinks(): string {
     .join('<span style="color:rgba(255,255,255,.5);">·</span>');
 }
 
+/** Barra discreta de seleção de idioma (linka para as versões web). */
+function languageSwitcher(opts: RenderOptions, ctx: Ctx): string {
+  if (opts.hideLanguageSwitcher) return "";
+  const langs = ctx.i18n.languages;
+  if (langs.length < 2 || opts.publicNumber == null) return "";
+
+  const items = langs
+    .map((l) => {
+      const active = l.code === ctx.lang;
+      const href = newsletterViewUrl(opts.publicNumber, l.code, opts.subscriberToken);
+      const label = `${l.flag_emoji ? l.flag_emoji + " " : ""}${l.native_label}`;
+      return active
+        ? `<span style="color:${BRAND_DARK};font-weight:700;">${esc(label)}</span>`
+        : `<a href="${esc(href)}" style="color:${MUTED};text-decoration:none;">${esc(label)}</a>`;
+    })
+    .join(`<span style="color:${LINE};margin:0 6px;">·</span>`);
+
+  return `
+          <tr><td style="padding:10px 24px;background:#ffffff;border:1px solid ${LINE};border-bottom:0;border-radius:14px 14px 0 0;text-align:center;font-size:12px;color:${MUTED};">
+            <span style="letter-spacing:.08em;text-transform:uppercase;font-size:10px;margin-right:8px;">${esc(ctx.i18n.t(ctx.lang, "lang.label"))}</span>
+            ${items}
+          </td></tr>`;
+}
+
 export function renderNewsletterHtml(opts: RenderOptions): string {
-  const { campaign, products } = opts;
+  const { campaign, products, i18n } = opts;
+  const lang = i18n.resolve(opts.lang);
+  const ctx: Ctx = { i18n, lang, locale: i18n.language(lang)?.locale ?? "en-GB" };
+  const t = (k: StringKey, vars?: Record<string, string | number>) => i18n.t(lang, k, vars);
+
   const tpl = opts.template ?? {};
-  const intro = campaign.content_json?.intro || tpl.intro || "";
-  const outro = campaign.content_json?.outro || tpl.outro || "";
-  const tagline = (tpl.header ?? "").trim() || "Camiões · Máquinas · Equipamento";
-  const footerText = (tpl.footer ?? "").trim();
+  const content = resolveCampaignContent(
+    campaign as Record<string, any>,
+    lang,
+    i18n,
+    opts.translations ?? [],
+    tpl,
+  );
+  const intro = content.intro;
+  const outro = content.outro;
+  const tagline = (tpl.header ?? "").trim() || t("tagline");
+  const footerText = content.footerNote.trim();
   const overrides = campaign.content_json?.overrides ?? {};
   const unsub = opts.unsubscribeUrl ?? "{{{RESEND_UNSUBSCRIBE_URL}}}";
+  const hasSwitcher = !opts.hideLanguageSwitcher
+    && i18n.languages.length > 1
+    && opts.publicNumber != null;
 
   const cards = products
-    .map((p) => renderProductCard(p, overrides[p.id as string]))
+    .map((p) => renderProductCard(p, ctx, content.ctaLabel, overrides[p.id as string]))
     .join("\n");
 
   return `<!doctype html>
-<html lang="pt-PT">
+<html lang="${esc(ctx.locale)}">
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="x-apple-disable-message-reformatting"/>
     <meta name="color-scheme" content="light only"/>
     <meta name="supported-color-schemes" content="light only"/>
-    <title>${esc(campaign.subject)}</title>
+    <title>${esc(content.subject)}</title>
     <style>
       body { margin:0; padding:0; width:100% !important; }
       img { -ms-interpolation-mode:bicubic; }
@@ -300,13 +380,13 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
     <!--[if mso]><style>body,table,td,a{font-family:Arial,Helvetica,sans-serif !important;}</style><![endif]-->
   </head>
   <body style="margin:0;padding:0;background:${CANVAS};font-family:${FONT};color:${INK};">
-    ${campaign.preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${esc(campaign.preheader)}</div>` : ""}
+    ${content.preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${esc(content.preheader)}</div>` : ""}
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${CANVAS};">
       <tr><td align="center" class="lg-wrap" style="padding:24px 12px;">
         <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;">
-
+${languageSwitcher(opts, ctx)}
           <!-- Header: logótipo oficial LEGA -->
-          <tr><td style="padding:26px 24px 18px;text-align:center;background:#ffffff;border-radius:14px 14px 0 0;border:1px solid ${LINE};border-bottom:0;">
+          <tr><td style="padding:26px 24px 18px;text-align:center;background:#ffffff;border-radius:${hasSwitcher ? "0" : "14px 14px 0 0"};border:1px solid ${LINE};border-bottom:0;${hasSwitcher ? "border-top:0;" : ""}">
             <a href="${esc(SITE_URL)}" style="display:inline-block;">
               <img src="${esc(LOGO_URL)}" alt="LEGA" width="150" style="display:block;margin:0 auto;width:150px;max-width:60%;height:auto;border:0;"/>
             </a>
@@ -316,13 +396,13 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
 
           <!-- Intro -->
           <tr><td class="lg-pad" style="padding:26px 24px 4px;background:#ffffff;border-left:1px solid ${LINE};border-right:1px solid ${LINE};">
-            <h1 class="lg-hero" style="margin:0 0 ${intro ? "12px" : "4px"};font-size:27px;line-height:1.25;font-weight:800;color:${INK};letter-spacing:-.02em;">${esc(campaign.title || campaign.subject)}</h1>
+            <h1 class="lg-hero" style="margin:0 0 ${intro ? "12px" : "4px"};font-size:27px;line-height:1.25;font-weight:800;color:${INK};letter-spacing:-.02em;">${esc(content.title)}</h1>
             ${intro ? `<p style="margin:0;font-size:16px;line-height:1.65;color:${BODY};white-space:pre-line;">${esc(intro)}</p>` : ""}
           </td></tr>
 
           <!-- Produtos -->
           <tr><td class="lg-pad" style="padding:24px 24px 4px;background:#ffffff;border-left:1px solid ${LINE};border-right:1px solid ${LINE};">
-            ${cards || `<p style="margin:0 0 20px;color:${MUTED};font-size:15px;">Sem viaturas selecionadas.</p>`}
+            ${cards || `<p style="margin:0 0 20px;color:${MUTED};font-size:15px;">${esc(t("products.empty"))}</p>`}
           </td></tr>
 
           <!-- Outro -->
@@ -336,13 +416,13 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
 
           <!-- CTA global -->
           <tr><td class="lg-pad" style="padding:22px 24px 30px;background:#ffffff;border-left:1px solid ${LINE};border-right:1px solid ${LINE};border-bottom:1px solid ${LINE};text-align:center;">
-            <a href="${esc(SITE_URL)}" style="display:inline-block;padding:13px 26px;border:2px solid ${BRAND};border-radius:10px;color:${BRAND_DARK};font-weight:700;font-size:15px;">Ver todo o stock disponível</a>
+            <a href="${esc(SITE_URL)}" style="display:inline-block;padding:13px 26px;border:2px solid ${BRAND};border-radius:10px;color:${BRAND_DARK};font-weight:700;font-size:15px;">${esc(t("cta.global"))}</a>
           </td></tr>
 
           <!-- Footer -->
           <tr><td class="lg-pad" style="padding:28px 24px;background:${BRAND};color:#ffffff;border-radius:0 0 14px 14px;font-size:13px;line-height:1.7;text-align:center;">
             ${footerText ? `<p style="margin:0 0 14px;color:#ffffff;white-space:pre-line;opacity:.95;">${esc(footerText)}</p>` : ""}
-            <p style="margin:0 0 8px;color:#ffffff;font-weight:700;font-size:15px;">LEGA — Comércio de Veículos e Máquinas</p>
+            <p style="margin:0 0 8px;color:#ffffff;font-weight:700;font-size:15px;">${esc(t("footer.company"))}</p>
             <p style="margin:0 0 4px;">
               <a href="tel:${PHONE_TEL}" style="color:#ffffff;">${esc(PHONE_DISPLAY)}</a>
               <span style="opacity:.6;">·</span>
@@ -351,12 +431,17 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
             <p style="margin:0 0 14px;color:rgba(255,255,255,.9);font-size:12px;">${esc(ADDRESS)}</p>
             <p style="margin:0 0 16px;">${socialLinks()}</p>
             <p style="margin:0;color:rgba(255,255,255,.85);font-size:11px;line-height:1.6;">
-              Recebe este email porque subscreveu a newsletter LEGA.<br/>
-              <a href="${esc(unsub)}" style="color:#ffffff;text-decoration:underline;">Cancelar subscrição</a>
+              ${esc(t("footer.reason"))}<br/>
+              <a href="${esc(unsub)}" style="color:#ffffff;text-decoration:underline;">${esc(t("footer.unsubscribe"))}</a>
+              ${
+                opts.publicNumber != null
+                  ? `<span style="opacity:.6;"> · </span><a href="${esc(newsletterViewUrl(opts.publicNumber, lang, opts.subscriberToken))}" style="color:#ffffff;text-decoration:underline;">${esc(t("view.online"))}</a>`
+                  : ""
+              }
             </p>
           </td></tr>
 
-          <tr><td style="padding:16px 8px;text-align:center;color:${MUTED};font-size:11px;">© ${new Date().getFullYear()} LEGA. Todos os direitos reservados.</td></tr>
+          <tr><td style="padding:16px 8px;text-align:center;color:${MUTED};font-size:11px;">${esc(t("footer.rights", { year: new Date().getFullYear() }))}</td></tr>
 
         </table>
       </td></tr>
@@ -365,10 +450,20 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
 </html>`;
 }
 
-export function buildDefaultSubject(products: AnyRecord[]): string {
-  if (products.length === 1) {
-    const t = (products[0]?.title as string) || "Novidade LEGA";
-    return `Novidade LEGA: ${t}`;
+export function buildDefaultSubject(
+  products: AnyRecord[],
+  i18n?: NewsletterI18n,
+  lang?: string,
+): string {
+  if (!i18n) {
+    const t = (products[0]?.title as string) || "LEGA";
+    return products.length === 1 ? `Novidade LEGA: ${t}` : `Novidades LEGA: ${products.length}`;
   }
-  return `Novidades LEGA: ${products.length} viaturas em destaque`;
+  const code = i18n.resolve(lang);
+  if (products.length === 1) {
+    const title = resolveProductContent(products[0] ?? {}, code, i18n).title
+      || (products[0]?.title as string) || "LEGA";
+    return i18n.t(code, "subject.single", { title });
+  }
+  return i18n.t(code, "subject.multi", { count: products.length });
 }

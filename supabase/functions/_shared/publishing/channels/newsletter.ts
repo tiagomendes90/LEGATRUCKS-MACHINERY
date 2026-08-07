@@ -4,6 +4,8 @@ import { renderNewsletterHtml } from "../newsletterTemplate.ts";
 import { buildDefaultSubject } from "../newsletterTemplate.ts";
 import { loadProductsByIds } from "../productQuery.ts";
 import { resendFetch } from "../../resendClient.ts";
+import { loadNewsletterI18n } from "../i18n/index.ts";
+import { resolveCampaignContent } from "../i18n/campaignContent.ts";
 
 const BATCH_SIZE = 100;
 
@@ -12,6 +14,7 @@ interface Recipient {
   email: string;
   first_name: string | null;
   unsubscribe_token: string;
+  preferred_language: string | null;
 }
 
 /**
@@ -39,12 +42,13 @@ export async function resolveRecipients(
           email: s.email,
           first_name: s.first_name ?? null,
           unsubscribe_token: s.unsubscribe_token,
+          preferred_language: s.preferred_language ?? null,
         });
       }
     }
   };
 
-  const SELECT = "id, email, first_name, status, unsubscribe_token";
+  const SELECT = "id, email, first_name, status, unsubscribe_token, preferred_language";
 
   if (mode === "all") {
     const { data } = await supabase
@@ -117,12 +121,14 @@ export const newsletterChannel: ChannelAdapter = {
       const [product] = await loadProductsByIds(supabase, [productId]);
       if (!product) return { status: "failed", error: "produto inexistente" };
 
-      const subject = buildDefaultSubject([product]);
+      const bootI18n = await loadNewsletterI18n(supabase);
+      const subject = buildDefaultSubject([product], bootI18n, bootI18n.defaultLanguage);
       const { data: created, error: createErr } = await supabase
         .from("newsletter_campaigns")
         .insert({
           title: (product.title as string) ?? subject,
           subject,
+          default_language: bootI18n.defaultLanguage,
           preheader: ((product.description as string) ?? "")
             .replace(/\s+/g, " ").trim().slice(0, 140) || null,
           status: "draft",
@@ -208,16 +214,41 @@ export const newsletterChannel: ChannelAdapter = {
       template = t ?? null;
     }
 
-    const html = renderNewsletterHtml({
-      campaign: {
-        title: campaign.title,
-        subject: campaign.subject,
-        preheader: campaign.preheader,
-        content_json: campaign.content_json,
-      },
-      template: template?.content_json ?? null,
-      products,
-    });
+    // ---- Multilingue: uma versão independente por idioma ----------------
+    const i18n = await loadNewsletterI18n(supabase);
+    const { data: trRows } = await supabase
+      .from("newsletter_campaign_translations")
+      .select("*")
+      .eq("campaign_id", campaignId);
+    const translations = (trRows ?? []) as any[];
+
+    const versionCache = new Map<string, { html: string; subject: string }>();
+    const versionFor = (langCode: string) => {
+      const lang = i18n.resolve(langCode);
+      const cached = versionCache.get(lang);
+      if (cached) return { lang, ...cached };
+      const content = resolveCampaignContent(
+        campaign, lang, i18n, translations, template?.content_json ?? null,
+      );
+      const html = renderNewsletterHtml({
+        campaign: {
+          title: campaign.title,
+          subject: campaign.subject,
+          preheader: campaign.preheader,
+          content_json: campaign.content_json,
+        },
+        template: template?.content_json ?? null,
+        products,
+        i18n,
+        lang,
+        translations,
+        publicNumber: campaign.public_number ?? null,
+        subscriberToken: TOKEN_PLACEHOLDER,
+      });
+      const version = { html, subject: content.subject };
+      versionCache.set(lang, version);
+      return { lang, ...version };
+    };
 
     // Destinatários já entregues com sucesso — nunca reenviar.
     const { data: doneRows } = await supabase
@@ -257,8 +288,24 @@ export const newsletterChannel: ChannelAdapter = {
     let sent = 0;
     let failed = 0;
 
-    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-      const chunk = recipients.slice(i, i + BATCH_SIZE);
+    // Agrupar destinatários pelo idioma preferido — cada grupo recebe a sua
+    // versão independente (assunto + HTML próprios).
+    const groups = new Map<string, Recipient[]>();
+    for (const r of recipients) {
+      const lang = i18n.resolve(r.preferred_language ?? campaign.default_language);
+      (groups.get(lang) ?? groups.set(lang, []).get(lang)!).push(r);
+    }
+
+    const perLanguage: Record<string, { sent: number; failed: number }> = {};
+    const flat: Array<{ lang: string; chunk: Recipient[] }> = [];
+    for (const [lang, list] of groups) {
+      for (let i = 0; i < list.length; i += BATCH_SIZE) {
+        flat.push({ lang, chunk: list.slice(i, i + BATCH_SIZE) });
+      }
+    }
+
+    for (const { lang, chunk } of flat) {
+      const version = versionFor(lang);
       let ok = false;
       let json: any = {};
       let status = 0;
@@ -269,14 +316,17 @@ export const newsletterChannel: ChannelAdapter = {
             chunk.map((s) => ({
               from,
               to: [s.email],
-              subject: campaign.subject,
-              html: html.replaceAll(
-                "{{{RESEND_UNSUBSCRIBE_URL}}}",
-                unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
-              ).replaceAll(
-                "{{RESEND_UNSUBSCRIBE_URL}}",
-                unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
-              ),
+              subject: version.subject,
+              html: version.html
+                .replaceAll(TOKEN_PLACEHOLDER, s.unsubscribe_token)
+                .replaceAll(
+                  "{{{RESEND_UNSUBSCRIBE_URL}}}",
+                  unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
+                )
+                .replaceAll(
+                  "{{RESEND_UNSUBSCRIBE_URL}}",
+                  unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
+                ),
             })),
           ),
         });
@@ -288,7 +338,9 @@ export const newsletterChannel: ChannelAdapter = {
       }
 
       ok ? (sent += chunk.length) : (failed += chunk.length);
-      batches.push({ ok, status, size: chunk.length, body: json });
+      const agg = (perLanguage[lang] ??= { sent: 0, failed: 0 });
+      ok ? (agg.sent += chunk.length) : (agg.failed += chunk.length);
+      batches.push({ ok, status, size: chunk.length, language: lang, body: json });
 
       const ids = (json?.data ?? []) as any[];
       // Insert (não upsert): o índice único parcial garante que um envio
@@ -298,6 +350,7 @@ export const newsletterChannel: ChannelAdapter = {
           campaign_id: campaignId,
           subscriber_id: s.id,
           channel_key: "newsletter",
+          language: lang,
           status: ok ? "sent" : "failed",
           resend_message_id: ok ? (ids[idx]?.id ?? null) : null,
           error: ok ? null : (json?.message ?? `HTTP ${status}`),
@@ -317,7 +370,7 @@ export const newsletterChannel: ChannelAdapter = {
       sent_at: finishedAt.toISOString(),
       send_finished_at: finishedAt.toISOString(),
       duration_ms: durationMs,
-      content_html: html,
+      content_html: versionFor(campaign.default_language ?? i18n.defaultLanguage).html,
       recipients_count: totalAudience,
       sent_count: (campaign.sent_count ?? 0) + sent,
       delivered_count: (campaign.delivered_count ?? 0) + sent,
@@ -332,6 +385,7 @@ export const newsletterChannel: ChannelAdapter = {
         failed,
         duration_ms: durationMs,
         retry_failed_only: retryFailedOnly,
+        languages: perLanguage,
       },
     }).eq("id", campaignId);
 
@@ -345,7 +399,7 @@ export const newsletterChannel: ChannelAdapter = {
         attempted: recipients.length,
         from,
       },
-      response: { batches, sent, failed, duration_ms: durationMs },
+      response: { batches, sent, failed, duration_ms: durationMs, languages: perLanguage },
       error: failed > 0 ? `${failed} destinatários falharam` : undefined,
     };
   },
