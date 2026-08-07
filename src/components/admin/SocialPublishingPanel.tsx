@@ -128,7 +128,13 @@ const CHANNEL_META: Record<ChannelKey, { label: string; Icon: typeof Facebook }>
   instagram: { label: "Instagram", Icon: Instagram },
 };
 
-function ProductCard({ product }: { product: SocialProductRow }) {
+function ProductCard({
+  product,
+  showSoldControl = false,
+}: {
+  product: SocialProductRow;
+  showSoldControl?: boolean;
+}) {
   const [caption, setCaption] = useState(product.social_caption ?? autoCaption(product));
   const [channel, setChannel] = useState<ChannelKey>("facebook");
   useEffect(() => {
