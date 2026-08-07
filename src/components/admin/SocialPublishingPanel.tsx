@@ -343,9 +343,41 @@ function ProductCard({
     );
   };
 
+  /**
+   * Cria um NOVO post (independente do existente) apenas com a 1.ª imagem
+   * do veículo, com a faixa "SOLD/VENDIDO" aplicada.
+   */
+  const runPublishSold = async (target: ChannelKey) => {
+    if (soldBusy) return;
+    setSoldBusy(target);
+    try {
+      const soldUrl = await buildSoldFirstImage();
+      if (!soldUrl) throw new Error("O veículo não tem imagens disponíveis.");
+      await publishMut.mutateAsync({
+        productId: product.id,
+        channel: target,
+        caption: soldCaption,
+        imageUrl: soldUrl,
+        imageUrls: [soldUrl],
+        republish: true,
+      });
+      toast({
+        title: `Anúncio de vendido enviado para ${CHANNEL_META[target].label}`,
+        description: "É criada uma nova publicação; a original mantém-se online.",
+      });
+    } catch (e: any) {
+      toast({
+        title: "Não foi possível publicar o anúncio de vendido",
+        description: String(e?.message ?? e),
+        variant: "destructive",
+      });
+    } finally {
+      setSoldBusy(null);
+    }
+  };
+
   return (
     <Card>
-
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="min-w-0">
           <CardTitle className="text-lg truncate">{product.title}</CardTitle>
