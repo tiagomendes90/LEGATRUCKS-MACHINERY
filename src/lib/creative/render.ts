@@ -180,32 +180,56 @@ export interface RenderOptions {
 }
 
 /** Faixa oblíqua de vendido, desenhada por cima de todo o criativo. */
-function drawSoldBanner(ctx: CanvasRenderingContext2D, label: string) {
+export function drawSoldBanner(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  width = CANVAS_W,
+  height = CANVAS_H,
+) {
   const text = (label || "SOLD").toUpperCase();
-  const angle = -Math.atan2(CANVAS_H, CANVAS_W);
-  const diag = Math.hypot(CANVAS_W, CANVAS_H);
+  const angle = -Math.atan2(height, width);
+  const diag = Math.hypot(width, height);
+  const scale = diag / Math.hypot(CANVAS_W, CANVAS_H);
   ctx.save();
-  ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
+  ctx.translate(width / 2, height / 2);
   ctx.rotate(angle);
   ctx.globalAlpha = 0.7;
 
-  const bandH = 290;
+  const bandH = 290 * scale;
   ctx.fillStyle = "#F39200";
   ctx.fillRect(-diag / 2, -bandH / 2, diag, bandH);
 
-  let size = 194;
+  let size = 194 * scale;
   setFont(ctx, 800, size, 0);
-  while (ctx.measureText(text).width > diag - 160 && size > 60) {
-    size -= 8;
+  while (ctx.measureText(text).width > diag - 160 * scale && size > 24) {
+    size -= 8 * scale;
     setFont(ctx, 800, size, 0);
   }
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#FFFFFF";
-  ctx.fillText(text, 0, 6);
+  ctx.fillText(text, 0, 6 * scale);
   ctx.restore();
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
+}
+
+/**
+ * Reproduz uma fotografia do produto no seu formato original com a faixa
+ * oblíqua "SOLD" por cima — usada nas publicações de Facebook/Instagram.
+ */
+export async function renderSoldImage(
+  url: string,
+  label = "SOLD",
+): Promise<HTMLCanvasElement> {
+  const img = await loadImage(url);
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  drawSoldBanner(ctx, label, canvas.width, canvas.height);
+  return canvas;
 }
 
 export async function renderCreative(
