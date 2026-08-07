@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarClock, Globe, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
+import { ArrowLeft, CalendarClock, Globe, Languages, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const [confirmSend, setConfirmSend] = useState(false);
   const [previewLang, setPreviewLang] = useState<string>("");
   const [translations, setTranslations] = useState<Record<string, TranslationDraft>>({});
+  const [translating, setTranslating] = useState(false);
 
   const save = useSaveCampaign();
   const send = useSendCampaign();
