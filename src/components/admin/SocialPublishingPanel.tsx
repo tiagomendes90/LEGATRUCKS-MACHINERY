@@ -167,8 +167,8 @@ function ProductCard({
   const [igIndex, setIgIndex] = useState(0);
   useEffect(() => setIgIndex(0), [product.id, channel]);
 
-  // Publicação com faixa "SOLD/VENDIDO" aplicada apenas à primeira imagem.
-  const [soldLabel, setSoldLabel] = useState("SOLD/VENDIDO");
+  // Publicação com faixa "SOLD / VENDIDO" aplicada apenas à primeira imagem.
+  const [soldLabel, setSoldLabel] = useState("SOLD / VENDIDO");
   const [soldPreview, setSoldPreview] = useState<string | null>(null);
   const [soldCaption, setSoldCaption] = useState(
     `🔴 VENDIDO — ${product.title}\n\nObrigado pela confiança! Temos mais viaturas disponíveis.\n\n${SITE_URL}\n#LEGA #vendido #camioes`,
@@ -181,7 +181,7 @@ function ProductCard({
       setSoldPreview(null);
       return;
     }
-    renderSoldImage(first, soldLabel || "SOLD/VENDIDO")
+    renderSoldImage(first, soldLabel || "SOLD / VENDIDO")
       .then((c) => {
         if (!cancelled) setSoldPreview(c.toDataURL("image/png"));
       })
@@ -197,11 +197,11 @@ function ProductCard({
   const previewImages = orderedImages;
   const previewImage = image;
 
-  /** Gera e carrega a 1.ª imagem com a faixa SOLD, devolvendo o URL público. */
+  /** Gera e carrega a 1.ª imagem com a faixa SOLD / VENDIDO, devolvendo o URL público. */
   const buildSoldFirstImage = async (): Promise<string | null> => {
     const first = orderedImages[0] ?? image;
     if (!first) return null;
-    const canvas = await renderSoldImage(first, soldLabel || "SOLD/VENDIDO");
+    const canvas = await renderSoldImage(first, soldLabel || "SOLD / VENDIDO");
     const blob = await canvasToBlob(canvas);
     return uploadCreative(blob, {
       productId: product.id,
@@ -344,7 +344,7 @@ function ProductCard({
 
   /**
    * Cria um NOVO post (independente do existente) apenas com a 1.ª imagem
-   * do veículo, com a faixa "SOLD/VENDIDO" aplicada.
+   * do veículo, com a faixa "SOLD / VENDIDO" aplicada.
    */
   const runPublishSold = async (target: ChannelKey) => {
     if (soldBusy) return;
@@ -484,8 +484,8 @@ function ProductCard({
                 value={soldLabel}
                 onChange={(e) => setSoldLabel(e.target.value)}
                 className="h-8 w-40"
-                maxLength={16}
-                placeholder="SOLD/VENDIDO"
+                maxLength={18}
+                placeholder="SOLD / VENDIDO"
               />
               <span className="text-xs text-muted-foreground">
                 Cria um post novo apenas com a 1.ª imagem e a faixa. A publicação
