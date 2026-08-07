@@ -45,6 +45,8 @@ export interface SocialTimelineEntry {
 const SOCIAL_EVENT_TYPES = [
   "social.publish.confirmed",
   "social.republish",
+  "social.story.publish",
+  "social.reel.publish",
   "social.delete",
 ];
 
