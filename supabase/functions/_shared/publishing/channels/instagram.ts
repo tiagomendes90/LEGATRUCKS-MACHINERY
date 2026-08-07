@@ -377,7 +377,7 @@ export const instagramChannel: ChannelAdapter = {
 
       return {
         status: "success",
-        request: { ...publishRequest, link, action: eventType },
+        request: { ...publishRequest, link, action: eventType, dropped_images: selection.dropped },
         response: { ...pubJson, external_url: externalUrl },
       };
     } catch (err) {
