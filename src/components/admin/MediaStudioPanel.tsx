@@ -575,7 +575,7 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
         )}
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {product && (
           <CreativePreview
             data={product.data}
@@ -587,33 +587,45 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
             }}
           />
         )}
-        <p className="text-xs text-muted-foreground">1080 × 1920 px · PNG</p>
-        <div className="flex flex-col gap-2">
-          <Button onClick={handleDownload} disabled={downloading}>
-            {downloading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            Descarregar PNG
-          </Button>
-          <Button variant="outline" onClick={handleSave} disabled={saveCreative.isPending}>
-            <Save className="mr-2 h-4 w-4" /> Guardar configuração
-          </Button>
-          {kind === "reel_cover" && (
-            <Button variant="secondary" onClick={handleZip} disabled={downloading}>
-              <Download className="mr-2 h-4 w-4" /> Descarregar kit (ZIP)
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Imagem gerada</p>
+          <p className="text-xs text-muted-foreground">1080 × 1920 px · PNG</p>
+          <div className="flex flex-col gap-2">
+            <Button onClick={handleDownload} disabled={downloading}>
+              {downloading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Descarregar PNG
             </Button>
-          )}
+            <Button variant="outline" onClick={handleSave} disabled={saveCreative.isPending}>
+              <Save className="mr-2 h-4 w-4" /> Guardar configuração
+            </Button>
+            {kind === "reel_cover" && (
+              <Button variant="secondary" onClick={handleZip} disabled={downloading}>
+                <Download className="mr-2 h-4 w-4" /> Descarregar kit (ZIP)
+              </Button>
+            )}
+          </div>
         </div>
 
         {kind === "story" && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <Label>Publicação automática</Label>
+          <section className="space-y-3 rounded-lg border p-4" aria-labelledby="story-publish-title">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                <h3 id="story-publish-title" className="text-sm font-semibold">
+                  Publicar imagem como Story
+                </h3>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Escolha o canal onde quer publicar esta imagem. Cada botão envia apenas
+                para a rede selecionada.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
               <Button
-                className="w-full"
                 variant="outline"
                 onClick={() => handlePublishStory("instagram_story")}
                 disabled={!!publishing || !product}
@@ -623,10 +635,9 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
                 ) : (
                   <Instagram className="mr-2 h-4 w-4" />
                 )}
-                Publicar Story no Instagram
+                Instagram
               </Button>
               <Button
-                className="w-full"
                 variant="outline"
                 onClick={() => handlePublishStory("facebook_story")}
                 disabled={!!publishing || !product}
@@ -636,21 +647,30 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
                 ) : (
                   <Facebook className="mr-2 h-4 w-4" />
                 )}
-                Publicar Story no Facebook
+                Facebook
               </Button>
-              <p className="text-xs text-muted-foreground">
-                As Stories expiram ao fim de 24 horas. O criativo é guardado no
-                storage público antes de ser enviado para a Meta.
-              </p>
             </div>
-          </>
+            <p className="text-xs text-muted-foreground">
+              A Story expira ao fim de 24 horas e é guardada no storage antes do envio.
+            </p>
+          </section>
         )}
 
         {kind === "reel_cover" && (
           <>
-            <Separator />
-            <div className="space-y-2">
-              <Label htmlFor="reel-video">Vídeo do Reel (MP4 vertical 9:16)</Label>
+            <section className="space-y-3 rounded-lg border p-4" aria-labelledby="reel-video-title">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Film className="h-4 w-4 text-primary" />
+                  <h3 id="reel-video-title" className="text-sm font-semibold">
+                    Vídeo do Reel
+                  </h3>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  A imagem acima é a capa. Selecione o vídeo MP4 vertical que será publicado.
+                </p>
+              </div>
+              <Label htmlFor="reel-video">Ficheiro MP4 · formato 9:16</Label>
               <Input
                 id="reel-video"
                 type="file"
@@ -666,38 +686,52 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
                   {videoUrl ? " · carregado" : ""}
                 </p>
               )}
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={() => handlePublishReel("instagram_reel")}
-                disabled={!!publishing || !product || !videoFile}
-              >
-                {publishing === "instagram_reel" ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Instagram className="mr-2 h-4 w-4" />
-                )}
-                Publicar Reel no Instagram
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={() => handlePublishReel("facebook_reel")}
-                disabled={!!publishing || !product || !videoFile}
-              >
-                {publishing === "facebook_reel" ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Facebook className="mr-2 h-4 w-4" />
-                )}
-                Publicar Reel no Facebook
-              </Button>
+            </section>
+
+            <section className="space-y-3 rounded-lg border p-4" aria-labelledby="reel-publish-title">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Film className="h-4 w-4 text-primary" />
+                  <h3 id="reel-publish-title" className="text-sm font-semibold">
+                    Publicar vídeo como Reel
+                  </h3>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Escolha o canal de destino. Instagram e Facebook são publicações independentes.
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handlePublishReel("instagram_reel")}
+                  disabled={!!publishing || !product || !videoFile}
+                >
+                  {publishing === "instagram_reel" ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Instagram className="mr-2 h-4 w-4" />
+                  )}
+                  Instagram
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handlePublishReel("facebook_reel")}
+                  disabled={!!publishing || !product || !videoFile}
+                >
+                  {publishing === "facebook_reel" ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Facebook className="mr-2 h-4 w-4" />
+                  )}
+                  Facebook
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 {uploadingVideo
                   ? "A carregar o vídeo para o storage..."
-                  : "O vídeo é carregado para o storage público e a capa gerada acima é usada como thumbnail. Duração mínima ~3s, máxima 90s."}
+                  : "O vídeo é carregado para o storage público antes do envio. Duração recomendada: 3 a 90 segundos."}
               </p>
-            </div>
+            </section>
           </>
         )}
       </div>
@@ -719,9 +753,8 @@ export function MediaStudioPanel() {
           <ImageIcon className="h-5 w-5 text-primary" /> Media Studio
         </CardTitle>
         <CardDescription>
-          Gera Stories e capas de Reel em 1080×1920 a partir dos dados do produto.
-          As Stories podem ser publicadas automaticamente no Instagram e no
-          Facebook; as capas de Reel são descarregadas em PNG para publicação manual.
+          Cria imagens para Stories e capas de Reels em 1080×1920, com publicação direta
+          por canal. Stories usam a imagem gerada; Reels usam um vídeo MP4 e a capa.
         </CardDescription>
       </CardHeader>
       <CardContent>
