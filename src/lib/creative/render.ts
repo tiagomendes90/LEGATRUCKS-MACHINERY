@@ -173,9 +173,9 @@ export interface RenderOptions {
   imageUrl: string;
   kind?: CreativeKind;
   headline?: string;
-  /** Marca o criativo como vendido (faixa oblíqua "SOLD"). */
+  /** Marca o criativo como vendido (faixa oblíqua "SOLD/VENDIDO"). */
   sold?: boolean;
-  /** Texto da faixa (por defeito "SOLD"). */
+  /** Texto da faixa (por defeito "SOLD/VENDIDO"). */
   soldLabel?: string;
 }
 
@@ -217,11 +217,11 @@ export function drawSoldBanner(
 
 /**
  * Reproduz uma fotografia do produto no seu formato original com a faixa
- * oblíqua "SOLD" por cima — usada nas publicações de Facebook/Instagram.
+ * oblíqua "SOLD/VENDIDO" por cima — usada nas publicações de Facebook/Instagram.
  */
 export async function renderSoldImage(
   url: string,
-  label = "SOLD",
+  label = "SOLD/VENDIDO",
 ): Promise<HTMLCanvasElement> {
   const img = await loadImage(url);
   const canvas = document.createElement("canvas");

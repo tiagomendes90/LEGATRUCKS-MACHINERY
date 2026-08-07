@@ -173,7 +173,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
       setSoldPreview(null);
       return;
     }
-    renderSoldImage(first, soldLabel || "SOLD")
+    renderSoldImage(first, soldLabel || "SOLD/VENDIDO")
       .then((c) => {
         if (!cancelled) setSoldPreview(c.toDataURL("image/png"));
       })
@@ -196,7 +196,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   const buildSoldFirstImage = async (): Promise<string | null> => {
     const first = orderedImages[0] ?? image;
     if (!first) return null;
-    const canvas = await renderSoldImage(first, soldLabel || "SOLD");
+    const canvas = await renderSoldImage(first, soldLabel || "SOLD/VENDIDO");
     const blob = await canvasToBlob(canvas);
     return uploadCreative(blob, {
       productId: product.id,

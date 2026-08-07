@@ -485,7 +485,7 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
             <Input
               value={soldLabel}
               onChange={(e) => setSoldLabel(e.target.value)}
-              placeholder="SOLD"
+              placeholder="SOLD/VENDIDO"
               maxLength={18}
             />
           )}
