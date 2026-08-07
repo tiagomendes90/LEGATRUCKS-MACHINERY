@@ -489,7 +489,7 @@ export async function renderCreative(
     ctx.fillText(site.toUpperCase(), M, footerY + 46);
   }
 
-  if (opts.sold) drawSoldBanner(ctx, opts.soldLabel || "SOLD");
+  if (opts.sold) drawSoldBanner(ctx, opts.soldLabel || "SOLD/VENDIDO");
 
   try {
     (ctx as any).letterSpacing = "0px";
