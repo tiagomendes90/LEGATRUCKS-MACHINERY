@@ -3,6 +3,7 @@ import { buildProductCaption, getPrimaryImageUrl, getProductUrl } from "../produ
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { GRAPH, graphFetch, formatMetaError, resolveMetaCredentials } from "../metaClient.ts";
 import { syncProductSocialStatus } from "../socialStatus.ts";
+import { deleteSocialPost } from "../socialDelete.ts";
 
 const CHANNEL_KEY = "facebook";
 // Limite prático de fotos por publicação de álbum (a Meta aceita mais, mas
@@ -64,44 +65,13 @@ export const facebookChannel: ChannelAdapter = {
 
     // ---------- DELETE ----------
     if (eventType === "social.delete") {
-      const targetPostId =
-        (payload.external_id as string | undefined) ??
-        (await loadLatestExternalId(admin, productId));
-      if (!targetPostId) {
-        return { status: "skipped", response: { reason: "no external_id to delete" } };
-      }
-      try {
-        const res = await graphFetch(
-          `${GRAPH}/${targetPostId}?access_token=${encodeURIComponent(token)}`,
-          { method: "DELETE" },
-        );
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          return {
-            status: "failed",
-            request: { endpoint: `DELETE ${targetPostId}` },
-            response: json,
-            error: formatMetaError(json, res.status),
-          };
-        }
-        await admin
-          .from("product_social_posts")
-          .update({ status: "deleted", updated_at: new Date().toISOString() })
-          .eq("product_id", productId)
-          .eq("channel_key", CHANNEL_KEY)
-          .eq("external_id", targetPostId);
-
-        // Estado global multi-canal: só volta a ready_for_social se NENHUM
-        // canal (Facebook ou Instagram) tiver publicação viva.
-        await syncProductSocialStatus(admin, productId);
-        return {
-          status: "success",
-          request: { action: "delete", external_id: targetPostId },
-          response: json,
-        };
-      } catch (err) {
-        return { status: "failed", error: err instanceof Error ? err.message : String(err) };
-      }
+      return await deleteSocialPost({
+        admin,
+        token,
+        channelKey: CHANNEL_KEY,
+        productId,
+        externalId: (payload.external_id as string | undefined) ?? null,
+      });
     }
 
     // ---------- PUBLISH / REPUBLISH ----------
