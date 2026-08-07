@@ -1,7 +1,7 @@
 import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.ts";
 import { buildProductCaption, getProductUrl } from "../productFormatting.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { validateInstagramImages, summarizeIssues } from "../imageValidation.ts";
+import { selectInstagramCarousel } from "../imageValidation.ts";
 import { GRAPH, graphFetch, formatMetaError, resolveMetaCredentials } from "../metaClient.ts";
 import { syncProductSocialStatus } from "../socialStatus.ts";
 
@@ -169,10 +169,13 @@ export const instagramChannel: ChannelAdapter = {
 
     // ---------- PUBLISH / REPUBLISH ----------
     const explicitImage = payload.image_url as string | undefined;
-    const allImages = explicitImage
+    const explicitImages = payload.image_urls as string[] | undefined;
+    const requestedImages = explicitImages?.length
+      ? explicitImages.slice(0, MAX_CAROUSEL)
+      : explicitImage
       ? [explicitImage]
       : getOrderedImageUrls(ctx.product).slice(0, MAX_CAROUSEL);
-    if (!allImages.length) {
+    if (!requestedImages.length) {
       return {
         status: "failed",
         response: { reason: "instagram requires at least one public image" },
@@ -180,16 +183,18 @@ export const instagramChannel: ChannelAdapter = {
       };
     }
 
-    // ---------- IMAGE VALIDATION (before hitting Graph API) ----------
-    const validation = await validateInstagramImages(allImages);
-    if (!validation.ok) {
+    // ---------- SELEÇÃO AUTOMÁTICA DE IMAGENS COMPATÍVEIS ----------
+    // Em vez de ignorar a publicação, descartamos as imagens incompatíveis e
+    // publicamos o maior conjunto válido com o mesmo rácio.
+    const selection = await selectInstagramCarousel(requestedImages);
+    const allImages = selection.urls;
+    if (!allImages.length) {
       return {
-        status: "skipped",
-        request: { step: "image_validation", images: allImages },
-        response: { issues: validation.issues, probes: validation.probes },
+        status: "failed",
+        request: { step: "image_selection", images: requestedImages },
+        response: { dropped: selection.dropped, probes: selection.probes },
         error:
-          "Instagram: imagens não cumprem requisitos e não foram enviadas (sem consumir retries):\n" +
-          summarizeIssues(validation.issues),
+          "Instagram: nenhuma imagem cumpre os requisitos (rácio 0.8–1.91, JPEG/PNG, ≤8MB).",
       };
     }
 
