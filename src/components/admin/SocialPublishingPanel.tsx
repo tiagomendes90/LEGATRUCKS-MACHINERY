@@ -461,24 +461,26 @@ function ProductCard({
           )}
         </div>
 
-        {/* Opção "vendido" — faixa SOLD apenas na primeira imagem */}
-        <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
-          <Switch id={`sold-${product.id}`} checked={sold} onCheckedChange={setSold} />
-          <label htmlFor={`sold-${product.id}`} className="text-sm font-medium">
-            Veículo vendido — faixa “SOLD” na 1.ª imagem
-          </label>
-          {sold && (
-            <Input
-              value={soldLabel}
-              onChange={(e) => setSoldLabel(e.target.value)}
-              className="h-8 w-32"
-              maxLength={16}
-            />
-          )}
-          <span className="text-xs text-muted-foreground">
-            As restantes fotografias são publicadas sem alterações.
-          </span>
-        </div>
+        {/* Opção "vendido" — disponível apenas no separador de veículos publicados */}
+        {showSoldControl && (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
+            <Switch id={`sold-${product.id}`} checked={sold} onCheckedChange={setSold} />
+            <label htmlFor={`sold-${product.id}`} className="text-sm font-medium">
+              Veículo vendido — faixa “SOLD/VENDIDO” na 1.ª imagem
+            </label>
+            {sold && (
+              <Input
+                value={soldLabel}
+                onChange={(e) => setSoldLabel(e.target.value)}
+                className="h-8 w-32"
+                maxLength={16}
+              />
+            )}
+            <span className="text-xs text-muted-foreground">
+              As restantes fotografias são publicadas sem alterações.
+            </span>
+          </div>
+        )}
 
         {/* Channel selector */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
