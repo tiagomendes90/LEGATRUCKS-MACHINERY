@@ -474,24 +474,77 @@ function ProductCard({
           )}
         </div>
 
-        {/* Opção "vendido" — disponível apenas no separador de veículos publicados */}
+        {/* Anúncio de vendido — novo post só com a 1.ª imagem + faixa */}
         {showSoldControl && (
-          <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
-            <Switch id={`sold-${product.id}`} checked={sold} onCheckedChange={setSold} />
-            <label htmlFor={`sold-${product.id}`} className="text-sm font-medium">
-              Veículo vendido — faixa “SOLD/VENDIDO” na 1.ª imagem
-            </label>
-            {sold && (
+          <div className="space-y-3 rounded-md border p-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium">
+                Anunciar como vendido (nova publicação)
+              </span>
               <Input
                 value={soldLabel}
                 onChange={(e) => setSoldLabel(e.target.value)}
-                className="h-8 w-32"
+                className="h-8 w-40"
                 maxLength={16}
+                placeholder="SOLD/VENDIDO"
               />
-            )}
-            <span className="text-xs text-muted-foreground">
-              As restantes fotografias são publicadas sem alterações.
-            </span>
+              <span className="text-xs text-muted-foreground">
+                Cria um post novo apenas com a 1.ª imagem e a faixa. A publicação
+                original mantém-se online.
+              </span>
+            </div>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Legenda do anúncio de vendido
+                </label>
+                <Textarea
+                  value={soldCaption}
+                  onChange={(e) => setSoldCaption(e.target.value)}
+                  rows={6}
+                  className="font-mono text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Pré-visualização
+                </label>
+                {soldPreview ? (
+                  <img
+                    src={soldPreview}
+                    alt={`Pré-visualização do anúncio de vendido de ${product.title}`}
+                    className="w-full max-w-xs rounded-md border"
+                  />
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    A gerar pré-visualização…
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(CHANNEL_META) as ChannelKey[]).map((k) => {
+                const Icon = CHANNEL_META[k].Icon;
+                return (
+                  <Button
+                    key={k}
+                    size="sm"
+                    variant="secondary"
+                    disabled={!!soldBusy || !soldPreview}
+                    onClick={() => runPublishSold(k)}
+                  >
+                    {soldBusy === k ? (
+                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                    ) : (
+                      <Icon className="h-3 w-3 mr-2" />
+                    )}
+                    {soldBusy === k
+                      ? "A publicar…"
+                      : `Publicar vendido no ${CHANNEL_META[k].label}`}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
         )}
 
