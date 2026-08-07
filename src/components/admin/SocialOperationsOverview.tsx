@@ -34,6 +34,7 @@ const CHANNEL_LABEL: Record<SocialChannelKey, string> = {
 const EVENT_TYPE_LABEL: Record<string, string> = {
   "social.publish.confirmed": "Publicação",
   "social.republish": "Republicação",
+  "social.story.publish": "Story",
   "social.delete": "Eliminação",
 };
 

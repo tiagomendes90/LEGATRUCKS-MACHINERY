@@ -31,6 +31,8 @@ import {
   Save,
   Trash2,
   RotateCcw,
+  Instagram,
+  Facebook,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -56,6 +58,8 @@ import {
   slugify,
 } from "@/lib/creative/render";
 import { buildReelKit } from "@/lib/creative/reelKit";
+import { uploadCreative } from "@/lib/creative/uploadCreative";
+import { emitPublishingEvent } from "@/lib/publishing";
 
 const BLOCK_ORDER: CreativeBlockKey[] = [
   "logo",
@@ -93,6 +97,7 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
   const [ctaText, setCtaText] = useState("");
   const [ctaTouched, setCtaTouched] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [publishing, setPublishing] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const product = useMemo(
@@ -225,6 +230,46 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
   const copy = async (label: string, value: string) => {
     await navigator.clipboard.writeText(value);
     toast({ title: `${label} copiado` });
+  };
+
+  /**
+   * Publica o criativo como Story: carrega o PNG para o storage público
+   * (a Meta só aceita URLs públicos) e emite o evento no PublishingService.
+   */
+  const handlePublishStory = async (channel: "instagram_story" | "facebook_story") => {
+    if (!product || !canvasRef.current) return;
+    const label = channel === "instagram_story" ? "Instagram" : "Facebook";
+    setPublishing(channel);
+    try {
+      const blob = await canvasToBlob(canvasRef.current);
+      const publicUrl = await uploadCreative(blob, {
+        productId: product.id,
+        kind: "story",
+        fileBase: slugify(`${product.data.brand} ${product.data.model}`),
+      });
+      await emitPublishingEvent({
+        type: "social.story.publish",
+        productId: product.id,
+        payload: {
+          channel,
+          image_url: publicUrl,
+          template_id: template?.id ?? null,
+        },
+      });
+      toast({
+        title: `Story enviada para ${label}`,
+        description:
+          "A publicação está em processamento. Acompanhe o estado no painel de Publicações.",
+      });
+    } catch (e: any) {
+      toast({
+        title: `Erro ao publicar no ${label}`,
+        description: e?.message,
+        variant: "destructive",
+      });
+    } finally {
+      setPublishing(null);
+    }
   };
 
   if (loadingProducts || loadingTemplates) {
@@ -492,6 +537,45 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
             </Button>
           )}
         </div>
+
+        {kind === "story" && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <Label>Publicação automática</Label>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => handlePublishStory("instagram_story")}
+                disabled={!!publishing || !product}
+              >
+                {publishing === "instagram_story" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Instagram className="mr-2 h-4 w-4" />
+                )}
+                Publicar Story no Instagram
+              </Button>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => handlePublishStory("facebook_story")}
+                disabled={!!publishing || !product}
+              >
+                {publishing === "facebook_story" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Facebook className="mr-2 h-4 w-4" />
+                )}
+                Publicar Story no Facebook
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                As Stories expiram ao fim de 24 horas. O criativo é guardado no
+                storage público antes de ser enviado para a Meta.
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -512,7 +596,8 @@ export function MediaStudioPanel() {
         </CardTitle>
         <CardDescription>
           Gera Stories e capas de Reel em 1080×1920 a partir dos dados do produto.
-          Os criativos são descarregados em PNG para publicação manual.
+          As Stories podem ser publicadas automaticamente no Instagram e no
+          Facebook; as capas de Reel são descarregadas em PNG para publicação manual.
         </CardDescription>
       </CardHeader>
       <CardContent>
