@@ -713,6 +713,7 @@ export type Database = {
           created_at: string
           error: string | null
           id: string
+          language: string | null
           language_code: string | null
           raw_response: Json
           recipients_count: number | null
@@ -729,6 +730,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          language?: string | null
           language_code?: string | null
           raw_response?: Json
           recipients_count?: number | null
@@ -745,6 +747,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          language?: string | null
           language_code?: string | null
           raw_response?: Json
           recipients_count?: number | null
