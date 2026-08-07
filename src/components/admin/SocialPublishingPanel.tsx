@@ -44,6 +44,10 @@ import { useToast } from "@/hooks/use-toast";
 import SocialOperationsOverview from "./SocialOperationsOverview";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useSocialRealtime } from "@/hooks/useSocialRealtime";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { renderSoldImage, canvasToBlob, slugify } from "@/lib/creative/render";
+import { uploadCreative } from "@/lib/creative/uploadCreative";
 
 const SITE_URL =
   (import.meta as any)?.env?.VITE_PUBLIC_SITE_URL || "https://www.lega.pt";
@@ -157,6 +161,49 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   }, [product.images]);
   const [igIndex, setIgIndex] = useState(0);
   useEffect(() => setIgIndex(0), [product.id, channel]);
+
+  // Publicação com faixa "SOLD" aplicada apenas à primeira imagem.
+  const [sold, setSold] = useState(false);
+  const [soldLabel, setSoldLabel] = useState("SOLD");
+  const [soldPreview, setSoldPreview] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const first = orderedImages[0] ?? image;
+    if (!sold || !first) {
+      setSoldPreview(null);
+      return;
+    }
+    renderSoldImage(first, soldLabel || "SOLD")
+      .then((c) => {
+        if (!cancelled) setSoldPreview(c.toDataURL("image/png"));
+      })
+      .catch(() => {
+        if (!cancelled) setSoldPreview(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sold, soldLabel, orderedImages[0], image]);
+
+  const previewImages = useMemo(() => {
+    if (!soldPreview || !orderedImages.length) return orderedImages;
+    return [soldPreview, ...orderedImages.slice(1)];
+  }, [soldPreview, orderedImages]);
+  const previewImage = soldPreview ?? image;
+
+  /** Gera e carrega a 1.ª imagem com a faixa SOLD, devolvendo o URL público. */
+  const buildSoldFirstImage = async (): Promise<string | null> => {
+    const first = orderedImages[0] ?? image;
+    if (!first) return null;
+    const canvas = await renderSoldImage(first, soldLabel || "SOLD");
+    const blob = await canvasToBlob(canvas);
+    return uploadCreative(blob, {
+      productId: product.id,
+      kind: "sold",
+      fileBase: slugify(product.title),
+    });
+  };
   const postByChannel = (key: ChannelKey) =>
     posts.find((p) => p.channel_key === key && p.status === "published");
   // Post que estava publicado mas foi eliminado manualmente no Facebook/Instagram.
@@ -244,6 +291,28 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   const runPublish = async (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
     if (busy) return;
+    let publishImage = image;
+    let publishImages = orderedImages;
+    if (sold) {
+      try {
+        setPending({ channel, at: Date.now() });
+        const soldUrl = await buildSoldFirstImage();
+        if (soldUrl) {
+          publishImage = soldUrl;
+          publishImages = orderedImages.length
+            ? [soldUrl, ...orderedImages.slice(1)]
+            : [soldUrl];
+        }
+      } catch (e: any) {
+        setPending(null);
+        toast({
+          title: "Não foi possível preparar a imagem SOLD",
+          description: String(e?.message ?? e),
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     // Antes de publicar, confirma na Meta que o estado local está correto
     // (ex.: post apagado manualmente → o produto volta a "por publicar").
     try {
@@ -258,8 +327,8 @@ function ProductCard({ product }: { product: SocialProductRow }) {
         productId: product.id,
         channel,
         caption,
-        imageUrl: image,
-        imageUrls: orderedImages,
+        imageUrl: publishImage,
+        imageUrls: publishImages,
         ...opts,
       },
       {
@@ -371,7 +440,7 @@ function ProductCard({ product }: { product: SocialProductRow }) {
             <InstagramPreview
               title={product.title}
               caption={caption}
-              images={orderedImages}
+              images={previewImages}
               index={igIndex}
               setIndex={setIgIndex}
             />
@@ -379,11 +448,30 @@ function ProductCard({ product }: { product: SocialProductRow }) {
             <FacebookPreview
               title={product.title}
               caption={caption}
-              image={image}
-              images={orderedImages}
+              image={previewImage}
+              images={previewImages}
               link={link}
             />
           )}
+        </div>
+
+        {/* Opção "vendido" — faixa SOLD apenas na primeira imagem */}
+        <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
+          <Switch id={`sold-${product.id}`} checked={sold} onCheckedChange={setSold} />
+          <label htmlFor={`sold-${product.id}`} className="text-sm font-medium">
+            Veículo vendido — faixa “SOLD” na 1.ª imagem
+          </label>
+          {sold && (
+            <Input
+              value={soldLabel}
+              onChange={(e) => setSoldLabel(e.target.value)}
+              className="h-8 w-32"
+              maxLength={16}
+            />
+          )}
+          <span className="text-xs text-muted-foreground">
+            As restantes fotografias são publicadas sem alterações.
+          </span>
         </div>
 
         {/* Channel selector */}
