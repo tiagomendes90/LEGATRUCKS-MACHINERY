@@ -336,7 +336,7 @@ export async function renderCreative(
     (chips.length ? 74 : 0) +
     (showPrice ? 92 : 0);
 
-  const contentBottom = CANVAS_H - 268;
+  const contentBottom = CANVAS_H - 300;
   let y = Math.max(
     panelTop + 82,
     Math.min(panelTop + 96, contentBottom - contentH),
