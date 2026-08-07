@@ -503,6 +503,19 @@ function ProductCard({
                 Cria um post novo apenas com a 1.ª imagem e a faixa. A publicação
                 original mantém-se online.
               </span>
+              <div className="flex items-center gap-1">
+                {(Object.keys(SOLD_FORMATS) as SoldFormatKey[]).map((f) => (
+                  <Button
+                    key={f}
+                    size="sm"
+                    variant={soldFormat === f ? "default" : "outline"}
+                    className="h-7 text-xs"
+                    onClick={() => setSoldFormat(f)}
+                  >
+                    {SOLD_FORMATS[f].label}
+                  </Button>
+                ))}
+              </div>
             </div>
             <div className="grid md:grid-cols-2 gap-3">
               <div className="space-y-2">
