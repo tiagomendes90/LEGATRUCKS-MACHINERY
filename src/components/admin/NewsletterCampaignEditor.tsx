@@ -159,10 +159,22 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     const tpl = (templates.data ?? []).find((t) => t.id === id);
     setTemplateId(id || null);
     if (!tpl) return;
-    if (tpl.subject_template && !subject.trim()) setSubject(tpl.subject_template);
-    if (tpl.preheader_template && !preheader) setPreheader(tpl.preheader_template);
-    if (tpl.content_json?.intro) setIntro(tpl.content_json.intro);
-    if (tpl.content_json?.outro) setOutro(tpl.content_json.outro);
+
+    const tplIntro = (tpl.content_json?.intro ?? "").toString().trim();
+    const tplOutro = (tpl.content_json?.outro ?? "").toString().trim();
+
+    // Texto pré-definido para o template ficar imediatamente utilizável
+    const fallbackSubject = `LEGA — ${tpl.name}`;
+    const fallbackPreheader = "As novidades mais recentes do stock LEGA.";
+    const fallbackIntro = "Confira as novidades mais recentes do nosso stock.";
+    const fallbackOutro = "Precisa de mais informações? Responda a este email ou contacte-nos.";
+
+    if (!title.trim()) setTitle(tpl.name);
+    if (!subject.trim()) setSubject(tpl.subject_template?.trim() || fallbackSubject);
+    if (!(preheader ?? "").trim()) setPreheader(tpl.preheader_template?.trim() || fallbackPreheader);
+    setIntro(tplIntro || fallbackIntro);
+    setOutro(tplOutro || fallbackOutro);
+
     toast({ title: "Template aplicado", description: tpl.name });
   };
 
