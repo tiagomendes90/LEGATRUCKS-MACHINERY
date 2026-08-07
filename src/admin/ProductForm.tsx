@@ -72,6 +72,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
   const [isFeatured, setIsFeatured] = useState(initialDraft?.isFeatured ?? false);
   const [displayOrder, setDisplayOrder] = useState(initialDraft?.displayOrder ?? 0);
   const [publishNow, setPublishNow] = useState(false);
+  const [sendNewsletter, setSendNewsletter] = useState(false);
   const [hasLoadedDraftImages, setHasLoadedDraftImages] = useState(!!editingProduct || !initialDraft);
   const [form, setForm] = useState<AdminProductDraftForm>(initialDraft?.form ?? emptyProductForm);
 
@@ -450,6 +451,14 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
           ? 'product.updated'
           : 'product.updated';
       void tryEmitPublishingEvent({ type, productId });
+      // Newsletter automática: conteúdo 100% gerado a partir do produto.
+      if (publishNow && sendNewsletter) {
+        void tryEmitPublishingEvent({
+          type: 'newsletter.instant',
+          productId,
+          dedupeKey: `newsletter:instant:${productId}:${new Date().toISOString().slice(0, 16)}`,
+        });
+      }
       if (publishNow) {
         toast({
           title: 'Publicação em curso',
@@ -646,6 +655,24 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
               Ao guardar, dispara publicação automática nos canais ativos (Facebook, Instagram, Newsletter).
               Deixe desligado para edições que não devem gerar novo post ou email.
             </p>
+            <div className="flex items-start gap-2 mt-3">
+              <Checkbox
+                id="send-newsletter"
+                checked={sendNewsletter}
+                disabled={!publishNow}
+                onCheckedChange={(checked) => setSendNewsletter(checked === true)}
+                className="mt-0.5"
+              />
+              <div>
+                <Label htmlFor="send-newsletter" className="cursor-pointer font-medium">
+                  Enviar Newsletter
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Gera e envia automaticamente uma newsletter com todos os dados deste produto
+                  (imagens, especificações, preço e link).
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

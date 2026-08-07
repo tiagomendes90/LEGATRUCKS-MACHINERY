@@ -4,6 +4,7 @@
 // e isolamento total — nenhuma falha aqui pode afetar o website ou a BD.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { channels } from "../_shared/publishing/channels/index.ts";
+import { loadProduct } from "../_shared/publishing/productQuery.ts";
 import type {
   ChannelResult,
   PublishingContext,
@@ -26,16 +27,6 @@ const WORKER_ID = `dispatcher-${crypto.randomUUID().slice(0, 8)}`;
 function nextBackoffMs(attempts: number): number {
   const steps = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000, 6 * 3600_000, 24 * 3600_000];
   return steps[Math.min(attempts - 1, steps.length - 1)];
-}
-
-async function loadProduct(supabase: any, productId: string | null) {
-  if (!productId) return null;
-  const { data } = await supabase
-    .from("products")
-    .select("*, brand:brands(name, slug), images:product_images(image_url, is_primary, sort_order)")
-    .eq("id", productId)
-    .maybeSingle();
-  return data ?? null;
 }
 
 async function processEvent(supabase: any, event: PublishingEvent) {

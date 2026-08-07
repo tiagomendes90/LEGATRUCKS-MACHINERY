@@ -4,6 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { renderNewsletterHtml } from "../_shared/publishing/newsletterTemplate.ts";
 import { resolveRecipients } from "../_shared/publishing/channels/newsletter.ts";
+import { loadProductsByIds } from "../_shared/publishing/productQuery.ts";
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -81,15 +82,8 @@ Deno.serve(async (req) => {
       return json(400, { error: "campaign_id or draft required" });
     }
 
-    let products: Record<string, unknown>[] = [];
-    if (productIds.length > 0) {
-      const { data: prods } = await admin
-        .from("products")
-        .select("id, title, description, price, currency, year, model, condition, location_city, location_country, stock_status, brand:brands(name, slug), images:product_images(image_url, is_primary, sort_order)")
-        .in("id", productIds);
-      const byId = new Map((prods ?? []).map((p: any) => [p.id, p]));
-      products = productIds.map((id) => byId.get(id)).filter(Boolean) as any;
-    }
+    // Exatamente a mesma query usada no envio real → preview idêntico ao email.
+    const products = await loadProductsByIds(admin, productIds);
 
     // Template reutilizável (cabeçalho / rodapé / intro / fecho)
     let templateBlocks: Record<string, string> | null = null;
