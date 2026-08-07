@@ -180,6 +180,52 @@ export interface RenderOptions {
 }
 
 /** Faixa oblíqua de vendido, desenhada por cima de todo o criativo. */
+
+/** Formatos nativos de cada rede para o post de "vendido". */
+export type SoldFormatKey = "instagram" | "facebook" | "story";
+
+export const SOLD_FORMATS: Record<
+  SoldFormatKey,
+  { width: number; height: number; label: string }
+> = {
+  instagram: { width: 1080, height: 1350, label: "Instagram (4:5)" },
+  facebook: { width: 1200, height: 1200, label: "Facebook (1:1)" },
+  story: { width: 1080, height: 1920, label: "Story (9:16)" },
+};
+
+/**
+ * Coloca a fotografia inteira (sem cortes) no formato pedido, usando uma
+ * versão desfocada e ampliada da própria foto como fundo.
+ */
+function drawFramedPhoto(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  width: number,
+  height: number,
+) {
+  const iw = img.naturalWidth || img.width;
+  const ih = img.naturalHeight || img.height;
+
+  // Fundo: cover + blur
+  const cover = Math.max(width / iw, height / ih);
+  ctx.save();
+  ctx.filter = "blur(48px) brightness(0.7)";
+  ctx.drawImage(
+    img,
+    (width - iw * cover * 1.1) / 2,
+    (height - ih * cover * 1.1) / 2,
+    iw * cover * 1.1,
+    ih * cover * 1.1,
+  );
+  ctx.restore();
+
+  // Primeiro plano: contain (imagem completa)
+  const contain = Math.min(width / iw, height / ih);
+  const dw = iw * contain;
+  const dh = ih * contain;
+  ctx.drawImage(img, (width - dw) / 2, (height - dh) / 2, dw, dh);
+}
+
 export function drawSoldBanner(
   ctx: CanvasRenderingContext2D,
   label: string,
