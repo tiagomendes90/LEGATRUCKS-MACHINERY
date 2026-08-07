@@ -158,6 +158,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   );
 
   const applyTemplate = (id: string) => {
+    // ver abaixo
     const tpl = (templates.data ?? []).find((t) => t.id === id);
     setTemplateId(id || null);
     if (!tpl) return;
