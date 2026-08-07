@@ -121,12 +121,14 @@ export const newsletterChannel: ChannelAdapter = {
       const [product] = await loadProductsByIds(supabase, [productId]);
       if (!product) return { status: "failed", error: "produto inexistente" };
 
-      const subject = buildDefaultSubject([product]);
+      const bootI18n = await loadNewsletterI18n(supabase);
+      const subject = buildDefaultSubject([product], bootI18n, bootI18n.defaultLanguage);
       const { data: created, error: createErr } = await supabase
         .from("newsletter_campaigns")
         .insert({
           title: (product.title as string) ?? subject,
           subject,
+          default_language: bootI18n.defaultLanguage,
           preheader: ((product.description as string) ?? "")
             .replace(/\s+/g, " ").trim().slice(0, 140) || null,
           status: "draft",
@@ -212,16 +214,40 @@ export const newsletterChannel: ChannelAdapter = {
       template = t ?? null;
     }
 
-    const html = renderNewsletterHtml({
-      campaign: {
-        title: campaign.title,
-        subject: campaign.subject,
-        preheader: campaign.preheader,
-        content_json: campaign.content_json,
-      },
-      template: template?.content_json ?? null,
-      products,
-    });
+    // ---- Multilingue: uma versão independente por idioma ----------------
+    const i18n = await loadNewsletterI18n(supabase);
+    const { data: trRows } = await supabase
+      .from("newsletter_campaign_translations")
+      .select("*")
+      .eq("campaign_id", campaignId);
+    const translations = (trRows ?? []) as any[];
+
+    const versionCache = new Map<string, { html: string; subject: string }>();
+    const versionFor = (langCode: string) => {
+      const lang = i18n.resolve(langCode);
+      const cached = versionCache.get(lang);
+      if (cached) return { lang, ...cached };
+      const content = resolveCampaignContent(
+        campaign, lang, i18n, translations, template?.content_json ?? null,
+      );
+      const html = renderNewsletterHtml({
+        campaign: {
+          title: campaign.title,
+          subject: campaign.subject,
+          preheader: campaign.preheader,
+          content_json: campaign.content_json,
+        },
+        template: template?.content_json ?? null,
+        products,
+        i18n,
+        lang,
+        translations,
+        publicNumber: campaign.public_number ?? null,
+      });
+      const version = { html, subject: content.subject };
+      versionCache.set(lang, version);
+      return { lang, ...version };
+    };
 
     // Destinatários já entregues com sucesso — nunca reenviar.
     const { data: doneRows } = await supabase
