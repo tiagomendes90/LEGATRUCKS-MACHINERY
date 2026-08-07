@@ -273,14 +273,18 @@ export async function renderCreative(
   // faixa de campanha
   if (layout === "promo" && config.ribbon) {
     ctx.save();
-    ctx.translate(CANVAS_W - 40, 250);
-    ctx.rotate(-Math.PI / 2);
+    const label = config.ribbon.toUpperCase();
+    setFont(ctx, 800, 36, 6);
+    const rw = Math.min(ctx.measureText(label).width + 72, CANVAS_W - 2 * 84 - 340);
+    const rh = 76;
+    const rx = CANVAS_W - 84 - rw;
+    const ry = 108;
+    roundRect(ctx, rx, ry, rw, rh, rh / 2);
     ctx.fillStyle = config.accent;
-    ctx.fillRect(0, 0, 520, 92);
-    setFont(ctx, 800, 42, 6);
+    ctx.fill();
     ctx.fillStyle = contrastOn(config.accent);
     ctx.textAlign = "center";
-    ctx.fillText(config.ribbon.toUpperCase(), 260, 61);
+    ctx.fillText(label, rx + rw / 2, ry + rh / 2 + 13);
     ctx.restore();
     ctx.textAlign = "left";
   }
