@@ -9,6 +9,7 @@ export const PRODUCT_SELECT = `
   category:categories(name, slug),
   subcategory:subcategories(name, slug),
   images:product_images(image_url, is_primary, sort_order),
+  translations:product_translations(language_code, title, description),
   specs:spec_values(
     value_number, value_text, value_boolean,
     definition:spec_definitions(name, label, unit, data_type)
