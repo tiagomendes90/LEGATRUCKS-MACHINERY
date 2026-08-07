@@ -292,6 +292,100 @@ export interface SoldInfo {
   website?: string | null;
 }
 
+/** Blocos de informação que podem ser ligados/desligados no criativo. */
+export type SoldBlockKey =
+  | "logo"
+  | "tag"
+  | "brand"
+  | "model"
+  | "price"
+  | "year"
+  | "usage"
+  | "location"
+  | "website";
+
+export const SOLD_BLOCK_LABELS: Record<SoldBlockKey, string> = {
+  logo: "Logótipo",
+  tag: "Etiqueta VENDIDO",
+  brand: "Marca",
+  model: "Modelo",
+  price: "Preço",
+  year: "Ano",
+  usage: "Horas / Km",
+  location: "Localização",
+  website: "Website",
+};
+
+export const DEFAULT_SOLD_BLOCKS: Record<SoldBlockKey, boolean> = {
+  logo: true,
+  tag: true,
+  brand: true,
+  model: true,
+  price: true,
+  year: true,
+  usage: true,
+  location: true,
+  website: true,
+};
+
+export type SoldThemeKey = "editorial" | "minimal" | "promo" | "fullbleed";
+
+export interface SoldTheme {
+  label: string;
+  background: string;
+  surface: string;
+  accent: string;
+  text: string;
+  muted: string;
+  photo: "card" | "full";
+}
+
+export const SOLD_THEMES: Record<SoldThemeKey, SoldTheme> = {
+  editorial: {
+    label: "Editorial escuro",
+    background: "#081B33",
+    surface: "#0B2545",
+    accent: "#F39200",
+    text: "#FFFFFF",
+    muted: "#C7D3E3",
+    photo: "card",
+  },
+  minimal: {
+    label: "Minimal claro",
+    background: "#F4F6F9",
+    surface: "#E6EBF2",
+    accent: "#0B2545",
+    text: "#081B33",
+    muted: "#5A6B80",
+    photo: "card",
+  },
+  promo: {
+    label: "Promoção laranja",
+    background: "#2A1400",
+    surface: "#3A1D00",
+    accent: "#F39200",
+    text: "#FFFFFF",
+    muted: "#F1D2AC",
+    photo: "card",
+  },
+  fullbleed: {
+    label: "Foto inteira",
+    background: "#081B33",
+    surface: "#081B33",
+    accent: "#F39200",
+    text: "#FFFFFF",
+    muted: "#D8E2EE",
+    photo: "full",
+  },
+};
+
+export interface SoldCreativeOptions {
+  label?: string;
+  format?: SoldFormatKey;
+  theme?: SoldThemeKey;
+  blocks?: Partial<Record<SoldBlockKey, boolean>>;
+}
+
 /**
  * Criativo de "vendido": template LEGA com a fotografia do produto enquadrada,
  * bloco de informação do veículo e a faixa oblíqua por cima de tudo.
@@ -299,9 +393,12 @@ export interface SoldInfo {
 export async function renderSoldCreative(
   url: string,
   info: SoldInfo,
-  label = "SOLD / VENDIDO",
-  format: SoldFormatKey = "instagram",
+  options: SoldCreativeOptions = {},
 ): Promise<HTMLCanvasElement> {
+  const label = options.label || "SOLD / VENDIDO";
+  const format = options.format ?? "instagram";
+  const theme = SOLD_THEMES[options.theme ?? "editorial"] ?? SOLD_THEMES.editorial;
+  const blocks = { ...DEFAULT_SOLD_BLOCKS, ...(options.blocks ?? {}) };
   const preset = SOLD_FORMATS[format] ?? SOLD_FORMATS.instagram;
   const W = preset.width;
   const H = preset.height;
@@ -312,10 +409,10 @@ export async function renderSoldCreative(
   const ctx = canvas.getContext("2d")!;
   ctx.textBaseline = "alphabetic";
 
-  const BG = "#081B33";
-  const ACCENT = "#F39200";
-  const TEXT = "#FFFFFF";
-  const MUTED = "#C7D3E3";
+  const BG = theme.background;
+  const ACCENT = theme.accent;
+  const TEXT = theme.text;
+  const MUTED = theme.muted;
   const pad = 56 * s;
 
   // fundo
@@ -323,59 +420,85 @@ export async function renderSoldCreative(
   ctx.fillRect(0, 0, W, H);
 
   // topo: logótipo + faixa de acento
-  const headerH = 118 * s;
-  try {
-    const logo = await loadImage(LEGA_LOGO);
-    const lh = 56 * s;
-    const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
-    ctx.drawImage(logo, pad, (headerH - lh) / 2, lw, lh);
-  } catch {
-    setFont(ctx, 800, 44 * s, 2);
-    ctx.fillStyle = TEXT;
-    ctx.fillText("LEGA", pad, headerH / 2 + 16 * s);
+  const showHeader = blocks.logo || blocks.tag;
+  const headerH = showHeader ? 118 * s : 40 * s;
+  if (blocks.logo) {
+    try {
+      const logo = await loadImage(LEGA_LOGO);
+      const lh = 56 * s;
+      const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+      ctx.drawImage(logo, pad, (headerH - lh) / 2, lw, lh);
+    } catch {
+      setFont(ctx, 800, 44 * s, 2);
+      ctx.fillStyle = TEXT;
+      ctx.fillText("LEGA", pad, headerH / 2 + 16 * s);
+    }
   }
-  setFont(ctx, 700, 26 * s, 4);
-  ctx.fillStyle = ACCENT;
-  ctx.textAlign = "right";
-  ctx.fillText("VENDIDO", W - pad, headerH / 2 + 9 * s);
-  ctx.textAlign = "left";
+  if (blocks.tag) {
+    setFont(ctx, 700, 26 * s, 4);
+    ctx.fillStyle = ACCENT;
+    ctx.textAlign = "right";
+    ctx.fillText("VENDIDO", W - pad, headerH / 2 + 9 * s);
+    ctx.textAlign = "left";
+  }
 
   // bloco de informação (rodapé)
-  const hasPrice = !!info.price;
-  const chips = [info.year, info.usage, info.location].filter(Boolean) as string[];
-  const infoH = (hasPrice || chips.length ? 300 : 220) * s;
+  const brand = blocks.brand ? (info.brand ?? "").trim() : "";
+  const model = blocks.model ? (info.model ?? "").trim() : "";
+  const hasPrice = blocks.price && !!info.price;
+  const chips = [
+    blocks.year ? info.year : null,
+    blocks.usage ? info.usage : null,
+    blocks.location ? info.location : null,
+  ].filter(Boolean) as string[];
+  const site = blocks.website ? (info.website ?? "www.lega.pt").trim() : "";
+  const hasInfo = !!brand || !!model || hasPrice || chips.length > 0 || !!site;
+  const infoH = !hasInfo
+    ? 40 * s
+    : (hasPrice || chips.length ? 300 : 220) * s;
   const infoY = H - infoH;
 
-  // fotografia enquadrada num cartão
-  const photoY = headerH + 12 * s;
-  const photoH = infoY - photoY - 24 * s;
-  const photoX = pad;
-  const photoW = W - pad * 2;
   const img = await loadImage(url);
-  ctx.save();
-  roundRect(ctx, photoX, photoY, photoW, photoH, 32 * s);
-  ctx.clip();
-  ctx.fillStyle = "#0B2545";
-  ctx.fillRect(photoX, photoY, photoW, photoH);
-  drawCover(ctx, img, photoX, photoY, photoW, photoH);
-  // esbatimento inferior para ligar ao painel
-  const grad = ctx.createLinearGradient(0, photoY + photoH * 0.55, 0, photoY + photoH);
-  grad.addColorStop(0, rgba(BG, 0));
-  grad.addColorStop(1, rgba(BG, 0.85));
-  ctx.fillStyle = grad;
-  ctx.fillRect(photoX, photoY, photoW, photoH);
-  ctx.restore();
+  if (theme.photo === "full") {
+    drawCover(ctx, img, 0, 0, W, H);
+    const g = ctx.createLinearGradient(0, H * 0.35, 0, H);
+    g.addColorStop(0, rgba(BG, 0));
+    g.addColorStop(1, rgba(BG, 0.92));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    const gt = ctx.createLinearGradient(0, 0, 0, H * 0.22);
+    gt.addColorStop(0, rgba(BG, 0.75));
+    gt.addColorStop(1, rgba(BG, 0));
+    ctx.fillStyle = gt;
+    ctx.fillRect(0, 0, W, H * 0.22);
+  } else {
+    // fotografia enquadrada num cartão
+    const photoY = headerH + 12 * s;
+    const photoH = infoY - photoY - 24 * s;
+    const photoX = pad;
+    const photoW = W - pad * 2;
+    ctx.save();
+    roundRect(ctx, photoX, photoY, photoW, photoH, 32 * s);
+    ctx.clip();
+    ctx.fillStyle = theme.surface;
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+    drawCover(ctx, img, photoX, photoY, photoW, photoH);
+    const grad = ctx.createLinearGradient(0, photoY + photoH * 0.55, 0, photoY + photoH);
+    grad.addColorStop(0, rgba(BG, 0));
+    grad.addColorStop(1, rgba(BG, 0.85));
+    ctx.fillStyle = grad;
+    ctx.fillRect(photoX, photoY, photoW, photoH);
+    ctx.restore();
+  }
 
   // painel de dados
   let y = infoY + 66 * s;
-  const brand = (info.brand ?? "").trim();
   if (brand) {
     setFont(ctx, 700, 28 * s, 6);
     ctx.fillStyle = ACCENT;
     ctx.fillText(brand.toUpperCase(), pad, y);
     y += 46 * s;
   }
-  const model = (info.model ?? "").trim();
   if (model) {
     ctx.fillStyle = TEXT;
     const { size, lines } = fitHeadline(ctx, model, W - pad * 2, 2, 66 * s, 34 * s);
@@ -405,7 +528,6 @@ export async function renderSoldCreative(
     ctx.fillText(info.price!, pad + 26 * s, y);
   }
 
-  const site = (info.website ?? "www.lega.pt").trim();
   if (site) {
     setFont(ctx, 700, 28 * s, 2);
     ctx.fillStyle = MUTED;
