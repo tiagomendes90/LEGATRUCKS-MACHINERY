@@ -169,13 +169,16 @@ function ProductCard({
   useEffect(() => setIgIndex(0), [product.id, channel]);
 
   // Publicação com faixa "SOLD/VENDIDO" aplicada apenas à primeira imagem.
-  const [sold, setSold] = useState(false);
   const [soldLabel, setSoldLabel] = useState("SOLD/VENDIDO");
   const [soldPreview, setSoldPreview] = useState<string | null>(null);
+  const [soldCaption, setSoldCaption] = useState(
+    `🔴 VENDIDO — ${product.title}\n\nObrigado pela confiança! Temos mais viaturas disponíveis.\n\n${SITE_URL}\n#LEGA #vendido #camioes`,
+  );
+  const [soldBusy, setSoldBusy] = useState<ChannelKey | null>(null);
   useEffect(() => {
     let cancelled = false;
     const first = orderedImages[0] ?? image;
-    if (!sold || !first) {
+    if (!showSoldControl || !first) {
       setSoldPreview(null);
       return;
     }
@@ -190,13 +193,10 @@ function ProductCard({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sold, soldLabel, orderedImages[0], image]);
+  }, [showSoldControl, soldLabel, orderedImages[0], image]);
 
-  const previewImages = useMemo(() => {
-    if (!soldPreview || !orderedImages.length) return orderedImages;
-    return [soldPreview, ...orderedImages.slice(1)];
-  }, [soldPreview, orderedImages]);
-  const previewImage = soldPreview ?? image;
+  const previewImages = orderedImages;
+  const previewImage = image;
 
   /** Gera e carrega a 1.ª imagem com a faixa SOLD, devolvendo o URL público. */
   const buildSoldFirstImage = async (): Promise<string | null> => {
