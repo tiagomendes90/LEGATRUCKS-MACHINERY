@@ -4,6 +4,8 @@ import { renderNewsletterHtml } from "../newsletterTemplate.ts";
 import { buildDefaultSubject } from "../newsletterTemplate.ts";
 import { loadProductsByIds } from "../productQuery.ts";
 import { resendFetch } from "../../resendClient.ts";
+import { loadNewsletterI18n } from "../i18n/index.ts";
+import { resolveCampaignContent } from "../i18n/campaignContent.ts";
 
 const BATCH_SIZE = 100;
 
@@ -12,6 +14,7 @@ interface Recipient {
   email: string;
   first_name: string | null;
   unsubscribe_token: string;
+  preferred_language: string | null;
 }
 
 /**
@@ -39,12 +42,13 @@ export async function resolveRecipients(
           email: s.email,
           first_name: s.first_name ?? null,
           unsubscribe_token: s.unsubscribe_token,
+          preferred_language: s.preferred_language ?? null,
         });
       }
     }
   };
 
-  const SELECT = "id, email, first_name, status, unsubscribe_token";
+  const SELECT = "id, email, first_name, status, unsubscribe_token, preferred_language";
 
   if (mode === "all") {
     const { data } = await supabase
