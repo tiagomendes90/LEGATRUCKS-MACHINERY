@@ -170,6 +170,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     setPreviewLoading(true);
     try {
       const res = await fetchCampaignPreview({
+        lang: currentLang,
+        translations: translationPayload as any,
         draft: {
           title: draft.title,
           subject: draft.subject,
@@ -199,7 +201,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   useEffect(() => {
     refreshPreview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentLang]);
 
   const persistDraft = async (nextStatus?: string) => {
     const saved = await save.mutateAsync({ ...draft, status: nextStatus ?? campaign?.status ?? "draft" });
@@ -422,6 +424,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                       try {
                         await sendTestEmail({
                           test_email: testEmail.trim(),
+                          lang: currentLang,
+                          translations: translationPayload as any,
                           draft: {
                             title: draft.title,
                             subject: draft.subject,
