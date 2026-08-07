@@ -45,7 +45,13 @@ import SocialOperationsOverview from "./SocialOperationsOverview";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useSocialRealtime } from "@/hooks/useSocialRealtime";
 import { Input } from "@/components/ui/input";
-import { renderSoldImage, canvasToBlob, slugify } from "@/lib/creative/render";
+import {
+  renderSoldImage,
+  canvasToBlob,
+  slugify,
+  SOLD_FORMATS,
+  type SoldFormatKey,
+} from "@/lib/creative/render";
 import { uploadCreative } from "@/lib/creative/uploadCreative";
 
 const SITE_URL =
@@ -174,6 +180,8 @@ function ProductCard({
     `🔴 VENDIDO — ${product.title}\n\nObrigado pela confiança! Temos mais viaturas disponíveis.\n\n${SITE_URL}\n#LEGA #vendido #camioes`,
   );
   const [soldBusy, setSoldBusy] = useState<ChannelKey | null>(null);
+  // Formato do criativo de vendido usado na pré-visualização.
+  const [soldFormat, setSoldFormat] = useState<SoldFormatKey>("instagram");
   useEffect(() => {
     let cancelled = false;
     const first = orderedImages[0] ?? image;
@@ -181,7 +189,7 @@ function ProductCard({
       setSoldPreview(null);
       return;
     }
-    renderSoldImage(first, soldLabel || "SOLD / VENDIDO")
+    renderSoldImage(first, soldLabel || "SOLD / VENDIDO", soldFormat)
       .then((c) => {
         if (!cancelled) setSoldPreview(c.toDataURL("image/png"));
       })
@@ -192,20 +200,22 @@ function ProductCard({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showSoldControl, soldLabel, orderedImages[0], image]);
+  }, [showSoldControl, soldLabel, soldFormat, orderedImages[0], image]);
 
   const previewImages = orderedImages;
   const previewImage = image;
 
   /** Gera e carrega a 1.ª imagem com a faixa SOLD / VENDIDO, devolvendo o URL público. */
-  const buildSoldFirstImage = async (): Promise<string | null> => {
+  const buildSoldFirstImage = async (
+    format: SoldFormatKey,
+  ): Promise<string | null> => {
     const first = orderedImages[0] ?? image;
     if (!first) return null;
-    const canvas = await renderSoldImage(first, soldLabel || "SOLD / VENDIDO");
+    const canvas = await renderSoldImage(first, soldLabel || "SOLD / VENDIDO", format);
     const blob = await canvasToBlob(canvas);
     return uploadCreative(blob, {
       productId: product.id,
-      kind: "sold",
+      kind: `sold-${format}`,
       fileBase: slugify(product.title),
     });
   };
@@ -350,7 +360,9 @@ function ProductCard({
     if (soldBusy) return;
     setSoldBusy(target);
     try {
-      const soldUrl = await buildSoldFirstImage();
+      // Cada rede recebe a imagem no seu formato nativo.
+      const format: SoldFormatKey = target === "facebook" ? "facebook" : "instagram";
+      const soldUrl = await buildSoldFirstImage(format);
       if (!soldUrl) throw new Error("O veículo não tem imagens disponíveis.");
       await publishMut.mutateAsync({
         productId: product.id,
@@ -491,6 +503,19 @@ function ProductCard({
                 Cria um post novo apenas com a 1.ª imagem e a faixa. A publicação
                 original mantém-se online.
               </span>
+              <div className="flex items-center gap-1">
+                {(Object.keys(SOLD_FORMATS) as SoldFormatKey[]).map((f) => (
+                  <Button
+                    key={f}
+                    size="sm"
+                    variant={soldFormat === f ? "default" : "outline"}
+                    className="h-7 text-xs"
+                    onClick={() => setSoldFormat(f)}
+                  >
+                    {SOLD_FORMATS[f].label}
+                  </Button>
+                ))}
+              </div>
             </div>
             <div className="grid md:grid-cols-2 gap-3">
               <div className="space-y-2">
