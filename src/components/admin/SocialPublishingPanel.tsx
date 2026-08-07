@@ -46,7 +46,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { useSocialRealtime } from "@/hooks/useSocialRealtime";
 import { Input } from "@/components/ui/input";
 import {
-  renderSoldImage,
+  renderSoldCreative,
   canvasToBlob,
   slugify,
   SOLD_FORMATS,
@@ -182,6 +182,27 @@ function ProductCard({
   const [soldBusy, setSoldBusy] = useState<ChannelKey | null>(null);
   // Formato do criativo de vendido usado na pré-visualização.
   const [soldFormat, setSoldFormat] = useState<SoldFormatKey>("instagram");
+  // Dados do veículo apresentados no template do criativo de vendido.
+  const soldInfo = useMemo(() => {
+    const brand = product.brand?.name ?? "";
+    const model =
+      (brand
+        ? product.title.replace(new RegExp(`^${brand}\\s*`, "i"), "").trim()
+        : product.title) || product.title;
+    return {
+      brand,
+      model,
+      price: product.price
+        ? new Intl.NumberFormat("pt-PT", {
+            style: "currency",
+            currency: product.currency ?? "EUR",
+            maximumFractionDigits: 0,
+          }).format(product.price)
+        : null,
+      year: product.year ? String(product.year) : null,
+      website: SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, ""),
+    };
+  }, [product.brand?.name, product.title, product.price, product.currency, product.year]);
   useEffect(() => {
     let cancelled = false;
     const first = orderedImages[0] ?? image;
@@ -189,7 +210,7 @@ function ProductCard({
       setSoldPreview(null);
       return;
     }
-    renderSoldImage(first, soldLabel || "SOLD / VENDIDO", soldFormat)
+    renderSoldCreative(first, soldInfo, soldLabel || "SOLD / VENDIDO", soldFormat)
       .then((c) => {
         if (!cancelled) setSoldPreview(c.toDataURL("image/png"));
       })
@@ -200,7 +221,7 @@ function ProductCard({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showSoldControl, soldLabel, soldFormat, orderedImages[0], image]);
+  }, [showSoldControl, soldLabel, soldFormat, soldInfo, orderedImages[0], image]);
 
   const previewImages = orderedImages;
   const previewImage = image;
@@ -211,7 +232,12 @@ function ProductCard({
   ): Promise<string | null> => {
     const first = orderedImages[0] ?? image;
     if (!first) return null;
-    const canvas = await renderSoldImage(first, soldLabel || "SOLD / VENDIDO", format);
+    const canvas = await renderSoldCreative(
+      first,
+      soldInfo,
+      soldLabel || "SOLD / VENDIDO",
+      format,
+    );
     const blob = await canvasToBlob(canvas);
     return uploadCreative(blob, {
       productId: product.id,
