@@ -288,8 +288,24 @@ export const newsletterChannel: ChannelAdapter = {
     let sent = 0;
     let failed = 0;
 
-    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-      const chunk = recipients.slice(i, i + BATCH_SIZE);
+    // Agrupar destinatários pelo idioma preferido — cada grupo recebe a sua
+    // versão independente (assunto + HTML próprios).
+    const groups = new Map<string, Recipient[]>();
+    for (const r of recipients) {
+      const lang = i18n.resolve(r.preferred_language ?? campaign.default_language);
+      (groups.get(lang) ?? groups.set(lang, []).get(lang)!).push(r);
+    }
+
+    const perLanguage: Record<string, { sent: number; failed: number }> = {};
+    const flat: Array<{ lang: string; chunk: Recipient[] }> = [];
+    for (const [lang, list] of groups) {
+      for (let i = 0; i < list.length; i += BATCH_SIZE) {
+        flat.push({ lang, chunk: list.slice(i, i + BATCH_SIZE) });
+      }
+    }
+
+    for (const { lang, chunk } of flat) {
+      const version = versionFor(lang);
       let ok = false;
       let json: any = {};
       let status = 0;
@@ -300,14 +316,17 @@ export const newsletterChannel: ChannelAdapter = {
             chunk.map((s) => ({
               from,
               to: [s.email],
-              subject: campaign.subject,
-              html: html.replaceAll(
-                "{{{RESEND_UNSUBSCRIBE_URL}}}",
-                unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
-              ).replaceAll(
-                "{{RESEND_UNSUBSCRIBE_URL}}",
-                unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
-              ),
+              subject: version.subject,
+              html: version.html
+                .replaceAll(TOKEN_PLACEHOLDER, s.unsubscribe_token)
+                .replaceAll(
+                  "{{{RESEND_UNSUBSCRIBE_URL}}}",
+                  unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
+                )
+                .replaceAll(
+                  "{{RESEND_UNSUBSCRIBE_URL}}",
+                  unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
+                ),
             })),
           ),
         });
@@ -319,7 +338,9 @@ export const newsletterChannel: ChannelAdapter = {
       }
 
       ok ? (sent += chunk.length) : (failed += chunk.length);
-      batches.push({ ok, status, size: chunk.length, body: json });
+      const agg = (perLanguage[lang] ??= { sent: 0, failed: 0 });
+      ok ? (agg.sent += chunk.length) : (agg.failed += chunk.length);
+      batches.push({ ok, status, size: chunk.length, language: lang, body: json });
 
       const ids = (json?.data ?? []) as any[];
       // Insert (não upsert): o índice único parcial garante que um envio
