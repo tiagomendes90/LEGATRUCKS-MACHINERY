@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { ChannelAdapter, ChannelResult, PublishingContext } from "../types.ts";
 import { renderNewsletterHtml } from "../newsletterTemplate.ts";
+import { buildDefaultSubject } from "../newsletterTemplate.ts";
+import { loadProductsByIds } from "../productQuery.ts";
 import { resendFetch } from "../../resendClient.ts";
 
 const BATCH_SIZE = 100;
@@ -86,7 +88,8 @@ export const newsletterChannel: ChannelAdapter = {
   label: "Newsletter",
   supports: (e) =>
     e.event_type === "newsletter.campaign.send" ||
-    e.event_type === "newsletter.campaign.cancel",
+    e.event_type === "newsletter.campaign.cancel" ||
+    e.event_type === "newsletter.instant",
 
   async publish(ctx: PublishingContext): Promise<ChannelResult> {
     const apiKey = Deno.env.get("RESEND_API_KEY");
@@ -103,7 +106,38 @@ export const newsletterChannel: ChannelAdapter = {
     }
 
     const supabase = createClient(ctx.supabaseUrl, ctx.serviceRoleKey);
-    const campaignId = ctx.event.payload?.campaign_id as string | undefined;
+    let campaignId = ctx.event.payload?.campaign_id as string | undefined;
+
+    /* ------------------- INSTANT (produto publicado) ------------------ */
+    // Cria automaticamente uma campanha a partir do produto — sem qualquer
+    // conteúdo introduzido manualmente. Depois segue o fluxo normal de envio.
+    if (ctx.event.event_type === "newsletter.instant") {
+      const productId = ctx.event.product_id;
+      if (!productId) return { status: "failed", error: "product_id missing for newsletter.instant" };
+      const [product] = await loadProductsByIds(supabase, [productId]);
+      if (!product) return { status: "failed", error: "produto inexistente" };
+
+      const subject = buildDefaultSubject([product]);
+      const { data: created, error: createErr } = await supabase
+        .from("newsletter_campaigns")
+        .insert({
+          title: (product.title as string) ?? subject,
+          subject,
+          preheader: ((product.description as string) ?? "")
+            .replace(/\s+/g, " ").trim().slice(0, 140) || null,
+          status: "draft",
+          product_ids: [productId],
+          audience_mode: "all",
+          content_json: { auto_generated: true, source: "product.published" },
+        })
+        .select("id")
+        .maybeSingle();
+      if (createErr || !created) {
+        return { status: "failed", error: createErr?.message ?? "falha ao criar campanha automática" };
+      }
+      campaignId = created.id as string;
+    }
+
     if (!campaignId) return { status: "failed", error: "campaign_id missing in payload" };
 
     /* ---------------------------- CANCEL ---------------------------- */
@@ -162,17 +196,9 @@ export const newsletterChannel: ChannelAdapter = {
       return { status: "skipped", response: { reason: "campaign already sent" } };
     }
 
-    // Produtos (ordem definida pelo admin)
-    const productIds: string[] = campaign.product_ids ?? [];
-    let products: Record<string, unknown>[] = [];
-    if (productIds.length > 0) {
-      const { data: prods } = await supabase
-        .from("products")
-        .select("id, title, description, price, currency, year, model, condition, location_city, location_country, stock_status, brand:brands(name, slug), images:product_images(image_url, is_primary, sort_order)")
-        .in("id", productIds);
-      const byId = new Map((prods ?? []).map((p: any) => [p.id, p]));
-      products = productIds.map((id) => byId.get(id)).filter(Boolean) as any;
-    }
+    // Produtos (ordem definida pelo admin) — mesma query partilhada por
+    // Facebook/Instagram/preview, garantindo conteúdo base idêntico.
+    const products = await loadProductsByIds(supabase, campaign.product_ids ?? []);
 
     // Template reutilizável (cabeçalho / rodapé / intro / fecho)
     let template: Record<string, any> | null = null;
