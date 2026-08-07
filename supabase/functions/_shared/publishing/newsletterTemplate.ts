@@ -94,11 +94,11 @@ function esc(s: unknown): string {
 
 const MAX_GALLERY = 6;
 
-function fmtPrice(p: AnyRecord): string | null {
+function fmtPrice(p: AnyRecord, locale: string): string | null {
   const price = p.price as number | null | undefined;
   if (price == null) return null;
   try {
-    return new Intl.NumberFormat("pt-PT", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: (p.currency as string) ?? "EUR",
       maximumFractionDigits: 0,
@@ -113,25 +113,33 @@ export function productUrl(p: AnyRecord): string {
   return p?.id ? `${SITE_URL}/vehicle/${p.id}` : SITE_URL;
 }
 
-const CONDITION_LABEL: Record<string, string> = {
-  new: "Novo",
-  novo: "Novo",
-  used: "Usado",
-  usado: "Usado",
-  refurbished: "Recondicionado",
+const CONDITION_KEY: Record<string, StringKey> = {
+  new: "condition.new",
+  novo: "condition.new",
+  used: "condition.used",
+  usado: "condition.used",
+  refurbished: "condition.refurbished",
+  recondicionado: "condition.refurbished",
 };
 
-const STOCK_LABEL: Record<string, string> = {
-  available: "Disponível",
-  disponivel: "Disponível",
-  reserved: "Reservado",
-  reservado: "Reservado",
-  sold: "Vendido",
-  vendido: "Vendido",
+const STOCK_KEY: Record<string, StringKey> = {
+  available: "stock.available",
+  disponivel: "stock.available",
+  reserved: "stock.reserved",
+  reservado: "stock.reserved",
+  sold: "stock.sold",
+  vendido: "stock.sold",
 };
+
+interface Ctx {
+  i18n: NewsletterI18n;
+  lang: string;
+  locale: string;
+}
 
 /** Todos os atributos disponíveis, incluindo especificações dinâmicas. */
-function collectSpecs(p: AnyRecord): Array<[string, string]> {
+function collectSpecs(p: AnyRecord, ctx: Ctx): Array<[string, string]> {
+  const t = (k: StringKey) => ctx.i18n.t(ctx.lang, k);
   const brand = p.brand as AnyRecord | undefined;
   const category = p.category as AnyRecord | undefined;
   const subcategory = p.subcategory as AnyRecord | undefined;
@@ -139,21 +147,27 @@ function collectSpecs(p: AnyRecord): Array<[string, string]> {
   const condRaw = (p.condition as string) ?? "";
   const stockRaw = (p.stock_status as string) ?? "";
   const specs: Array<[string, string]> = [];
-  if (brand?.name) specs.push(["Marca", String(brand.name)]);
-  if (p.model) specs.push(["Modelo", String(p.model)]);
-  if (category?.name) specs.push(["Categoria", String(category.name)]);
-  if (subcategory?.name) specs.push(["Subcategoria", String(subcategory.name)]);
-  if (p.year) specs.push(["Ano", String(p.year)]);
-  if (condRaw) specs.push(["Estado", CONDITION_LABEL[condRaw.toLowerCase()] ?? condRaw]);
-  if (stockRaw) specs.push(["Disponibilidade", STOCK_LABEL[stockRaw.toLowerCase()] ?? stockRaw]);
-  if (location) specs.push(["Localização", location]);
+  if (brand?.name) specs.push([t("spec.brand"), String(brand.name)]);
+  if (p.model) specs.push([t("spec.model"), String(p.model)]);
+  if (category?.name) specs.push([t("spec.category"), String(category.name)]);
+  if (subcategory?.name) specs.push([t("spec.subcategory"), String(subcategory.name)]);
+  if (p.year) specs.push([t("spec.year"), String(p.year)]);
+  if (condRaw) {
+    const key = CONDITION_KEY[condRaw.toLowerCase()];
+    specs.push([t("spec.condition"), key ? t(key) : condRaw]);
+  }
+  if (stockRaw) {
+    const key = STOCK_KEY[stockRaw.toLowerCase()];
+    specs.push([t("spec.availability"), key ? t(key) : stockRaw]);
+  }
+  if (location) specs.push([t("spec.location"), location]);
   specs.push(...specPairs(p));
   return specs;
 }
 
 /** Cartão de características em duas colunas. */
-function specRows(p: AnyRecord): string {
-  const specs = collectSpecs(p);
+function specRows(p: AnyRecord, ctx: Ctx): string {
+  const specs = collectSpecs(p, ctx);
   if (specs.length === 0) return "";
 
   // Duas colunas por linha — colapsa bem em mobile por ser tabela simples.
@@ -174,7 +188,7 @@ function specRows(p: AnyRecord): string {
 
   return `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;background:#f8fafc;border:1px solid ${LINE};border-radius:12px;">
-        <tr><td colspan="2" style="padding:14px 12px 2px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${BRAND_DARK};font-weight:700;">Características</td></tr>
+        <tr><td colspan="2" style="padding:14px 12px 2px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${BRAND_DARK};font-weight:700;">${esc(ctx.i18n.t(ctx.lang, "product.specs_title"))}</td></tr>
         ${rows.join("")}
       </table>`;
 }
