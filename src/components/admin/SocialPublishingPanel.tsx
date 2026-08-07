@@ -48,16 +48,16 @@ import { Input } from "@/components/ui/input";
 import {
   renderSoldCreative,
   canvasToBlob,
-  SOLD_THEMES,
   SOLD_BLOCK_LABELS,
   DEFAULT_SOLD_BLOCKS,
-  type SoldThemeKey,
+  soldThemeFromConfig,
   type SoldBlockKey,
   slugify,
   SOLD_FORMATS,
   type SoldFormatKey,
 } from "@/lib/creative/render";
 import { uploadCreative } from "@/lib/creative/uploadCreative";
+import { useCreativeTemplates } from "@/hooks/useCreativeTemplates";
 
 const SITE_URL =
   (import.meta as any)?.env?.VITE_PUBLIC_SITE_URL || "https://www.lega.pt";
@@ -187,8 +187,22 @@ function ProductCard({
   const [soldBusy, setSoldBusy] = useState<ChannelKey | null>(null);
   // Formato do criativo de vendido usado na pré-visualização.
   const [soldFormat, setSoldFormat] = useState<SoldFormatKey>("instagram");
-  // Template e blocos de informação do criativo de vendido.
-  const [soldTheme, setSoldTheme] = useState<SoldThemeKey>("editorial");
+  // Template (Biblioteca de Templates) e blocos de informação do criativo.
+  const { data: creativeTemplates = [] } = useCreativeTemplates();
+  const soldTemplates = useMemo(
+    () => creativeTemplates.filter((t) => t.is_active),
+    [creativeTemplates],
+  );
+  const [soldTemplateId, setSoldTemplateId] = useState<string | null>(null);
+  useEffect(() => {
+    if (soldTemplateId || soldTemplates.length === 0) return;
+    const def = soldTemplates.find((t) => t.is_default) ?? soldTemplates[0];
+    setSoldTemplateId(def.id);
+  }, [soldTemplates, soldTemplateId]);
+  const soldTheme = useMemo(() => {
+    const tpl = soldTemplates.find((t) => t.id === soldTemplateId);
+    return tpl ? soldThemeFromConfig(tpl.config, tpl.name) : undefined;
+  }, [soldTemplates, soldTemplateId]);
   const [soldBlocks, setSoldBlocks] = useState<Record<SoldBlockKey, boolean>>({
     ...DEFAULT_SOLD_BLOCKS,
   });
@@ -571,18 +585,24 @@ function ProductCard({
             </div>
             <div className="space-y-2">
               <span className="text-xs font-medium text-muted-foreground">
-                Template
+                Template (Biblioteca de Templates)
               </span>
               <div className="flex flex-wrap gap-1">
-                {(Object.keys(SOLD_THEMES) as SoldThemeKey[]).map((t) => (
+                {soldTemplates.length === 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    Sem templates ativos — cria um em Media Studio → Templates.
+                  </span>
+                )}
+                {soldTemplates.map((t) => (
                   <Button
-                    key={t}
+                    key={t.id}
                     size="sm"
-                    variant={soldTheme === t ? "default" : "outline"}
+                    variant={soldTemplateId === t.id ? "default" : "outline"}
                     className="h-7 text-xs"
-                    onClick={() => setSoldTheme(t)}
+                    onClick={() => setSoldTemplateId(t.id)}
                   >
-                    {SOLD_THEMES[t].label}
+                    {t.name}
+                    {t.is_default ? " · por defeito" : ""}
                   </Button>
                 ))}
               </div>
