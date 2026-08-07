@@ -29,6 +29,11 @@ export default function AdminDashboard() {
     hasAdminProductDraft() ? 'add-product' : 'inventory',
     'local',
   );
+  const [socialTab, setSocialTab] = usePersistentState<string>(
+    'dashboard.social.tab',
+    'posts',
+    'local',
+  );
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: messages = [] } = useContactMessages();
