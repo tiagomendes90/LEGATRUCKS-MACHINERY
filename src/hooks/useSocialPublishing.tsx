@@ -202,9 +202,12 @@ export function useDeleteSocial() {
       channel: string;
       externalId?: string | null;
     }) => {
+      // Idempotência: cliques repetidos no mesmo minuto colapsam num só evento.
+      const bucket = Math.floor(Date.now() / 60000);
       return emitPublishingEvent({
         type: "social.delete",
         productId,
+        dedupeKey: `del:${channel}:${externalId ?? "latest"}:${bucket}`,
         payload: {
           channel,
           ...(externalId ? { external_id: externalId } : {}),
