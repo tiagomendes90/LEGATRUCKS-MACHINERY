@@ -297,28 +297,8 @@ function ProductCard({
   const runPublish = async (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
     if (busy) return;
-    let publishImage = image;
-    let publishImages = orderedImages;
-    if (sold) {
-      try {
-        setPending({ channel, at: Date.now() });
-        const soldUrl = await buildSoldFirstImage();
-        if (soldUrl) {
-          publishImage = soldUrl;
-          publishImages = orderedImages.length
-            ? [soldUrl, ...orderedImages.slice(1)]
-            : [soldUrl];
-        }
-      } catch (e: any) {
-        setPending(null);
-        toast({
-          title: "Não foi possível preparar a imagem SOLD",
-          description: String(e?.message ?? e),
-          variant: "destructive",
-        });
-        return;
-      }
-    }
+    const publishImage = image;
+    const publishImages = orderedImages;
     // Antes de publicar, confirma na Meta que o estado local está correto
     // (ex.: post apagado manualmente → o produto volta a "por publicar").
     try {
