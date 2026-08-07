@@ -7,6 +7,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.newsletter-preview]
 verify_jwt = false
+[functions.newsletter-view]
+verify_jwt = false
 [functions.meta-oauth-callback]
 verify_jwt = false
 [functions.meta-token-refresh]
