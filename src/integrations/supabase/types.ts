@@ -148,6 +148,48 @@ export type Database = {
           },
         ]
       }
+      creative_templates: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          kind: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          kind?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          kind?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       featured_products: {
         Row: {
           created_at: string
@@ -764,6 +806,60 @@ export type Database = {
           vehicle_id?: string | null
         }
         Relationships: []
+      }
+      product_creatives: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          fields: Json
+          id: string
+          image_url: string | null
+          kind: string
+          label: string | null
+          product_id: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          fields?: Json
+          id?: string
+          image_url?: string | null
+          kind?: string
+          label?: string | null
+          product_id: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          fields?: Json
+          id?: string
+          image_url?: string | null
+          kind?: string
+          label?: string | null
+          product_id?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_creatives_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_creatives_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "creative_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {

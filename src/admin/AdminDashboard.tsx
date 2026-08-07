@@ -12,6 +12,8 @@ import MessagesManagement from '@/components/admin/MessagesManagement';
 import PublishingPanel from '@/components/admin/PublishingPanel';
 import SocialPublishingPanel from '@/components/admin/SocialPublishingPanel';
 import MetaConnectionPanel from '@/components/admin/MetaConnectionPanel';
+import MediaStudioPanel from '@/components/admin/MediaStudioPanel';
+import CreativeTemplatesPanel from '@/components/admin/CreativeTemplatesPanel';
 import NewsletterPanel from '@/components/admin/NewsletterPanel';
 import { Package, TrendingUp, ExternalLink, LogOut, MessageSquare } from 'lucide-react';
 import { sortProductImages } from '@/utils/productImages';
@@ -25,6 +27,11 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = usePersistentState<string>(
     'dashboard.tab',
     hasAdminProductDraft() ? 'add-product' : 'inventory',
+    'local',
+  );
+  const [socialTab, setSocialTab] = usePersistentState<string>(
+    'dashboard.social.tab',
+    'posts',
     'local',
   );
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -176,7 +183,22 @@ export default function AdminDashboard() {
 
         <TabsContent value="social" className="space-y-6">
           <MetaConnectionPanel />
-          <SocialPublishingPanel />
+          <Tabs value={socialTab} onValueChange={setSocialTab} className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="posts">Publicações</TabsTrigger>
+              <TabsTrigger value="studio">Media Studio</TabsTrigger>
+              <TabsTrigger value="templates">Templates</TabsTrigger>
+            </TabsList>
+            <TabsContent value="posts">
+              <SocialPublishingPanel />
+            </TabsContent>
+            <TabsContent value="studio">
+              <MediaStudioPanel />
+            </TabsContent>
+            <TabsContent value="templates">
+              <CreativeTemplatesPanel />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="newsletter">
