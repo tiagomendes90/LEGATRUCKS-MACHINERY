@@ -197,6 +197,50 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   }, [pending]);
   const busy = publishMut.isPending || syncMut.isPending || pending?.channel === channel;
 
+  // Eliminação por canal (independente): mantém o botão em curso até o post sair.
+  const [deletingChannel, setDeletingChannel] = useState<ChannelKey | null>(null);
+  useEffect(() => {
+    if (deletingChannel && !postByChannel(deletingChannel)) setDeletingChannel(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts, deletingChannel]);
+  const deletingHere = deletingChannel === channel || deleteMut.isPending;
+
+  const runDelete = () => {
+    if (deletingHere) return;
+    setDeletingChannel(channel);
+    deleteMut.mutate(
+      {
+        productId: product.id,
+        channel,
+        externalId: activePost?.external_id,
+      },
+      {
+        onSuccess: (res: any) => {
+          toast({
+            title: res?.deduped
+              ? "Eliminação já em curso"
+              : `A eliminar publicação no ${CHANNEL_META[channel].label}…`,
+            description: res?.deduped
+              ? "Já existe um pedido idêntico em processamento."
+              : "O estado é atualizado automaticamente assim que a Meta confirmar.",
+          });
+          // Reconcilia com a Meta pouco depois, para refletir o estado real
+          // mesmo que a publicação já tivesse sido removida manualmente.
+          setTimeout(() => syncMut.mutate(product.id), 6000);
+          setTimeout(() => setDeletingChannel(null), 60000);
+        },
+        onError: (e: any) => {
+          setDeletingChannel(null);
+          toast({
+            title: "Não foi possível eliminar",
+            description: String(e?.message ?? e),
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
   const runPublish = async (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
     if (busy) return;
