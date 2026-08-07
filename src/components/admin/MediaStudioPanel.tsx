@@ -645,6 +645,61 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
             </div>
           </>
         )}
+
+        {kind === "reel_cover" && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="reel-video">Vídeo do Reel (MP4 vertical 9:16)</Label>
+              <Input
+                id="reel-video"
+                type="file"
+                accept="video/mp4,video/quicktime"
+                onChange={(e) => {
+                  setVideoFile(e.target.files?.[0] ?? null);
+                  setVideoUrl(null);
+                }}
+              />
+              {videoFile && (
+                <p className="text-xs text-muted-foreground">
+                  {videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB
+                  {videoUrl ? " · carregado" : ""}
+                </p>
+              )}
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => handlePublishReel("instagram_reel")}
+                disabled={!!publishing || !product || !videoFile}
+              >
+                {publishing === "instagram_reel" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Instagram className="mr-2 h-4 w-4" />
+                )}
+                Publicar Reel no Instagram
+              </Button>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => handlePublishReel("facebook_reel")}
+                disabled={!!publishing || !product || !videoFile}
+              >
+                {publishing === "facebook_reel" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Facebook className="mr-2 h-4 w-4" />
+                )}
+                Publicar Reel no Facebook
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                {uploadingVideo
+                  ? "A carregar o vídeo para o storage..."
+                  : "O vídeo é carregado para o storage público e a capa gerada acima é usada como thumbnail. Duração mínima ~3s, máxima 90s."}
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
