@@ -310,7 +310,33 @@ export async function renderCreative(
   const showQr = blocks.qr !== false;
   // O QR fica no rodapé à direita; o texto pode usar toda a largura útil.
   const textW = contentW;
-  let y = panelTop + 96;
+
+  const headline = opts.headline || data.model || data.title;
+  const showBrand = blocks.brand !== false && Boolean(data.brand);
+  const showModel = blocks.model !== false && Boolean(headline);
+  const chips: string[] = [];
+  if (blocks.year !== false && data.year) chips.push(data.year);
+  if (blocks.usage !== false && data.usage) chips.push(data.usage);
+  if (blocks.location !== false && data.location) chips.push(data.location);
+  if (data.condition && chips.length < 3) chips.push(data.condition);
+  const showPrice = blocks.price !== false && Boolean(data.price);
+
+  const head = showModel
+    ? fitHeadline(ctx, headline, textW, 2, 96, 56)
+    : { size: 0, lines: [] as string[] };
+
+  // altura total do bloco para o ancorar acima do rodapé
+  const contentH =
+    (showBrand ? 26 : 0) +
+    (showModel ? head.lines.length * head.size * 0.98 + 22 : 0) +
+    (chips.length ? 74 : 0) +
+    (showPrice ? 92 : 0);
+
+  const contentBottom = CANVAS_H - 268;
+  let y = Math.max(
+    panelTop + 82,
+    Math.min(panelTop + 96, contentBottom - contentH),
+  );
 
   if (config.accentBar !== false) {
     ctx.fillStyle = config.accent;
@@ -318,16 +344,16 @@ export async function renderCreative(
     ctx.fill();
   }
 
-  if (blocks.brand !== false && data.brand) {
+  if (showBrand) {
     setFont(ctx, 700, 40, 8);
     ctx.fillStyle = config.accent;
     ctx.fillText(data.brand.toUpperCase(), M, y);
     y += 26;
   }
 
-  const headline = opts.headline || data.model || data.title;
-  if (blocks.model !== false && headline) {
-    const { size, lines } = fitHeadline(ctx, headline, textW, 2, 96, 56);
+  if (showModel) {
+    const { size, lines } = head;
+    setFont(ctx, 800, size, -1);
     ctx.fillStyle = config.text;
     for (const line of lines) {
       y += size * 0.98;
@@ -335,13 +361,6 @@ export async function renderCreative(
     }
     y += 22;
   }
-
-  // chips
-  const chips: string[] = [];
-  if (blocks.year !== false && data.year) chips.push(data.year);
-  if (blocks.usage !== false && data.usage) chips.push(data.usage);
-  if (blocks.location !== false && data.location) chips.push(data.location);
-  if (data.condition && chips.length < 3) chips.push(data.condition);
 
   if (chips.length) {
     y += 40;
