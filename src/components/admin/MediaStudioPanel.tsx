@@ -596,7 +596,8 @@ export function MediaStudioPanel() {
         </CardTitle>
         <CardDescription>
           Gera Stories e capas de Reel em 1080×1920 a partir dos dados do produto.
-          Os criativos são descarregados em PNG para publicação manual.
+          As Stories podem ser publicadas automaticamente no Instagram e no
+          Facebook; as capas de Reel são descarregadas em PNG para publicação manual.
         </CardDescription>
       </CardHeader>
       <CardContent>
