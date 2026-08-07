@@ -551,9 +551,6 @@ export async function renderSoldCreative(
     ctx.restore();
   }
 
-  // Faixa oblíqua por baixo do painel de dados, para o texto continuar legível.
-  drawSoldBanner(ctx, label, W, H);
-
   // painel de dados
   let y = infoY + 44 * k;
   if (brand) {
