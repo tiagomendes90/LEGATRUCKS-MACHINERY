@@ -275,10 +275,73 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
     }
   };
 
-  if (loadingProducts || loadingTemplates) {
-    /* noop */
-  }
+  /**
+   * Publica um Reel: carrega o MP4 para o storage público (a Meta só aceita
+   * URLs públicos) e emite o evento no PublishingService.
+   */
+  const handlePublishReel = async (channel: "instagram_reel" | "facebook_reel") => {
+    if (!product) return;
+    const label = channel === "instagram_reel" ? "Instagram" : "Facebook";
+    setPublishing(channel);
+    try {
+      let url = videoUrl;
+      if (!url) {
+        if (!videoFile) throw new Error("Selecione primeiro um vídeo MP4 vertical (9:16).");
+        setUploadingVideo(true);
+        url = await uploadCreativeVideo(videoFile, {
+          productId: product.id,
+          fileBase: slugify(`${product.data.brand} ${product.data.model}`),
+        });
+        setVideoUrl(url);
+        setUploadingVideo(false);
+      }
 
+      let coverUrl: string | null = null;
+      if (canvasRef.current) {
+        try {
+          coverUrl = await uploadCreative(await canvasToBlob(canvasRef.current), {
+            productId: product.id,
+            kind: "reel-cover",
+            fileBase: slugify(`${product.data.brand} ${product.data.model}`),
+          });
+        } catch {
+          /* a capa é opcional */
+        }
+      }
+
+      const caption = reelKit
+        ? `${reelKit.description}\n\n${reelKit.hashtags.map((h) => `#${h}`).join(" ")}`
+        : null;
+
+      await emitPublishingEvent({
+        type: "social.reel.publish",
+        productId: product.id,
+        payload: {
+          channel,
+          video_url: url,
+          cover_url: coverUrl,
+          caption,
+          template_id: template?.id ?? null,
+        },
+      });
+      toast({
+        title: `Reel enviado para ${label}`,
+        description:
+          "O vídeo está a ser processado pela Meta. Acompanhe o estado no painel de Publicações.",
+      });
+    } catch (e: any) {
+      toast({
+        title: `Erro ao publicar no ${label}`,
+        description: e?.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingVideo(false);
+      setPublishing(null);
+    }
+  };
+
+  if (loadingProducts || loadingTemplates) {
     return (
       <div className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" /> A carregar...
