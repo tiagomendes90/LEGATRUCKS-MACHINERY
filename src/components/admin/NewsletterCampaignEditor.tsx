@@ -316,6 +316,97 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           </Card>
 
           <Card>
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Globe className="h-4 w-4" /> Traduções ({currentLang.toUpperCase()})
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Cada idioma é enviado como um email independente. Campos vazios usam o conteúdo
+                original ({defaultLang.toUpperCase()}).
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                {activeLanguages.map((l) => (
+                  <Badge
+                    key={l.code}
+                    variant={l.code === currentLang ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setPreviewLang(l.code)}
+                  >
+                    {l.flag_emoji ? `${l.flag_emoji} ` : ""}{l.native_label}
+                  </Badge>
+                ))}
+              </div>
+
+              {currentLang === defaultLang ? (
+                <p className="text-xs text-muted-foreground">
+                  Este é o idioma base da campanha — edita o conteúdo no cartão acima.
+                </p>
+              ) : (
+                <>
+                  <div>
+                    <Label>Assunto</Label>
+                    <Input
+                      value={translations[currentLang]?.subject ?? ""}
+                      placeholder={subject}
+                      disabled={isReadOnly}
+                      onChange={(e) => setTranslationField(currentLang, "subject", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Preheader</Label>
+                    <Input
+                      value={translations[currentLang]?.preheader ?? ""}
+                      placeholder={preheader ?? ""}
+                      disabled={isReadOnly}
+                      onChange={(e) => setTranslationField(currentLang, "preheader", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Introdução</Label>
+                    <Textarea
+                      rows={4}
+                      value={translations[currentLang]?.intro ?? ""}
+                      placeholder={intro}
+                      disabled={isReadOnly}
+                      onChange={(e) => setTranslationField(currentLang, "intro", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Fecho</Label>
+                    <Textarea
+                      rows={3}
+                      value={translations[currentLang]?.outro ?? ""}
+                      placeholder={outro}
+                      disabled={isReadOnly}
+                      onChange={(e) => setTranslationField(currentLang, "outro", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Botão (CTA)</Label>
+                      <Input
+                        value={translations[currentLang]?.cta_label ?? ""}
+                        disabled={isReadOnly}
+                        onChange={(e) => setTranslationField(currentLang, "cta_label", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label>Nota de rodapé</Label>
+                      <Input
+                        value={translations[currentLang]?.footer_note ?? ""}
+                        disabled={isReadOnly}
+                        onChange={(e) => setTranslationField(currentLang, "footer_note", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader><CardTitle className="text-base">Destinatários e template</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
@@ -518,6 +609,17 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base">Preview</CardTitle>
             <div className="flex items-center gap-1">
+              <select
+                className="h-9 rounded-md border border-input bg-background px-2 text-sm mr-1"
+                value={currentLang}
+                onChange={(e) => setPreviewLang(e.target.value)}
+              >
+                {activeLanguages.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.flag_emoji ? `${l.flag_emoji} ` : ""}{l.native_label}
+                  </option>
+                ))}
+              </select>
               <Button
                 size="sm"
                 variant={previewDevice === "desktop" ? "default" : "outline"}
