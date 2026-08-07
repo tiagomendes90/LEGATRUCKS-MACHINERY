@@ -44,7 +44,6 @@ import { useToast } from "@/hooks/use-toast";
 import SocialOperationsOverview from "./SocialOperationsOverview";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useSocialRealtime } from "@/hooks/useSocialRealtime";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { renderSoldImage, canvasToBlob, slugify } from "@/lib/creative/render";
 import { uploadCreative } from "@/lib/creative/uploadCreative";
