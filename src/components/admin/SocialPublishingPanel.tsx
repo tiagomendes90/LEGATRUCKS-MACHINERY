@@ -508,25 +508,37 @@ function ProductCard({ product }: { product: SocialProductRow }) {
                 )}
                 {busy ? "A publicar…" : "Republicar"}
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() =>
-                  deleteMut.mutate(
-                    {
-                      productId: product.id,
-                          channel,
-                          externalId: activePost?.external_id,
-                    },
-                    {
-                      onSuccess: () =>
-                        toast({ title: "Apagamento enfileirado" }),
-                    },
-                  )
-                }
-                disabled={deleteMut.isPending}
-              >
-                <Trash2 className="h-4 w-4 mr-2" /> Apagar publicação
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={deletingHere}>
+                    {deletingHere ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    {deletingHere
+                      ? "A eliminar…"
+                      : `Eliminar publicação (${CHANNEL_META[channel].label})`}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Tem a certeza que pretende eliminar esta publicação do{" "}
+                      {CHANNEL_META[channel].label}?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação remove permanentemente a publicação
+                      {channel === "facebook" ? " da Página" : " do perfil"} e o artigo volta a
+                      ficar como “Não publicado”, permitindo publicar de novo.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={runDelete}>Eliminar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
                 </>
               )}
             </>
