@@ -253,3 +253,84 @@ export function summarizeIssues(issues: ValidationIssue[]): string {
   if (!issues.length) return "";
   return issues.map((i) => `• ${i.message}`).join("\n");
 }
+
+export interface CarouselSelection {
+  /** Imagens escolhidas (mesmo rácio, dentro dos limites do Instagram). */
+  urls: string[];
+  /** Imagens descartadas com o motivo. */
+  dropped: Array<{ url: string; reason: string }>;
+  probes: ImageProbe[];
+}
+
+/**
+ * Em vez de ignorar a publicação quando o carrossel tem imagens incompatíveis,
+ * escolhe automaticamente o maior conjunto publicável: descarta as que violam
+ * regras individuais e mantém apenas o maior grupo com o mesmo rácio
+ * (com preferência pelo grupo que contém a imagem principal).
+ */
+export async function selectInstagramCarousel(
+  urls: string[],
+  rules: InstagramImageRules = INSTAGRAM_RULES,
+): Promise<CarouselSelection> {
+  const probes: ImageProbe[] = [];
+  const dropped: Array<{ url: string; reason: string }> = [];
+  const valid: Array<{ url: string; ratio: number }> = [];
+
+  for (const url of urls) {
+    const p = await probeImage(url);
+    if (!p) {
+      dropped.push({ url, reason: "não foi possível ler a imagem" });
+      continue;
+    }
+    probes.push(p);
+    if (p.contentType && !rules.allowedMime.test(p.contentType)) {
+      dropped.push({ url, reason: `formato ${p.contentType} não suportado` });
+      continue;
+    }
+    if (p.contentLength && p.contentLength > rules.maxBytes) {
+      dropped.push({ url, reason: "excede o tamanho máximo" });
+      continue;
+    }
+    if (!p.width || !p.height) {
+      dropped.push({ url, reason: "dimensões desconhecidas" });
+      continue;
+    }
+    if (p.width < rules.minWidth || p.width > rules.maxWidth) {
+      dropped.push({ url, reason: `largura ${p.width}px fora dos limites` });
+      continue;
+    }
+    const ratio = p.width / p.height;
+    if (ratio < rules.minAspect || ratio > rules.maxAspect) {
+      dropped.push({ url, reason: `rácio ${ratio.toFixed(2)} fora do intervalo permitido` });
+      continue;
+    }
+    valid.push({ url, ratio });
+  }
+
+  if (valid.length <= 1 || !rules.requireUniformAspect) {
+    return { urls: valid.map((v) => v.url), dropped, probes };
+  }
+
+  // Agrupa por rácio compatível (tolerância 0.05).
+  const groups: Array<Array<{ url: string; ratio: number }>> = [];
+  for (const item of valid) {
+    const g = groups.find((grp) => Math.abs(grp[0].ratio - item.ratio) <= 0.05);
+    if (g) g.push(item);
+    else groups.push([item]);
+  }
+
+  const firstGroup = groups.find((g) => g.some((i) => i.url === valid[0].url))!;
+  const biggest = groups.reduce((a, b) => (b.length > a.length ? b : a), groups[0]);
+  const chosen = biggest.length > firstGroup.length ? biggest : firstGroup;
+
+  for (const item of valid) {
+    if (!chosen.includes(item)) {
+      dropped.push({
+        url: item.url,
+        reason: `rácio ${item.ratio.toFixed(2)} diferente do carrossel (${chosen[0].ratio.toFixed(2)})`,
+      });
+    }
+  }
+
+  return { urls: chosen.map((c) => c.url), dropped, probes };
+}
