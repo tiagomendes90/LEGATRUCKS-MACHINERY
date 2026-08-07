@@ -6,6 +6,7 @@ export type PublishingEventType =
   | "product.unpublished"
   | "social.publish.confirmed"
   | "social.republish"
+  | "social.story.publish"
   | "social.delete"
   | "newsletter.instant"
   | "digest.weekly"
