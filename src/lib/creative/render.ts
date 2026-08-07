@@ -281,6 +281,143 @@ export async function renderSoldImage(
   return canvas;
 }
 
+/** Dados mínimos do veículo apresentados no criativo de "vendido". */
+export interface SoldInfo {
+  brand?: string | null;
+  model?: string | null;
+  price?: string | null;
+  year?: string | null;
+  usage?: string | null;
+  location?: string | null;
+  website?: string | null;
+}
+
+/**
+ * Criativo de "vendido": template LEGA com a fotografia do produto enquadrada,
+ * bloco de informação do veículo e a faixa oblíqua por cima de tudo.
+ */
+export async function renderSoldCreative(
+  url: string,
+  info: SoldInfo,
+  label = "SOLD / VENDIDO",
+  format: SoldFormatKey = "instagram",
+): Promise<HTMLCanvasElement> {
+  const preset = SOLD_FORMATS[format] ?? SOLD_FORMATS.instagram;
+  const W = preset.width;
+  const H = preset.height;
+  const s = W / 1080; // escala base
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+  ctx.textBaseline = "alphabetic";
+
+  const BG = "#081B33";
+  const ACCENT = "#F39200";
+  const TEXT = "#FFFFFF";
+  const MUTED = "#C7D3E3";
+  const pad = 56 * s;
+
+  // fundo
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // topo: logótipo + faixa de acento
+  const headerH = 118 * s;
+  try {
+    const logo = await loadImage(LEGA_LOGO);
+    const lh = 56 * s;
+    const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+    ctx.drawImage(logo, pad, (headerH - lh) / 2, lw, lh);
+  } catch {
+    setFont(ctx, 800, 44 * s, 2);
+    ctx.fillStyle = TEXT;
+    ctx.fillText("LEGA", pad, headerH / 2 + 16 * s);
+  }
+  setFont(ctx, 700, 26 * s, 4);
+  ctx.fillStyle = ACCENT;
+  ctx.textAlign = "right";
+  ctx.fillText("VENDIDO", W - pad, headerH / 2 + 9 * s);
+  ctx.textAlign = "left";
+
+  // bloco de informação (rodapé)
+  const hasPrice = !!info.price;
+  const chips = [info.year, info.usage, info.location].filter(Boolean) as string[];
+  const infoH = (hasPrice || chips.length ? 300 : 220) * s;
+  const infoY = H - infoH;
+
+  // fotografia enquadrada num cartão
+  const photoY = headerH + 12 * s;
+  const photoH = infoY - photoY - 24 * s;
+  const photoX = pad;
+  const photoW = W - pad * 2;
+  const img = await loadImage(url);
+  ctx.save();
+  roundRect(ctx, photoX, photoY, photoW, photoH, 32 * s);
+  ctx.clip();
+  ctx.fillStyle = "#0B2545";
+  ctx.fillRect(photoX, photoY, photoW, photoH);
+  drawCover(ctx, img, photoX, photoY, photoW, photoH);
+  // esbatimento inferior para ligar ao painel
+  const grad = ctx.createLinearGradient(0, photoY + photoH * 0.55, 0, photoY + photoH);
+  grad.addColorStop(0, rgba(BG, 0));
+  grad.addColorStop(1, rgba(BG, 0.85));
+  ctx.fillStyle = grad;
+  ctx.fillRect(photoX, photoY, photoW, photoH);
+  ctx.restore();
+
+  // painel de dados
+  let y = infoY + 66 * s;
+  const brand = (info.brand ?? "").trim();
+  if (brand) {
+    setFont(ctx, 700, 28 * s, 6);
+    ctx.fillStyle = ACCENT;
+    ctx.fillText(brand.toUpperCase(), pad, y);
+    y += 46 * s;
+  }
+  const model = (info.model ?? "").trim();
+  if (model) {
+    ctx.fillStyle = TEXT;
+    const { size, lines } = fitHeadline(ctx, model, W - pad * 2, 2, 66 * s, 34 * s);
+    for (const line of lines) {
+      ctx.fillText(line, pad, y);
+      y += size * 1.12;
+    }
+    y += 10 * s;
+  }
+
+  if (chips.length) {
+    setFont(ctx, 600, 28 * s, 0);
+    ctx.fillStyle = MUTED;
+    ctx.fillText(chips.join("  ·  "), pad, y);
+    y += 44 * s;
+  }
+
+  if (hasPrice) {
+    setFont(ctx, 800, 52 * s, -1);
+    const pw = ctx.measureText(info.price!).width;
+    const bh = 82 * s;
+    roundRect(ctx, pad, y - bh + 22 * s, pw + 52 * s, bh, 18 * s);
+    ctx.fillStyle = ACCENT;
+    ctx.fill();
+    ctx.fillStyle = contrastOn(ACCENT);
+    setFont(ctx, 800, 52 * s, -1);
+    ctx.fillText(info.price!, pad + 26 * s, y);
+  }
+
+  const site = (info.website ?? "www.lega.pt").trim();
+  if (site) {
+    setFont(ctx, 700, 28 * s, 2);
+    ctx.fillStyle = MUTED;
+    ctx.textAlign = "right";
+    ctx.fillText(site.toUpperCase(), W - pad, H - 44 * s);
+    ctx.textAlign = "left";
+  }
+
+  drawSoldBanner(ctx, label, W, H);
+  return canvas;
+}
+
 export async function renderCreative(
   opts: RenderOptions,
 ): Promise<HTMLCanvasElement> {
