@@ -399,6 +399,69 @@ export type Database = {
           },
         ]
       }
+      newsletter_campaign_translations: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          cta_label: string | null
+          footer_note: string | null
+          id: string
+          intro: string | null
+          is_auto_translated: boolean
+          language_code: string
+          outro: string | null
+          preheader: string | null
+          subject: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          cta_label?: string | null
+          footer_note?: string | null
+          id?: string
+          intro?: string | null
+          is_auto_translated?: boolean
+          language_code: string
+          outro?: string | null
+          preheader?: string | null
+          subject?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          cta_label?: string | null
+          footer_note?: string | null
+          id?: string
+          intro?: string | null
+          is_auto_translated?: boolean
+          language_code?: string
+          outro?: string | null
+          preheader?: string | null
+          subject?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_campaign_translations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_campaign_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "newsletter_languages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       newsletter_campaigns: {
         Row: {
           audience_mode: string
@@ -408,6 +471,7 @@ export type Database = {
           content_json: Json
           created_at: string
           created_by: string | null
+          default_language: string
           delivered_count: number
           duration_ms: number | null
           failed_count: number
@@ -418,6 +482,7 @@ export type Database = {
           opened_count: number
           preheader: string | null
           product_ids: string[]
+          public_number: number | null
           recipients_count: number
           scheduled_for: string | null
           send_finished_at: string | null
@@ -442,6 +507,7 @@ export type Database = {
           content_json?: Json
           created_at?: string
           created_by?: string | null
+          default_language?: string
           delivered_count?: number
           duration_ms?: number | null
           failed_count?: number
@@ -452,6 +518,7 @@ export type Database = {
           opened_count?: number
           preheader?: string | null
           product_ids?: string[]
+          public_number?: number | null
           recipients_count?: number
           scheduled_for?: string | null
           send_finished_at?: string | null
@@ -476,6 +543,7 @@ export type Database = {
           content_json?: Json
           created_at?: string
           created_by?: string | null
+          default_language?: string
           delivered_count?: number
           duration_ms?: number | null
           failed_count?: number
@@ -486,6 +554,7 @@ export type Database = {
           opened_count?: number
           preheader?: string | null
           product_ids?: string[]
+          public_number?: number | null
           recipients_count?: number
           scheduled_for?: string | null
           send_finished_at?: string | null
@@ -518,6 +587,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      newsletter_languages: {
+        Row: {
+          code: string
+          created_at: string
+          fallback_code: string | null
+          flag_emoji: string | null
+          is_active: boolean
+          is_default: boolean
+          label: string
+          locale: string | null
+          native_label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          fallback_code?: string | null
+          flag_emoji?: string | null
+          is_active?: boolean
+          is_default?: boolean
+          label: string
+          locale?: string | null
+          native_label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          fallback_code?: string | null
+          flag_emoji?: string | null
+          is_active?: boolean
+          is_default?: boolean
+          label?: string
+          locale?: string | null
+          native_label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       newsletter_list_subscribers: {
         Row: {
@@ -602,6 +713,7 @@ export type Database = {
           created_at: string
           error: string | null
           id: string
+          language_code: string | null
           raw_response: Json
           recipients_count: number | null
           resend_message_id: string | null
@@ -617,6 +729,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          language_code?: string | null
           raw_response?: Json
           recipients_count?: number | null
           resend_message_id?: string | null
@@ -632,6 +745,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          language_code?: string | null
           raw_response?: Json
           recipients_count?: number | null
           resend_message_id?: string | null
@@ -664,8 +778,10 @@ export type Database = {
           email: string
           first_name: string | null
           id: string
+          language_locked: boolean
           last_name: string | null
           metadata: Json
+          preferred_language: string
           resend_contact_id: string | null
           source: string
           status: string
@@ -681,8 +797,10 @@ export type Database = {
           email: string
           first_name?: string | null
           id?: string
+          language_locked?: boolean
           last_name?: string | null
           metadata?: Json
+          preferred_language?: string
           resend_contact_id?: string | null
           source?: string
           status?: string
@@ -698,8 +816,10 @@ export type Database = {
           email?: string
           first_name?: string | null
           id?: string
+          language_locked?: boolean
           last_name?: string | null
           metadata?: Json
+          preferred_language?: string
           resend_contact_id?: string | null
           source?: string
           status?: string
@@ -758,6 +878,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      newsletter_translations: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          language_code: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          language_code: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          language_code?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "newsletter_languages"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -1002,6 +1157,44 @@ export type Database = {
           },
           {
             foreignKeyName: "product_social_posts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language_code: string
+          product_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code: string
+          product_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          product_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_translations_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
