@@ -288,7 +288,7 @@ function ProductCard({
       label: soldLabel,
       format: soldFormat,
       theme: soldTheme,
-      blocks: soldBlocks,
+      blocks: effectiveSoldBlocks,
     })
       .then((c) => {
         if (!cancelled) setSoldPreview(c.toDataURL("image/png"));
@@ -305,7 +305,7 @@ function ProductCard({
     soldLabel,
     soldFormat,
     soldTheme,
-    soldBlocks,
+    effectiveSoldBlocks,
     soldInfo,
     orderedImages[0],
     image,
@@ -324,7 +324,7 @@ function ProductCard({
       label: soldLabel,
       format,
       theme: soldTheme,
-      blocks: soldBlocks,
+      blocks: effectiveSoldBlocks,
     });
     const blob = await canvasToBlob(canvas);
     return uploadCreative(blob, {
