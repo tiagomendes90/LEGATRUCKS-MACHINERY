@@ -466,22 +466,56 @@ export async function renderSoldCreative(
     ctx.textAlign = "left";
   }
 
-  // bloco de informação (rodapé)
+  // bloco de informação (rodapé) — medido antes de desenhar para nunca transbordar
   const brand = blocks.brand ? (info.brand ?? "").trim() : "";
   const model = blocks.model ? (info.model ?? "").trim() : "";
-  const hasPrice = blocks.price && !!info.price;
+  const priceText = blocks.price && info.price ? info.price : "";
   const chips = [
     blocks.year ? info.year : null,
     blocks.usage ? info.usage : null,
     blocks.location ? info.location : null,
   ].filter(Boolean) as string[];
   const site = blocks.website ? (info.website ?? "www.lega.pt").trim() : "";
-  const hasInfo = !!brand || !!model || hasPrice || chips.length > 0 || !!site;
-  const rawInfoH = !hasInfo
-    ? 40 * s
-    : (hasPrice || chips.length ? 300 : 220) * s;
-  // Em formatos mais baixos (1:1) o painel nunca ocupa mais de 34% da altura.
-  const infoH = Math.min(rawInfoH, H * (tall ? 0.34 : 0.32));
+  const hasInfo = !!brand || !!model || !!priceText || chips.length > 0 || !!site;
+
+  // Altura máxima do painel consoante o rácio do formato.
+  const maxInfoH = H * (tall ? 0.34 : 0.38);
+  const maxModelLines = tall ? 2 : H / W > 1.1 ? 2 : 1;
+
+  /** Mede o painel para uma escala `k` e devolve altura + linhas do modelo. */
+  const measurePanel = (k: number) => {
+    const topPad = 44 * k;
+    const bottomPad = (site ? 78 : 44) * k;
+    let h = hasInfo ? topPad + bottomPad : 24 * s;
+    let modelLines: string[] = [];
+    let modelSize = 0;
+    if (brand) h += 42 * k;
+    if (model) {
+      const fitted = fitHeadline(
+        ctx,
+        model,
+        W - pad * 2,
+        maxModelLines,
+        (tall ? 66 : 56) * k,
+        28 * k,
+      );
+      modelLines = fitted.lines;
+      modelSize = fitted.size;
+      h += fitted.lines.length * fitted.size * 1.12 + 8 * k;
+    }
+    if (chips.length) h += 44 * k;
+    if (priceText) h += 84 * k;
+    return { h, modelLines, modelSize };
+  };
+
+  let k = s;
+  let panel = measurePanel(k);
+  // Reduz a escala do painel até caber na área permitida do formato escolhido.
+  while (panel.h > maxInfoH && k > s * 0.55) {
+    k = Math.max(s * 0.55, k * 0.92);
+    panel = measurePanel(k);
+  }
+  const infoH = Math.min(panel.h, maxInfoH);
   const infoY = H - infoH;
 
   const img = await loadImage(url);
@@ -517,59 +551,53 @@ export async function renderSoldCreative(
     ctx.restore();
   }
 
+  // Faixa oblíqua por baixo do painel de dados, para o texto continuar legível.
+  drawSoldBanner(ctx, label, W, H);
+
   // painel de dados
-  let y = infoY + Math.min(66 * s, infoH * 0.24);
+  let y = infoY + 44 * k;
   if (brand) {
-    setFont(ctx, 700, 28 * s, 6);
+    setFont(ctx, 700, 26 * k, 6);
     ctx.fillStyle = ACCENT;
+    y += 26 * k;
     ctx.fillText(brand.toUpperCase(), pad, y);
-    y += 46 * s;
+    y += 16 * k;
   }
-  if (model) {
+  if (model && panel.modelLines.length) {
     ctx.fillStyle = TEXT;
-    const { size, lines } = fitHeadline(
-      ctx,
-      model,
-      W - pad * 2,
-      tall ? 2 : 1,
-      (tall ? 66 : 58) * s,
-      32 * s,
-    );
-    for (const line of lines) {
+    setFont(ctx, 800, panel.modelSize, -1);
+    for (const line of panel.modelLines) {
+      y += panel.modelSize;
       ctx.fillText(line, pad, y);
-      y += size * 1.12;
+      y += panel.modelSize * 0.12;
     }
-    y += 10 * s;
+    y += 8 * k;
   }
-
   if (chips.length) {
-    setFont(ctx, 600, 28 * s, 0);
+    setFont(ctx, 600, 26 * k, 0);
     ctx.fillStyle = MUTED;
+    y += 30 * k;
     ctx.fillText(chips.join("  ·  "), pad, y);
-    y += 44 * s;
+    y += 14 * k;
   }
-
-  if (hasPrice) {
-    setFont(ctx, 800, 52 * s, -1);
-    const pw = ctx.measureText(info.price!).width;
-    const bh = 82 * s;
-    roundRect(ctx, pad, y - bh + 22 * s, pw + 52 * s, bh, 18 * s);
+  if (priceText) {
+    const bh = 72 * k;
+    setFont(ctx, 800, 46 * k, -1);
+    const pw = ctx.measureText(priceText).width;
+    roundRect(ctx, pad, y + 8 * k, Math.min(pw + 48 * k, W - pad * 2), bh, 16 * k);
     ctx.fillStyle = ACCENT;
     ctx.fill();
     ctx.fillStyle = contrastOn(ACCENT);
-    setFont(ctx, 800, 52 * s, -1);
-    ctx.fillText(info.price!, pad + 26 * s, y);
+    ctx.fillText(priceText, pad + 24 * k, y + 8 * k + bh * 0.68);
+    y += bh + 8 * k;
   }
-
   if (site) {
-    setFont(ctx, 700, 28 * s, 2);
+    setFont(ctx, 700, 24 * k, 2);
     ctx.fillStyle = MUTED;
     ctx.textAlign = "right";
-    ctx.fillText(site.toUpperCase(), W - pad, H - 44 * s);
+    ctx.fillText(site.toUpperCase(), W - pad, H - 34 * k);
     ctx.textAlign = "left";
   }
-
-  drawSoldBanner(ctx, label, W, H);
   return canvas;
 }
 

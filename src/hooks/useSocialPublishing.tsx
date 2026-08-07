@@ -15,6 +15,13 @@ export interface SocialProductRow {
   is_active: boolean | null;
   brand: { name: string | null; slug: string | null } | null;
   images: Array<{ image_url: string; is_primary: boolean | null; sort_order: number | null }>;
+  location_city?: string | null;
+  location_country?: string | null;
+  specs?: Array<{
+    value_number: number | null;
+    value_text: string | null;
+    spec: { name: string | null; unit: string | null } | null;
+  }>;
 }
 
 export interface SocialPostRow {
@@ -81,7 +88,7 @@ export function useSocialProducts() {
       const { data, error } = await supabase
         .from("products")
         .select(
-          "id, title, price, currency, year, description, social_status, social_hash, social_caption, is_active, brand:brands(name, slug), images:product_images(image_url, is_primary, sort_order)"
+          "id, title, price, currency, year, description, social_status, social_hash, social_caption, is_active, location_city, location_country, brand:brands(name, slug), images:product_images(image_url, is_primary, sort_order), specs:spec_values(value_number, value_text, spec:spec_definitions(name, unit))"
         )
         .in("social_status", ["ready_for_social", "published", "outdated"])
         .eq("is_active", true)
