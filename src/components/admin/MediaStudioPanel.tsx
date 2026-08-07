@@ -58,7 +58,7 @@ import {
   slugify,
 } from "@/lib/creative/render";
 import { buildReelKit } from "@/lib/creative/reelKit";
-import { uploadCreative } from "@/lib/creative/uploadCreative";
+import { uploadCreative, uploadCreativeVideo } from "@/lib/creative/uploadCreative";
 import { emitPublishingEvent } from "@/lib/publishing";
 
 const BLOCK_ORDER: CreativeBlockKey[] = [
@@ -98,6 +98,9 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
   const [ctaTouched, setCtaTouched] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [publishing, setPublishing] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const product = useMemo(
