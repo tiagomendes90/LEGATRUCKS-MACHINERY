@@ -8,6 +8,7 @@
 //  - links de produto via /vehicle/{id} (mesma rota da SPA)
 
 const SITE_URL = Deno.env.get("PUBLIC_SITE_URL") ?? "https://www.lega.pt";
+import { orderedImageUrls, specPairs } from "./productQuery.ts";
 
 /** Mesmo asset do header e footer do website. */
 const LOGO_URL = `${SITE_URL}/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png`;
@@ -70,16 +71,7 @@ function esc(s: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
-function primaryImage(p: AnyRecord): string | null {
-  const images = p.images as AnyRecord[] | undefined;
-  if (!Array.isArray(images) || images.length === 0) return null;
-  const primary =
-    images.find((i) => i?.is_primary) ??
-    [...images].sort(
-      (a, b) => ((a.sort_order as number) ?? 0) - ((b.sort_order as number) ?? 0),
-    )[0];
-  return (primary?.image_url as string) ?? null;
-}
+const MAX_GALLERY = 6;
 
 function fmtPrice(p: AnyRecord): string | null {
   const price = p.price as number | null | undefined;
@@ -108,18 +100,39 @@ const CONDITION_LABEL: Record<string, string> = {
   refurbished: "Recondicionado",
 };
 
-/** Atributos técnicos organizados em pares (nunca um bloco contínuo de texto). */
-function specRows(p: AnyRecord): string {
-  const brand = (p as AnyRecord)?.brand as AnyRecord | undefined;
+const STOCK_LABEL: Record<string, string> = {
+  available: "Disponível",
+  disponivel: "Disponível",
+  reserved: "Reservado",
+  reservado: "Reservado",
+  sold: "Vendido",
+  vendido: "Vendido",
+};
+
+/** Todos os atributos disponíveis, incluindo especificações dinâmicas. */
+function collectSpecs(p: AnyRecord): Array<[string, string]> {
+  const brand = p.brand as AnyRecord | undefined;
+  const category = p.category as AnyRecord | undefined;
+  const subcategory = p.subcategory as AnyRecord | undefined;
   const location = [p.location_city, p.location_country].filter(Boolean).join(", ");
   const condRaw = (p.condition as string) ?? "";
+  const stockRaw = (p.stock_status as string) ?? "";
   const specs: Array<[string, string]> = [];
   if (brand?.name) specs.push(["Marca", String(brand.name)]);
   if (p.model) specs.push(["Modelo", String(p.model)]);
+  if (category?.name) specs.push(["Categoria", String(category.name)]);
+  if (subcategory?.name) specs.push(["Subcategoria", String(subcategory.name)]);
   if (p.year) specs.push(["Ano", String(p.year)]);
   if (condRaw) specs.push(["Estado", CONDITION_LABEL[condRaw.toLowerCase()] ?? condRaw]);
+  if (stockRaw) specs.push(["Disponibilidade", STOCK_LABEL[stockRaw.toLowerCase()] ?? stockRaw]);
   if (location) specs.push(["Localização", location]);
+  specs.push(...specPairs(p));
+  return specs;
+}
 
+/** Cartão de características em duas colunas. */
+function specRows(p: AnyRecord): string {
+  const specs = collectSpecs(p);
   if (specs.length === 0) return "";
 
   // Duas colunas por linha — colapsa bem em mobile por ser tabela simples.
@@ -139,22 +152,54 @@ function specRows(p: AnyRecord): string {
   }
 
   return `
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 18px;background:#f8fafc;border:1px solid ${LINE};border-radius:10px;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;background:#f8fafc;border:1px solid ${LINE};border-radius:12px;">
+        <tr><td colspan="2" style="padding:14px 12px 2px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${BRAND_DARK};font-weight:700;">Características</td></tr>
         ${rows.join("")}
       </table>`;
+}
+
+/** Galeria com as restantes imagens (grelha 3 colunas). */
+function galleryRows(images: string[], title: string, link: string): string {
+  const rest = images.slice(1, MAX_GALLERY + 1);
+  if (rest.length === 0) return "";
+  const cells = rest.map(
+    (url) => `
+        <td width="33.33%" style="padding:4px;">
+          <a href="${esc(link)}" style="display:block;">
+            <img src="${esc(url)}" alt="${esc(title)}" width="176" style="display:block;width:100%;height:auto;border-radius:8px;border:1px solid ${LINE};"/>
+          </a>
+        </td>`,
+  );
+  const rows: string[] = [];
+  for (let i = 0; i < cells.length; i += 3) {
+    const group = cells.slice(i, i + 3);
+    while (group.length < 3) group.push('<td width="33.33%">&nbsp;</td>');
+    rows.push(`<tr>${group.join("")}</tr>`);
+  }
+  const extra = images.length - 1 - rest.length;
+  return `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 18px;">
+        ${rows.join("")}
+      </table>
+      ${extra > 0 ? `<p style="margin:-8px 0 18px;font-size:13px;color:${MUTED};text-align:center;">+${extra} ${extra === 1 ? "imagem" : "imagens"} na página do equipamento</p>` : ""}`;
 }
 
 function renderProductCard(
   p: AnyRecord,
   ov?: { title?: string; description?: string; cta?: string },
 ): string {
-  const title = ov?.title || (p.title as string) || "Viatura disponível";
-  const image = primaryImage(p);
+  const title = ov?.title || (p.title as string) || "Equipamento disponível";
+  const images = orderedImageUrls(p);
+  const image = images[0] ?? null;
   const price = fmtPrice(p);
   const desc = ov?.description || ((p.description as string) ?? "");
-  const shortDesc = desc.replace(/\s+/g, " ").trim().slice(0, 220);
-  const cta = ov?.cta || "Ver viatura";
+  const cleanDesc = desc.replace(/\s+/g, " ").trim();
+  const shortDesc = cleanDesc.slice(0, 600);
+  const cta = ov?.cta || "Ver equipamento";
   const link = productUrl(p);
+  const brandName = (p.brand as AnyRecord | undefined)?.name as string | undefined;
+  const catName = (p.subcategory as AnyRecord | undefined)?.name
+    ?? (p.category as AnyRecord | undefined)?.name;
 
   return `
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;background:#ffffff;border:1px solid ${LINE};border-radius:14px;overflow:hidden;">
@@ -164,6 +209,11 @@ function renderProductCard(
         : ""
     }
     <tr><td style="padding:26px 24px 28px;">
+      ${
+        brandName || catName
+          ? `<div style="margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${BRAND_DARK};font-weight:700;">${esc([brandName, catName].filter(Boolean).join(" · "))}</div>`
+          : ""
+      }
       <h2 style="margin:0 0 14px;font-size:26px;line-height:1.22;font-weight:800;color:${INK};letter-spacing:-.01em;">
         <a href="${esc(link)}" style="color:${INK};text-decoration:none;">${esc(title)}</a>
       </h2>
@@ -177,9 +227,11 @@ function renderProductCard(
 
       ${specRows(p)}
 
+      ${galleryRows(images, title, link)}
+
       ${
         shortDesc
-          ? `<p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:${BODY};">${esc(shortDesc)}${desc.length > 220 ? "…" : ""}</p>`
+          ? `<p style="margin:0 0 22px;font-size:15px;line-height:1.65;color:${BODY};">${esc(shortDesc)}${cleanDesc.length > 600 ? "…" : ""}</p>`
           : ""
       }
 
