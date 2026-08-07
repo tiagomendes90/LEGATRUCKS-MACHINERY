@@ -187,13 +187,11 @@ function drawSoldBanner(ctx: CanvasRenderingContext2D, label: string) {
   ctx.save();
   ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
   ctx.rotate(angle);
+  ctx.globalAlpha = 0.7;
 
   const bandH = 290;
   ctx.fillStyle = "#F39200";
   ctx.fillRect(-diag / 2, -bandH / 2, diag, bandH);
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.fillRect(-diag / 2, -bandH / 2 + 12, diag, 6);
-  ctx.fillRect(-diag / 2, bandH / 2 - 18, diag, 6);
 
   let size = 194;
   setFont(ctx, 800, size, 0);
