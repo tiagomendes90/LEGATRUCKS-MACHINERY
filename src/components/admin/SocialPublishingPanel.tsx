@@ -612,17 +612,25 @@ function ProductCard({
                 Informação a mostrar
               </span>
               <div className="flex flex-wrap gap-1">
-                {(Object.keys(SOLD_BLOCK_LABELS) as SoldBlockKey[]).map((b) => (
-                  <Button
-                    key={b}
-                    size="sm"
-                    variant={soldBlocks[b] ? "secondary" : "outline"}
-                    className="h-7 text-xs"
-                    onClick={() => toggleSoldBlock(b)}
-                  >
-                    {SOLD_BLOCK_LABELS[b]}
-                  </Button>
-                ))}
+                {(Object.keys(SOLD_BLOCK_LABELS) as SoldBlockKey[]).map((b) => {
+                  // Blocos sem dados no produto ficam desativados para não
+                  // dar a ideia de estarem ligados sem aparecerem no preview.
+                  const missing = !soldBlockAvailable[b];
+                  return (
+                    <Button
+                      key={b}
+                      size="sm"
+                      variant={soldBlocks[b] && !missing ? "default" : "outline"}
+                      disabled={missing}
+                      className="h-7 text-xs"
+                      title={missing ? "Sem dados para este campo" : undefined}
+                      onClick={() => toggleSoldBlock(b)}
+                    >
+                      {SOLD_BLOCK_LABELS[b]}
+                      {missing ? " · sem dados" : ""}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-3">
