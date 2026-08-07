@@ -162,9 +162,9 @@ function ProductCard({ product }: { product: SocialProductRow }) {
   const [igIndex, setIgIndex] = useState(0);
   useEffect(() => setIgIndex(0), [product.id, channel]);
 
-  // Publicação com faixa "SOLD" aplicada apenas à primeira imagem.
+  // Publicação com faixa "SOLD/VENDIDO" aplicada apenas à primeira imagem.
   const [sold, setSold] = useState(false);
-  const [soldLabel, setSoldLabel] = useState("SOLD");
+  const [soldLabel, setSoldLabel] = useState("SOLD/VENDIDO");
   const [soldPreview, setSoldPreview] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;

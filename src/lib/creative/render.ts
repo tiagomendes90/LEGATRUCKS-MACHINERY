@@ -186,16 +186,16 @@ export function drawSoldBanner(
   width = CANVAS_W,
   height = CANVAS_H,
 ) {
-  const text = (label || "SOLD").toUpperCase();
+  const text = (label || "SOLD/VENDIDO").toUpperCase();
   const angle = -Math.atan2(height, width);
   const diag = Math.hypot(width, height);
   const scale = diag / Math.hypot(CANVAS_W, CANVAS_H);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.rotate(angle);
-  ctx.globalAlpha = 0.7;
 
   const bandH = 290 * scale;
+  ctx.globalAlpha = 0.8;
   ctx.fillStyle = "#F39200";
   ctx.fillRect(-diag / 2, -bandH / 2, diag, bandH);
 
@@ -207,6 +207,7 @@ export function drawSoldBanner(
   }
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  ctx.globalAlpha = 1;
   ctx.fillStyle = "#FFFFFF";
   ctx.fillText(text, 0, 6 * scale);
   ctx.restore();
