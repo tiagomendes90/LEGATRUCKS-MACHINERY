@@ -181,6 +181,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   };
 
   const refreshPreview = async () => {
+    // (auto-refresh mais abaixo)
     setPreviewLoading(true);
     try {
       const res = await fetchCampaignPreview({
