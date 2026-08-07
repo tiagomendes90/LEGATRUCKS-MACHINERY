@@ -222,13 +222,15 @@ export function drawSoldBanner(
 export async function renderSoldImage(
   url: string,
   label = "SOLD / VENDIDO",
+  format: SoldFormatKey = "instagram",
 ): Promise<HTMLCanvasElement> {
   const img = await loadImage(url);
+  const preset = SOLD_FORMATS[format] ?? SOLD_FORMATS.instagram;
   const canvas = document.createElement("canvas");
-  canvas.width = img.naturalWidth || img.width;
-  canvas.height = img.naturalHeight || img.height;
+  canvas.width = preset.width;
+  canvas.height = preset.height;
   const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  drawFramedPhoto(ctx, img, canvas.width, canvas.height);
   drawSoldBanner(ctx, label, canvas.width, canvas.height);
   return canvas;
 }
