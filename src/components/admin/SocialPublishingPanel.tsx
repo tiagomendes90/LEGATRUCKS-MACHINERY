@@ -128,7 +128,13 @@ const CHANNEL_META: Record<ChannelKey, { label: string; Icon: typeof Facebook }>
   instagram: { label: "Instagram", Icon: Instagram },
 };
 
-function ProductCard({ product }: { product: SocialProductRow }) {
+function ProductCard({
+  product,
+  showSoldControl = false,
+}: {
+  product: SocialProductRow;
+  showSoldControl?: boolean;
+}) {
   const [caption, setCaption] = useState(product.social_caption ?? autoCaption(product));
   const [channel, setChannel] = useState<ChannelKey>("facebook");
   useEffect(() => {
@@ -455,24 +461,26 @@ function ProductCard({ product }: { product: SocialProductRow }) {
           )}
         </div>
 
-        {/* Opção "vendido" — faixa SOLD apenas na primeira imagem */}
-        <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
-          <Switch id={`sold-${product.id}`} checked={sold} onCheckedChange={setSold} />
-          <label htmlFor={`sold-${product.id}`} className="text-sm font-medium">
-            Veículo vendido — faixa “SOLD” na 1.ª imagem
-          </label>
-          {sold && (
-            <Input
-              value={soldLabel}
-              onChange={(e) => setSoldLabel(e.target.value)}
-              className="h-8 w-32"
-              maxLength={16}
-            />
-          )}
-          <span className="text-xs text-muted-foreground">
-            As restantes fotografias são publicadas sem alterações.
-          </span>
-        </div>
+        {/* Opção "vendido" — disponível apenas no separador de veículos publicados */}
+        {showSoldControl && (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
+            <Switch id={`sold-${product.id}`} checked={sold} onCheckedChange={setSold} />
+            <label htmlFor={`sold-${product.id}`} className="text-sm font-medium">
+              Veículo vendido — faixa “SOLD/VENDIDO” na 1.ª imagem
+            </label>
+            {sold && (
+              <Input
+                value={soldLabel}
+                onChange={(e) => setSoldLabel(e.target.value)}
+                className="h-8 w-32"
+                maxLength={16}
+              />
+            )}
+            <span className="text-xs text-muted-foreground">
+              As restantes fotografias são publicadas sem alterações.
+            </span>
+          </div>
+        )}
 
         {/* Channel selector */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
@@ -859,7 +867,7 @@ export default function SocialPublishingPanel() {
             { key: "overview", label: "Visão geral" },
             { key: "ready_for_social", label: "Prontos" },
             { key: "outdated", label: "Desatualizados" },
-            { key: "published", label: "Publicados" },
+            { key: "published", label: "Veículos postados" },
           ] as const
         ).map((t) => (
           <Button
@@ -920,9 +928,13 @@ export default function SocialPublishingPanel() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {current.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+           {current.map((p) => (
+             <ProductCard
+               key={p.id}
+               product={p}
+               showSoldControl={tab === "published"}
+             />
+           ))}
         </div>
       )}
     </div>
