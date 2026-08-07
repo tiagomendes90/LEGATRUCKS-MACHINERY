@@ -431,6 +431,28 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
+              {!isReadOnly && (
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="secondary" disabled={translating} onClick={() => autoTranslate()}>
+                    {translating ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Languages className="h-4 w-4 mr-1" />
+                    )}
+                    Traduzir automaticamente (todos)
+                  </Button>
+                  {currentLang !== defaultLang && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={translating}
+                      onClick={() => autoTranslate(currentLang)}
+                    >
+                      Traduzir só {currentLang.toUpperCase()}
+                    </Button>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap gap-1.5">
                 {activeLanguages.map((l) => (
                   <Badge
