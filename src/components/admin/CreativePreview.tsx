@@ -8,6 +8,8 @@ interface Props {
   config: TemplateConfig;
   imageUrl: string;
   headline?: string;
+  sold?: boolean;
+  soldLabel?: string;
   width?: number;
   onCanvas?: (canvas: HTMLCanvasElement | null) => void;
 }
@@ -18,6 +20,8 @@ export function CreativePreview({
   config,
   imageUrl,
   headline,
+  sold,
+  soldLabel,
   width = 300,
   onCanvas,
 }: Props) {
@@ -29,7 +33,7 @@ export function CreativePreview({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    renderCreative({ data, config, imageUrl, headline })
+    renderCreative({ data, config, imageUrl, headline, sold, soldLabel })
       .then((canvas) => {
         if (cancelled) return;
         canvas.style.width = "100%";
@@ -53,7 +57,7 @@ export function CreativePreview({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, JSON.stringify(config), imageUrl, headline]);
+  }, [data, JSON.stringify(config), imageUrl, headline, sold, soldLabel]);
 
   return (
     <div
