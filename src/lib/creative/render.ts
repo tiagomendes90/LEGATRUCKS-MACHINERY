@@ -173,9 +173,9 @@ export interface RenderOptions {
   imageUrl: string;
   kind?: CreativeKind;
   headline?: string;
-  /** Marca o criativo como vendido (faixa oblíqua "SOLD/VENDIDO"). */
+  /** Marca o criativo como vendido (faixa oblíqua "SOLD / VENDIDO"). */
   sold?: boolean;
-  /** Texto da faixa (por defeito "SOLD/VENDIDO"). */
+  /** Texto da faixa (por defeito "SOLD / VENDIDO"). */
   soldLabel?: string;
 }
 
@@ -186,7 +186,7 @@ export function drawSoldBanner(
   width = CANVAS_W,
   height = CANVAS_H,
 ) {
-  const text = (label || "SOLD/VENDIDO").toUpperCase();
+  const text = (label || "SOLD / VENDIDO").toUpperCase();
   const angle = -Math.atan2(height, width);
   const diag = Math.hypot(width, height);
   const scale = diag / Math.hypot(CANVAS_W, CANVAS_H);
@@ -217,11 +217,11 @@ export function drawSoldBanner(
 
 /**
  * Reproduz uma fotografia do produto no seu formato original com a faixa
- * oblíqua "SOLD/VENDIDO" por cima — usada nas publicações de Facebook/Instagram.
+ * oblíqua "SOLD / VENDIDO" por cima — usada nas publicações de Facebook/Instagram.
  */
 export async function renderSoldImage(
   url: string,
-  label = "SOLD/VENDIDO",
+  label = "SOLD / VENDIDO",
 ): Promise<HTMLCanvasElement> {
   const img = await loadImage(url);
   const canvas = document.createElement("canvas");
@@ -489,7 +489,7 @@ export async function renderCreative(
     ctx.fillText(site.toUpperCase(), M, footerY + 46);
   }
 
-  if (opts.sold) drawSoldBanner(ctx, opts.soldLabel || "SOLD/VENDIDO");
+  if (opts.sold) drawSoldBanner(ctx, opts.soldLabel || "SOLD / VENDIDO");
 
   try {
     (ctx as any).letterSpacing = "0px";

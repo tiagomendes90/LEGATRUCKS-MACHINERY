@@ -97,7 +97,7 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
   const [ctaText, setCtaText] = useState("");
   const [ctaTouched, setCtaTouched] = useState(false);
   const [sold, setSold] = useState(false);
-  const [soldLabel, setSoldLabel] = useState("SOLD/VENDIDO");
+  const [soldLabel, setSoldLabel] = useState("SOLD / VENDIDO");
   const [downloading, setDownloading] = useState(false);
   const [publishing, setPublishing] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -485,7 +485,7 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
             <Input
               value={soldLabel}
               onChange={(e) => setSoldLabel(e.target.value)}
-              placeholder="SOLD/VENDIDO"
+              placeholder="SOLD / VENDIDO"
               maxLength={18}
             />
           )}
