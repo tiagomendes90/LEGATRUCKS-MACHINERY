@@ -516,25 +516,28 @@ export async function renderSoldCreative(
     panel = measurePanel(k);
   }
   const infoH = Math.min(panel.h, maxInfoH);
-  const infoY = H - infoH;
+  // Painel de informação no canto superior esquerdo, em qualquer formato.
+  const infoY = headerH;
 
   const img = await loadImage(url);
   if (theme.photo === "full") {
     drawCover(ctx, img, 0, 0, W, H);
-    const g = ctx.createLinearGradient(0, H * 0.35, 0, H);
-    g.addColorStop(0, rgba(BG, 0));
-    g.addColorStop(1, rgba(BG, 0.92));
+    // Escurece o topo (onde ficam os dados) e mantém leve vinheta em baixo.
+    const g = ctx.createLinearGradient(0, 0, 0, infoY + infoH + 80 * s);
+    g.addColorStop(0, rgba(BG, 0.92));
+    g.addColorStop(0.72, rgba(BG, 0.8));
+    g.addColorStop(1, rgba(BG, 0));
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
-    const gt = ctx.createLinearGradient(0, 0, 0, H * 0.22);
-    gt.addColorStop(0, rgba(BG, 0.75));
-    gt.addColorStop(1, rgba(BG, 0));
+    const gt = ctx.createLinearGradient(0, H * 0.78, 0, H);
+    gt.addColorStop(0, rgba(BG, 0));
+    gt.addColorStop(1, rgba(BG, 0.75));
     ctx.fillStyle = gt;
-    ctx.fillRect(0, 0, W, H * 0.22);
+    ctx.fillRect(0, H * 0.78, W, H * 0.22);
   } else {
     // fotografia enquadrada num cartão
-    const photoY = headerH + 12 * s;
-    const photoH = infoY - photoY - 24 * s;
+    const photoY = infoY + infoH + 12 * s;
+    const photoH = H - photoY - (site ? 96 : 48) * s;
     const photoX = pad;
     const photoW = W - pad * 2;
     ctx.save();
