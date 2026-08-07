@@ -48,6 +48,11 @@ import { Input } from "@/components/ui/input";
 import {
   renderSoldCreative,
   canvasToBlob,
+  SOLD_THEMES,
+  SOLD_BLOCK_LABELS,
+  DEFAULT_SOLD_BLOCKS,
+  type SoldThemeKey,
+  type SoldBlockKey,
   slugify,
   SOLD_FORMATS,
   type SoldFormatKey,
@@ -182,6 +187,13 @@ function ProductCard({
   const [soldBusy, setSoldBusy] = useState<ChannelKey | null>(null);
   // Formato do criativo de vendido usado na pré-visualização.
   const [soldFormat, setSoldFormat] = useState<SoldFormatKey>("instagram");
+  // Template e blocos de informação do criativo de vendido.
+  const [soldTheme, setSoldTheme] = useState<SoldThemeKey>("editorial");
+  const [soldBlocks, setSoldBlocks] = useState<Record<SoldBlockKey, boolean>>({
+    ...DEFAULT_SOLD_BLOCKS,
+  });
+  const toggleSoldBlock = (k: SoldBlockKey) =>
+    setSoldBlocks((prev) => ({ ...prev, [k]: !prev[k] }));
   // Dados do veículo apresentados no template do criativo de vendido.
   const soldInfo = useMemo(() => {
     const brand = product.brand?.name ?? "";
@@ -210,7 +222,12 @@ function ProductCard({
       setSoldPreview(null);
       return;
     }
-    renderSoldCreative(first, soldInfo, soldLabel || "SOLD / VENDIDO", soldFormat)
+    renderSoldCreative(first, soldInfo, {
+      label: soldLabel,
+      format: soldFormat,
+      theme: soldTheme,
+      blocks: soldBlocks,
+    })
       .then((c) => {
         if (!cancelled) setSoldPreview(c.toDataURL("image/png"));
       })
@@ -221,7 +238,16 @@ function ProductCard({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showSoldControl, soldLabel, soldFormat, soldInfo, orderedImages[0], image]);
+  }, [
+    showSoldControl,
+    soldLabel,
+    soldFormat,
+    soldTheme,
+    soldBlocks,
+    soldInfo,
+    orderedImages[0],
+    image,
+  ]);
 
   const previewImages = orderedImages;
   const previewImage = image;
@@ -232,12 +258,12 @@ function ProductCard({
   ): Promise<string | null> => {
     const first = orderedImages[0] ?? image;
     if (!first) return null;
-    const canvas = await renderSoldCreative(
-      first,
-      soldInfo,
-      soldLabel || "SOLD / VENDIDO",
+    const canvas = await renderSoldCreative(first, soldInfo, {
+      label: soldLabel,
       format,
-    );
+      theme: soldTheme,
+      blocks: soldBlocks,
+    });
     const blob = await canvasToBlob(canvas);
     return uploadCreative(blob, {
       productId: product.id,
@@ -539,6 +565,42 @@ function ProductCard({
                     onClick={() => setSoldFormat(f)}
                   >
                     {SOLD_FORMATS[f].label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Template
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {(Object.keys(SOLD_THEMES) as SoldThemeKey[]).map((t) => (
+                  <Button
+                    key={t}
+                    size="sm"
+                    variant={soldTheme === t ? "default" : "outline"}
+                    className="h-7 text-xs"
+                    onClick={() => setSoldTheme(t)}
+                  >
+                    {SOLD_THEMES[t].label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Informação a mostrar
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {(Object.keys(SOLD_BLOCK_LABELS) as SoldBlockKey[]).map((b) => (
+                  <Button
+                    key={b}
+                    size="sm"
+                    variant={soldBlocks[b] ? "secondary" : "outline"}
+                    className="h-7 text-xs"
+                    onClick={() => toggleSoldBlock(b)}
+                  >
+                    {SOLD_BLOCK_LABELS[b]}
                   </Button>
                 ))}
               </div>
