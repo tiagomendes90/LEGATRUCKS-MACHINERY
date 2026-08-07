@@ -188,24 +188,21 @@ function drawSoldBanner(ctx: CanvasRenderingContext2D, label: string) {
   ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
   ctx.rotate(angle);
 
-  const bandH = 240;
-  ctx.fillStyle = "rgba(178, 24, 24, 0.82)";
+  const bandH = 290;
+  ctx.fillStyle = "#F39200";
   ctx.fillRect(-diag / 2, -bandH / 2, diag, bandH);
   ctx.fillStyle = "rgba(255,255,255,0.9)";
   ctx.fillRect(-diag / 2, -bandH / 2 + 12, diag, 6);
   ctx.fillRect(-diag / 2, bandH / 2 - 18, diag, 6);
 
-  let size = 168;
-  setFont(ctx, 800, size, 24);
+  let size = 194;
+  setFont(ctx, 800, size, 0);
   while (ctx.measureText(text).width > diag - 160 && size > 60) {
     size -= 8;
-    setFont(ctx, 800, size, 24);
+    setFont(ctx, 800, size, 0);
   }
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = "rgba(0,0,0,0.35)";
-  ctx.strokeText(text, 0, 6);
   ctx.fillStyle = "#FFFFFF";
   ctx.fillText(text, 0, 6);
   ctx.restore();
