@@ -173,9 +173,9 @@ export interface RenderOptions {
   imageUrl: string;
   kind?: CreativeKind;
   headline?: string;
-  /** Marca o criativo como vendido (faixa oblíqua "SOLD"). */
+  /** Marca o criativo como vendido (faixa oblíqua "SOLD/VENDIDO"). */
   sold?: boolean;
-  /** Texto da faixa (por defeito "SOLD"). */
+  /** Texto da faixa (por defeito "SOLD/VENDIDO"). */
   soldLabel?: string;
 }
 
@@ -186,16 +186,16 @@ export function drawSoldBanner(
   width = CANVAS_W,
   height = CANVAS_H,
 ) {
-  const text = (label || "SOLD").toUpperCase();
+  const text = (label || "SOLD/VENDIDO").toUpperCase();
   const angle = -Math.atan2(height, width);
   const diag = Math.hypot(width, height);
   const scale = diag / Math.hypot(CANVAS_W, CANVAS_H);
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.rotate(angle);
-  ctx.globalAlpha = 0.7;
 
   const bandH = 290 * scale;
+  ctx.globalAlpha = 0.8;
   ctx.fillStyle = "#F39200";
   ctx.fillRect(-diag / 2, -bandH / 2, diag, bandH);
 
@@ -207,6 +207,7 @@ export function drawSoldBanner(
   }
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  ctx.globalAlpha = 1;
   ctx.fillStyle = "#FFFFFF";
   ctx.fillText(text, 0, 6 * scale);
   ctx.restore();
@@ -216,11 +217,11 @@ export function drawSoldBanner(
 
 /**
  * Reproduz uma fotografia do produto no seu formato original com a faixa
- * oblíqua "SOLD" por cima — usada nas publicações de Facebook/Instagram.
+ * oblíqua "SOLD/VENDIDO" por cima — usada nas publicações de Facebook/Instagram.
  */
 export async function renderSoldImage(
   url: string,
-  label = "SOLD",
+  label = "SOLD/VENDIDO",
 ): Promise<HTMLCanvasElement> {
   const img = await loadImage(url);
   const canvas = document.createElement("canvas");
@@ -488,7 +489,7 @@ export async function renderCreative(
     ctx.fillText(site.toUpperCase(), M, footerY + 46);
   }
 
-  if (opts.sold) drawSoldBanner(ctx, opts.soldLabel || "SOLD");
+  if (opts.sold) drawSoldBanner(ctx, opts.soldLabel || "SOLD/VENDIDO");
 
   try {
     (ctx as any).letterSpacing = "0px";
