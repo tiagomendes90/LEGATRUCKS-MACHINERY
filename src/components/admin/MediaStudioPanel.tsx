@@ -96,6 +96,8 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
   const [overrides, setOverrides] = useState<Partial<Record<CreativeBlockKey, boolean>>>({});
   const [ctaText, setCtaText] = useState("");
   const [ctaTouched, setCtaTouched] = useState(false);
+  const [sold, setSold] = useState(false);
+  const [soldLabel, setSoldLabel] = useState("SOLD");
   const [downloading, setDownloading] = useState(false);
   const [publishing, setPublishing] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -469,6 +471,26 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
           />
         </div>
 
+        <div className="space-y-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor={`sold-${kind}`}>Veículo vendido</Label>
+              <p className="text-xs text-muted-foreground">
+                Aplica uma faixa oblíqua sobre o criativo (Stories, capas de Reels e publicações).
+              </p>
+            </div>
+            <Switch id={`sold-${kind}`} checked={sold} onCheckedChange={setSold} />
+          </div>
+          {sold && (
+            <Input
+              value={soldLabel}
+              onChange={(e) => setSoldLabel(e.target.value)}
+              placeholder="SOLD"
+              maxLength={18}
+            />
+          )}
+        </div>
+
         {kind === "reel_cover" && reelKit && (
           <>
             <Separator />
@@ -581,6 +603,8 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
             data={product.data}
             config={config}
             imageUrl={imageUrl}
+            sold={sold}
+            soldLabel={soldLabel}
             width={320}
             onCanvas={(c) => {
               canvasRef.current = c;
