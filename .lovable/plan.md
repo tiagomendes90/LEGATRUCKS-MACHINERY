@@ -1,113 +1,61 @@
-# Fase 2.5 — Newsletter (Resend)
+# Media Studio LEGA — Stories, Reels Kit e Biblioteca de Templates
 
-Implementar a Newsletter como canal independente do PublishingService, com o mesmo nível de modularidade e rastreabilidade das Fases 2.3/2.4 (Facebook/Instagram). Fluxo 100% manual: o administrador cria a campanha, seleciona produtos, edita o conteúdo, pré-visualiza e só depois confirma o envio.
+Evolução do módulo "Redes Sociais" para um Media Studio: geração automática de criativos premium (1080×1920 e capas de Reel) a partir dos dados já existentes do produto, com biblioteca de templates editável no Admin. Sem publicação automática de Stories/Reels — apenas geração, pré-visualização, download e reutilização.
 
-## 1. Base de dados (migração)
+## 1. Fonte de dados única
 
-Novas tabelas (todas com RLS admin-only + GRANT authenticated/service_role):
+O Media Studio consome exatamente os mesmos dados de produto que os Posts e a Newsletter (marca, modelo, preço, ano, condição, localização, especificações dinâmicas como horas/km, galeria ordenada, link canónico). Nada é escrito à mão: os campos aparecem ou desaparecem consoante existam na base de dados.
 
-- `newsletter_subscribers`
-  - `email` (unique), `first_name`, `last_name`, `status` (`active|unsubscribed|bounced`), `consent` (bool), `subscribed_at`, `unsubscribed_at`, `unsubscribe_token` (uuid), `source` (ex: `footer_form`, `import`, `admin`), `metadata` jsonb.
-  - Public INSERT permitido (para o formulário do rodapé), SELECT/UPDATE/DELETE admin.
-- `newsletter_campaigns`
-  - `title`, `subject`, `preheader`, `status` (`draft|ready|scheduled|sending|sent|failed|canceled`), `product_ids` uuid[], `content_html`, `content_json` jsonb (blocos editáveis + overrides), `template_key` (default `product_showcase_v1`), `scheduled_for`, `sent_at`, `sent_by` (auth uid), `broadcast_id` (Resend), `stats` jsonb (opens/clicks/etc), `created_by`.
-- `newsletter_sends` (auditoria por destinatário/lote)
-  - `campaign_id`, `subscriber_id` (nullable — Resend audience-based), `channel_key` = `newsletter`, `status` (`queued|sent|failed|bounced|complained|unsubscribed`), `resend_message_id`, `error`, `raw_response` jsonb, `sent_at`.
-- Reaproveitar `publishing_events` + `publishing_logs` para orquestração e logs técnicos (o adapter escreve lá como Facebook/Instagram fazem).
+Um único módulo de "dados de criativo" normaliza o produto para o formato usado pelos templates, incluindo deteção automática de horas (h) e quilómetros (km) a partir das especificações.
 
-Novos event types (adicionar aceites no dispatcher):
-- `newsletter.campaign.send` — enviado quando admin confirma o envio.
-- `newsletter.campaign.cancel` — cancelar broadcast agendado.
+## 2. Biblioteca de Templates (Admin, sem código)
 
-## 2. Adapter `newsletter` (reescrita)
+Nova tabela de templates de criativos guardada na base de dados. Cada template define:
 
-`supabase/functions/_shared/publishing/channels/newsletter.ts` passa a suportar apenas os novos eventos (`newsletter.campaign.*`). Remover o antigo comportamento automático em `product.published` (não deve enviar sem confirmação).
+- nome, tipo (Story ou Capa de Reel), estado ativo/inativo, template por defeito;
+- paleta de cores (fundo, acento, texto), estilo de moldura e overlay;
+- posição e visibilidade de cada bloco: logótipo, marca, modelo, preço, ano, horas/km, localização, QR Code, website, CTA;
+- texto do CTA e do website;
+- ordem de apresentação.
 
-Fluxo `newsletter.campaign.send`:
-1. Ler campanha por id (payload contém `campaign_id`).
-2. Renderizar HTML final via `renderNewsletterHtml(campaign, products)` (módulo partilhado).
-3. Criar broadcast Resend em `RESEND_AUDIENCE_ID` (ou usar API `emails` em lote se `subscriber_ids` for passado — v1 usa Audience).
-4. Enviar broadcast; guardar `broadcast_id` em `newsletter_campaigns`.
-5. Registar em `newsletter_sends` (1 linha "audience broadcast" enquanto não temos webhook de eventos por destinatário; preparado para expandir).
-6. Update campaign `status=sent`, `sent_at`.
-7. Retornar `ChannelResult` normal (dispatcher escreve `publishing_logs`).
+Painel de administração com: criar, duplicar, editar, ativar/desativar, definir por defeito e apagar. Isto permite campanhas sazonais (Natal, Black Friday, Novidades, Promoções) sem tocar no código.
 
-Isolamento: adapter só reage se `event_type` começar por `newsletter.` — nunca a `product.*`. Sem dependência de outros canais.
+Serão criados de origem 4 templates premium: Editorial Escuro, Split Diagonal, Minimal Claro e Etiqueta de Promoção.
 
-## 3. Renderização HTML (módulo partilhado)
+## 3. Gerador de Stories (1080×1920)
 
-`supabase/functions/_shared/publishing/newsletterTemplate.ts`:
-- `renderNewsletterHtml({ campaign, products, unsubscribeUrlFor(subscriber) })` retorna HTML responsivo (tabelas inline, largura 600px, dark-mode friendly).
-- Blocos: header com logótipo LEGA, intro editável, cards de produto (imagem, título, preço, specs top 3, CTA "Ver produto" com URL canónica `https://www.lega.pt/...`), footer institucional (morada, contactos, ícones sociais, link unsubscribe `{{RESEND_UNSUBSCRIBE_URL}}`).
-- Template versionado (`template_key`) para permitir novos formatos sem regressões.
-- Reutilizado pelo preview do admin (renderiza no iframe) e pelo adapter.
+Para cada produto, no separador Redes Sociais:
 
-## 4. Edge Functions
+- escolha da fotografia (galeria do produto);
+- escolha do template (entre os ativos);
+- interruptores por campo (preço, ano, horas/km, localização, QR Code, website, CTA);
+- pré-visualização fiel em tempo real, à escala;
+- download em PNG 1080×1920;
+- gravação da configuração para reutilização posterior.
 
-- `newsletter-subscribe` (existente): atualizar para gravar em `newsletter_subscribers` **antes** de sincronizar com Resend Audience. Guarda `unsubscribe_token`. Continua idempotente.
-- `newsletter-unsubscribe` (nova): GET `?token=` marca `status=unsubscribed`, `unsubscribed_at=now()`, chama Resend para actualizar contacto. Devolve página HTML simples de confirmação.
-- `newsletter-preview` (nova, admin-only via JWT): recebe `campaign_id` ou payload draft e devolve HTML renderizado (para o iframe do admin sem duplicar o renderer no cliente).
+QR Code gerado localmente para o URL canónico do produto em www.lega.pt.
 
-## 5. Painel Admin
+## 4. Kit de Reels
 
-Novo separador **Newsletter** em `AdminDashboard.tsx` + componente `NewsletterPanel.tsx` com sub-tabs:
+Não gera vídeo. Gera e apresenta, prontos a copiar/descarregar:
 
-1. **Campanhas** — lista com estado, data, produtos, ações (editar, duplicar, cancelar).
-2. **Editor de campanha** (`NewsletterCampaignEditor.tsx`):
-   - Título interno + `subject` + `preheader`.
-   - Seletor multi-produto (`ready_for_social` ou activos) com pesquisa.
-   - Intro/outro editáveis (textarea markdown-lite).
-   - Overrides por produto (título/descrição/CTA opcionais — guardados em `content_json`).
-   - Guardar rascunho / Marcar "Pronto".
-   - Preview lado-a-lado em iframe (mobile/desktop toggle) chamando `newsletter-preview`.
-   - Botão **Enviar agora** (com modal de confirmação: mostra nº de subscritores activos, subject final) — emite `newsletter.campaign.send` via `emitPublishingEvent`.
-3. **Subscritores** — tabela com filtro, contagem por estado, export CSV, botão manual de unsubscribe.
-4. **Histórico** — tabela `newsletter_sends` + `publishing_logs` filtrados por `channel_key='newsletter'`, com resposta bruta do Resend (reutiliza `MetaErrorBlock` renomeado/generalizado ou novo `ProviderErrorBlock`).
+- capa do Reel 1080×1920 (mesmos templates, variante de capa);
+- título curto sugerido;
+- descrição otimizada;
+- hashtags sugeridas (marca, categoria, localização, genéricas do setor);
+- CTA;
+- pacote de imagens do produto preparadas para edição em vídeo (download em lote, enquadramento vertical).
 
-Hook `useNewsletter.tsx` com queries React Query (`campaigns`, `subscribers`, `sends`) e mutations (`saveDraft`, `markReady`, `sendNow`, `cancel`, `unsubscribe`).
+A estrutura fica preparada para, no futuro, acrescentar geração de vídeo sem redesenhar o módulo.
 
-## 6. Fluxo e-2-e
+## 5. Qualidade visual
 
-```text
-Admin cria campanha -> escolhe produtos -> edita -> Preview -> Enviar agora
-   -> INSERT publishing_events (type=newsletter.campaign.send, dedupe_key hash de campaign_id+content_hash)
-   -> publish-dispatcher (cron ou push) claim -> newsletter adapter
-   -> Resend Broadcasts (create + send)
-   -> newsletter_campaigns.status=sent, broadcast_id
-   -> publishing_logs + newsletter_sends registados
-```
+Templates com padrão de fabricante/concessionário: tipografia forte e hierarquizada, gradientes controlados, faixas de acento, blocos de dados alinhados a grelha, logótipo sempre com margem de segurança, contraste garantido sobre a fotografia. Identidade LEGA (azul institucional + laranja) consistente em Posts, Stories, Reels e Newsletter.
 
-Retries: reutiliza backoff exponencial do dispatcher (6 tentativas). `dedupe_key` impede duplo envio caso o admin carregue duas vezes.
+## Notas técnicas
 
-## 7. Segurança / Privacidade
-
-- Todos os writes admin-only via RLS + `is_admin()`.
-- `newsletter_subscribers.INSERT` público limitado ao endpoint (não expõe SELECT).
-- `unsubscribe_token` uuid v4 imprevisível; endpoint público apenas com token válido.
-- Sem PII em `publishing_logs` (só ids + status).
-
-## 8. Fora de âmbito (documentado como recomendação)
-
-- Segmentação/listas múltiplas (schema preparado via `metadata`/tags mas UI não construída).
-- Webhooks Resend por destinatário (opens/clicks/bounces) — deixar hook stub em `newsletter_sends`.
-- Agendamento futuro (`scheduled_for`) — campo existe, UI só permite "Enviar agora" nesta fase.
-- Digest semanal automático — protelado.
-
-## 9. Detalhes técnicos
-
-- **Migração única** com CREATE TABLE + GRANT + RLS + POLICY + triggers `updated_at` + índices em `email`, `campaign_id`, `status`.
-- **Renderer** partilhado entre edge functions via `_shared/publishing/newsletterTemplate.ts` (Deno-compatible, sem deps externas — string templating).
-- **Preview no frontend** faz `supabase.functions.invoke('newsletter-preview', {...})` e injecta em `<iframe srcDoc>`.
-- **Envio Resend** usa endpoint `/broadcasts` (audience-wide). Preparar `sendByEmails(subscriberIds)` como TODO documentado no adapter para envio segmentado futuro sem refactor.
-- **Novos secrets já disponíveis**: `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `RESEND_FROM_EMAIL` (pedir add_secret se em falta antes do teste).
-
-## 10. Entregáveis
-
-- 1 migração SQL (tabelas + policies + grants + triggers).
-- Adapter reescrito + template partilhado.
-- 3 edge functions (subscribe update, unsubscribe, preview).
-- `NewsletterPanel` + `NewsletterCampaignEditor` + `useNewsletter` hook.
-- Docs: secção nova em `docs/meta-e2e-checklist.md` (ou novo `docs/newsletter-e2e-checklist.md`).
-- Relatório técnico final.
-
-Confirma para eu avançar com a implementação (migração primeiro, depois edge functions + frontend).
+- Nova tabela `creative_templates` (leitura pública dos ativos, escrita apenas admin, com GRANTs) e `product_creatives` para guardar configurações geradas e reutilizáveis.
+- Renderização no browser em canvas a resolução nativa 1080×1920 (sem dependência de screenshot de DOM), garantindo nitidez e texto correto.
+- Dependência nova: gerador de QR Code e empacotador ZIP para o download em lote.
+- Reutilização do módulo de dados de produto partilhado; nenhuma alteração ao pipeline de publicação existente (Facebook/Instagram/Newsletter mantêm-se intactos).
+- Novo separador "Media Studio" dentro de Redes Sociais, com estado persistido como o resto do Admin.
