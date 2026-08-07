@@ -305,26 +305,23 @@ export type SoldBlockKey =
   | "location"
   | "website";
 
-export const SOLD_BLOCK_LABELS: Record<SoldBlockKey, string> = {
+/** Blocos configuráveis no criativo de vendido (apenas os essenciais). */
+export const SOLD_BLOCK_LABELS: Partial<Record<SoldBlockKey, string>> = {
   logo: "Logótipo",
-  tag: "Etiqueta VENDIDO",
   brand: "Marca",
   model: "Modelo",
-  price: "Preço",
-  year: "Ano",
-  usage: "Horas / Km",
   location: "Localização",
   website: "Website",
 };
 
 export const DEFAULT_SOLD_BLOCKS: Record<SoldBlockKey, boolean> = {
   logo: true,
-  tag: true,
+  tag: false,
   brand: true,
   model: true,
-  price: true,
-  year: true,
-  usage: true,
+  price: false,
+  year: false,
+  usage: false,
   location: true,
   website: true,
 };
