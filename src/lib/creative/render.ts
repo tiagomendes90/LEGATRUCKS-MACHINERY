@@ -173,6 +173,44 @@ export interface RenderOptions {
   imageUrl: string;
   kind?: CreativeKind;
   headline?: string;
+  /** Marca o criativo como vendido (faixa oblíqua "SOLD"). */
+  sold?: boolean;
+  /** Texto da faixa (por defeito "SOLD"). */
+  soldLabel?: string;
+}
+
+/** Faixa oblíqua de vendido, desenhada por cima de todo o criativo. */
+function drawSoldBanner(ctx: CanvasRenderingContext2D, label: string) {
+  const text = (label || "SOLD").toUpperCase();
+  const angle = -Math.atan2(CANVAS_H, CANVAS_W);
+  const diag = Math.hypot(CANVAS_W, CANVAS_H);
+  ctx.save();
+  ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
+  ctx.rotate(angle);
+
+  const bandH = 240;
+  ctx.fillStyle = "rgba(178, 24, 24, 0.82)";
+  ctx.fillRect(-diag / 2, -bandH / 2, diag, bandH);
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.fillRect(-diag / 2, -bandH / 2 + 12, diag, 6);
+  ctx.fillRect(-diag / 2, bandH / 2 - 18, diag, 6);
+
+  let size = 168;
+  setFont(ctx, 800, size, 24);
+  while (ctx.measureText(text).width > diag - 160 && size > 60) {
+    size -= 8;
+    setFont(ctx, 800, size, 24);
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "rgba(0,0,0,0.35)";
+  ctx.strokeText(text, 0, 6);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillText(text, 0, 6);
+  ctx.restore();
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 }
 
 export async function renderCreative(
@@ -430,6 +468,8 @@ export async function renderCreative(
     ctx.fillStyle = config.muted;
     ctx.fillText(site.toUpperCase(), M, footerY + 46);
   }
+
+  if (opts.sold) drawSoldBanner(ctx, opts.soldLabel || "SOLD");
 
   try {
     (ctx as any).letterSpacing = "0px";
