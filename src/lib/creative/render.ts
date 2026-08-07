@@ -308,7 +308,8 @@ export async function renderCreative(
   // --- conteúdo ---
   const contentW = CANVAS_W - M * 2;
   const showQr = blocks.qr !== false;
-  const textW = showQr ? contentW - 300 : contentW;
+  // O QR fica no rodapé à direita; o texto pode usar toda a largura útil.
+  const textW = contentW;
   let y = panelTop + 96;
 
   if (config.accentBar !== false) {
