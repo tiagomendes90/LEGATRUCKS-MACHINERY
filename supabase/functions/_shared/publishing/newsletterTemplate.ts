@@ -304,29 +304,67 @@ function socialLinks(): string {
     .join('<span style="color:rgba(255,255,255,.5);">·</span>');
 }
 
+/** Barra discreta de seleção de idioma (linka para as versões web). */
+function languageSwitcher(opts: RenderOptions, ctx: Ctx): string {
+  if (opts.hideLanguageSwitcher) return "";
+  const langs = ctx.i18n.languages;
+  if (langs.length < 2 || opts.publicNumber == null) return "";
+
+  const items = langs
+    .map((l) => {
+      const active = l.code === ctx.lang;
+      const href = newsletterViewUrl(opts.publicNumber, l.code, opts.subscriberToken);
+      const label = `${l.flag_emoji ? l.flag_emoji + " " : ""}${l.native_label}`;
+      return active
+        ? `<span style="color:${BRAND_DARK};font-weight:700;">${esc(label)}</span>`
+        : `<a href="${esc(href)}" style="color:${MUTED};text-decoration:none;">${esc(label)}</a>`;
+    })
+    .join(`<span style="color:${LINE};margin:0 6px;">·</span>`);
+
+  return `
+          <tr><td style="padding:10px 24px;background:#ffffff;border:1px solid ${LINE};border-bottom:0;border-radius:14px 14px 0 0;text-align:center;font-size:12px;color:${MUTED};">
+            <span style="letter-spacing:.08em;text-transform:uppercase;font-size:10px;margin-right:8px;">${esc(ctx.i18n.t(ctx.lang, "lang.label"))}</span>
+            ${items}
+          </td></tr>`;
+}
+
 export function renderNewsletterHtml(opts: RenderOptions): string {
-  const { campaign, products } = opts;
+  const { campaign, products, i18n } = opts;
+  const lang = i18n.resolve(opts.lang);
+  const ctx: Ctx = { i18n, lang, locale: i18n.language(lang)?.locale ?? "en-GB" };
+  const t = (k: StringKey, vars?: Record<string, string | number>) => i18n.t(lang, k, vars);
+
   const tpl = opts.template ?? {};
-  const intro = campaign.content_json?.intro || tpl.intro || "";
-  const outro = campaign.content_json?.outro || tpl.outro || "";
-  const tagline = (tpl.header ?? "").trim() || "Camiões · Máquinas · Equipamento";
-  const footerText = (tpl.footer ?? "").trim();
+  const content = resolveCampaignContent(
+    campaign as Record<string, any>,
+    lang,
+    i18n,
+    opts.translations ?? [],
+    tpl,
+  );
+  const intro = content.intro;
+  const outro = content.outro;
+  const tagline = (tpl.header ?? "").trim() || t("tagline");
+  const footerText = content.footerNote.trim();
   const overrides = campaign.content_json?.overrides ?? {};
   const unsub = opts.unsubscribeUrl ?? "{{{RESEND_UNSUBSCRIBE_URL}}}";
+  const hasSwitcher = !opts.hideLanguageSwitcher
+    && i18n.languages.length > 1
+    && opts.publicNumber != null;
 
   const cards = products
-    .map((p) => renderProductCard(p, overrides[p.id as string]))
+    .map((p) => renderProductCard(p, ctx, content.ctaLabel, overrides[p.id as string]))
     .join("\n");
 
   return `<!doctype html>
-<html lang="pt-PT">
+<html lang="${esc(ctx.locale)}">
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="x-apple-disable-message-reformatting"/>
     <meta name="color-scheme" content="light only"/>
     <meta name="supported-color-schemes" content="light only"/>
-    <title>${esc(campaign.subject)}</title>
+    <title>${esc(content.subject)}</title>
     <style>
       body { margin:0; padding:0; width:100% !important; }
       img { -ms-interpolation-mode:bicubic; }
@@ -341,13 +379,13 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
     <!--[if mso]><style>body,table,td,a{font-family:Arial,Helvetica,sans-serif !important;}</style><![endif]-->
   </head>
   <body style="margin:0;padding:0;background:${CANVAS};font-family:${FONT};color:${INK};">
-    ${campaign.preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${esc(campaign.preheader)}</div>` : ""}
+    ${content.preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${esc(content.preheader)}</div>` : ""}
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${CANVAS};">
       <tr><td align="center" class="lg-wrap" style="padding:24px 12px;">
         <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;">
-
+${languageSwitcher(opts, ctx)}
           <!-- Header: logótipo oficial LEGA -->
-          <tr><td style="padding:26px 24px 18px;text-align:center;background:#ffffff;border-radius:14px 14px 0 0;border:1px solid ${LINE};border-bottom:0;">
+          <tr><td style="padding:26px 24px 18px;text-align:center;background:#ffffff;border-radius:${hasSwitcher ? "0" : "14px 14px 0 0"};border:1px solid ${LINE};border-bottom:0;${hasSwitcher ? "border-top:0;" : ""}">
             <a href="${esc(SITE_URL)}" style="display:inline-block;">
               <img src="${esc(LOGO_URL)}" alt="LEGA" width="150" style="display:block;margin:0 auto;width:150px;max-width:60%;height:auto;border:0;"/>
             </a>
@@ -357,13 +395,13 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
 
           <!-- Intro -->
           <tr><td class="lg-pad" style="padding:26px 24px 4px;background:#ffffff;border-left:1px solid ${LINE};border-right:1px solid ${LINE};">
-            <h1 class="lg-hero" style="margin:0 0 ${intro ? "12px" : "4px"};font-size:27px;line-height:1.25;font-weight:800;color:${INK};letter-spacing:-.02em;">${esc(campaign.title || campaign.subject)}</h1>
+            <h1 class="lg-hero" style="margin:0 0 ${intro ? "12px" : "4px"};font-size:27px;line-height:1.25;font-weight:800;color:${INK};letter-spacing:-.02em;">${esc(content.title)}</h1>
             ${intro ? `<p style="margin:0;font-size:16px;line-height:1.65;color:${BODY};white-space:pre-line;">${esc(intro)}</p>` : ""}
           </td></tr>
 
           <!-- Produtos -->
           <tr><td class="lg-pad" style="padding:24px 24px 4px;background:#ffffff;border-left:1px solid ${LINE};border-right:1px solid ${LINE};">
-            ${cards || `<p style="margin:0 0 20px;color:${MUTED};font-size:15px;">Sem viaturas selecionadas.</p>`}
+            ${cards || `<p style="margin:0 0 20px;color:${MUTED};font-size:15px;">${esc(t("products.empty"))}</p>`}
           </td></tr>
 
           <!-- Outro -->
@@ -377,13 +415,13 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
 
           <!-- CTA global -->
           <tr><td class="lg-pad" style="padding:22px 24px 30px;background:#ffffff;border-left:1px solid ${LINE};border-right:1px solid ${LINE};border-bottom:1px solid ${LINE};text-align:center;">
-            <a href="${esc(SITE_URL)}" style="display:inline-block;padding:13px 26px;border:2px solid ${BRAND};border-radius:10px;color:${BRAND_DARK};font-weight:700;font-size:15px;">Ver todo o stock disponível</a>
+            <a href="${esc(SITE_URL)}" style="display:inline-block;padding:13px 26px;border:2px solid ${BRAND};border-radius:10px;color:${BRAND_DARK};font-weight:700;font-size:15px;">${esc(t("cta.global"))}</a>
           </td></tr>
 
           <!-- Footer -->
           <tr><td class="lg-pad" style="padding:28px 24px;background:${BRAND};color:#ffffff;border-radius:0 0 14px 14px;font-size:13px;line-height:1.7;text-align:center;">
             ${footerText ? `<p style="margin:0 0 14px;color:#ffffff;white-space:pre-line;opacity:.95;">${esc(footerText)}</p>` : ""}
-            <p style="margin:0 0 8px;color:#ffffff;font-weight:700;font-size:15px;">LEGA — Comércio de Veículos e Máquinas</p>
+            <p style="margin:0 0 8px;color:#ffffff;font-weight:700;font-size:15px;">${esc(t("footer.company"))}</p>
             <p style="margin:0 0 4px;">
               <a href="tel:${PHONE_TEL}" style="color:#ffffff;">${esc(PHONE_DISPLAY)}</a>
               <span style="opacity:.6;">·</span>
@@ -392,12 +430,17 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
             <p style="margin:0 0 14px;color:rgba(255,255,255,.9);font-size:12px;">${esc(ADDRESS)}</p>
             <p style="margin:0 0 16px;">${socialLinks()}</p>
             <p style="margin:0;color:rgba(255,255,255,.85);font-size:11px;line-height:1.6;">
-              Recebe este email porque subscreveu a newsletter LEGA.<br/>
-              <a href="${esc(unsub)}" style="color:#ffffff;text-decoration:underline;">Cancelar subscrição</a>
+              ${esc(t("footer.reason"))}<br/>
+              <a href="${esc(unsub)}" style="color:#ffffff;text-decoration:underline;">${esc(t("footer.unsubscribe"))}</a>
+              ${
+                opts.publicNumber != null
+                  ? `<span style="opacity:.6;"> · </span><a href="${esc(newsletterViewUrl(opts.publicNumber, lang, opts.subscriberToken))}" style="color:#ffffff;text-decoration:underline;">${esc(t("view.online"))}</a>`
+                  : ""
+              }
             </p>
           </td></tr>
 
-          <tr><td style="padding:16px 8px;text-align:center;color:${MUTED};font-size:11px;">© ${new Date().getFullYear()} LEGA. Todos os direitos reservados.</td></tr>
+          <tr><td style="padding:16px 8px;text-align:center;color:${MUTED};font-size:11px;">${esc(t("footer.rights", { year: new Date().getFullYear() }))}</td></tr>
 
         </table>
       </td></tr>
@@ -406,10 +449,20 @@ export function renderNewsletterHtml(opts: RenderOptions): string {
 </html>`;
 }
 
-export function buildDefaultSubject(products: AnyRecord[]): string {
-  if (products.length === 1) {
-    const t = (products[0]?.title as string) || "Novidade LEGA";
-    return `Novidade LEGA: ${t}`;
+export function buildDefaultSubject(
+  products: AnyRecord[],
+  i18n?: NewsletterI18n,
+  lang?: string,
+): string {
+  if (!i18n) {
+    const t = (products[0]?.title as string) || "LEGA";
+    return products.length === 1 ? `Novidade LEGA: ${t}` : `Novidades LEGA: ${products.length}`;
   }
-  return `Novidades LEGA: ${products.length} viaturas em destaque`;
+  const code = i18n.resolve(lang);
+  if (products.length === 1) {
+    const title = resolveProductContent(products[0] ?? {}, code, i18n).title
+      || (products[0]?.title as string) || "LEGA";
+    return i18n.t(code, "subject.single", { title });
+  }
+  return i18n.t(code, "subject.multi", { count: products.length });
 }
