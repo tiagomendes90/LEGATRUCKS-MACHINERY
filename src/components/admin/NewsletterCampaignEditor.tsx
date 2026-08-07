@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarClock, Globe, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
+import { ArrowLeft, CalendarClock, Globe, Languages, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const [confirmSend, setConfirmSend] = useState(false);
   const [previewLang, setPreviewLang] = useState<string>("");
   const [translations, setTranslations] = useState<Record<string, TranslationDraft>>({});
+  const [translating, setTranslating] = useState(false);
 
   const save = useSaveCampaign();
   const send = useSendCampaign();
@@ -238,6 +240,75 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   }, [previewKey]);
 
   const persistDraft = async (nextStatus?: string) => {
+    return await doPersistDraft(nextStatus);
+  };
+
+  const autoTranslate = async (only?: string) => {
+    const targets = (only ? [only] : activeLanguages.map((l) => l.code)).filter(
+      (c) => c !== defaultLang,
+    );
+    if (targets.length === 0) {
+      toast({ title: "Nada a traduzir", description: "Só existe o idioma base ativo." });
+      return;
+    }
+    setTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("newsletter-translate", {
+        body: {
+          source_language: defaultLang,
+          targets,
+          source: {
+            subject,
+            preheader,
+            intro,
+            outro,
+          },
+        },
+      });
+      if (error) throw error;
+      if (!(data as any)?.ok) throw new Error((data as any)?.error ?? "translate_failed");
+
+      const result = (data as any).translations as Record<string, Record<string, string>>;
+      setTranslations((prev) => {
+        const next = { ...prev };
+        for (const [code, fields] of Object.entries(result)) {
+          next[code] = {
+            language_code: code,
+            subject: null,
+            preheader: null,
+            title: null,
+            intro: null,
+            outro: null,
+            cta_label: null,
+            footer_note: null,
+            ...(prev[code] ?? {}),
+            ...fields,
+          } as TranslationDraft;
+        }
+        return next;
+      });
+      toast({
+        title: "Traduções geradas",
+        description: targets.map((t) => t.toUpperCase()).join(", "),
+      });
+    } catch (err: any) {
+      const msg = String(err?.message ?? err);
+      toast({
+        title: "Falha na tradução automática",
+        description:
+          msg.includes("rate_limited")
+            ? "Demasiados pedidos — tenta novamente daqui a pouco."
+            : msg.includes("payment_required")
+              ? "Créditos de IA esgotados."
+              : msg,
+        variant: "destructive",
+      });
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  const doPersistDraft = async (nextStatus?: string) => {
     const saved = await save.mutateAsync({ ...draft, status: nextStatus ?? campaign?.status ?? "draft" });
     for (const t of translationPayload) {
       await saveTranslation.mutateAsync({ ...t, campaign_id: saved.id });
@@ -360,6 +431,28 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
+              {!isReadOnly && (
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="secondary" disabled={translating} onClick={() => autoTranslate()}>
+                    {translating ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Languages className="h-4 w-4 mr-1" />
+                    )}
+                    Traduzir automaticamente (todos)
+                  </Button>
+                  {currentLang !== defaultLang && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={translating}
+                      onClick={() => autoTranslate(currentLang)}
+                    >
+                      Traduzir só {currentLang.toUpperCase()}
+                    </Button>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap gap-1.5">
                 {activeLanguages.map((l) => (
                   <Badge
