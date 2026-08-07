@@ -595,6 +595,8 @@ export async function renderSoldCreative(
     ctx.fillText(site.toUpperCase(), W - pad, H - 34 * k);
     ctx.textAlign = "left";
   }
+  // Faixa oblíqua sempre por cima de tudo.
+  drawSoldBanner(ctx, label, W, H);
   return canvas;
 }
 
