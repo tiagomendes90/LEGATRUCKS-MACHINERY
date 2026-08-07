@@ -58,7 +58,7 @@ import {
   slugify,
 } from "@/lib/creative/render";
 import { buildReelKit } from "@/lib/creative/reelKit";
-import { uploadCreative } from "@/lib/creative/uploadCreative";
+import { uploadCreative, uploadCreativeVideo } from "@/lib/creative/uploadCreative";
 import { emitPublishingEvent } from "@/lib/publishing";
 
 const BLOCK_ORDER: CreativeBlockKey[] = [
@@ -98,6 +98,9 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
   const [ctaTouched, setCtaTouched] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [publishing, setPublishing] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const product = useMemo(
@@ -268,6 +271,72 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
         variant: "destructive",
       });
     } finally {
+      setPublishing(null);
+    }
+  };
+
+  /**
+   * Publica um Reel: carrega o MP4 para o storage público (a Meta só aceita
+   * URLs públicos) e emite o evento no PublishingService.
+   */
+  const handlePublishReel = async (channel: "instagram_reel" | "facebook_reel") => {
+    if (!product) return;
+    const label = channel === "instagram_reel" ? "Instagram" : "Facebook";
+    setPublishing(channel);
+    try {
+      let url = videoUrl;
+      if (!url) {
+        if (!videoFile) throw new Error("Selecione primeiro um vídeo MP4 vertical (9:16).");
+        setUploadingVideo(true);
+        url = await uploadCreativeVideo(videoFile, {
+          productId: product.id,
+          fileBase: slugify(`${product.data.brand} ${product.data.model}`),
+        });
+        setVideoUrl(url);
+        setUploadingVideo(false);
+      }
+
+      let coverUrl: string | null = null;
+      if (canvasRef.current) {
+        try {
+          coverUrl = await uploadCreative(await canvasToBlob(canvasRef.current), {
+            productId: product.id,
+            kind: "reel-cover",
+            fileBase: slugify(`${product.data.brand} ${product.data.model}`),
+          });
+        } catch {
+          /* a capa é opcional */
+        }
+      }
+
+      const caption = reelKit
+        ? `${reelKit.description}\n\n${reelKit.hashtags.map((h) => `#${h}`).join(" ")}`
+        : null;
+
+      await emitPublishingEvent({
+        type: "social.reel.publish",
+        productId: product.id,
+        payload: {
+          channel,
+          video_url: url,
+          cover_url: coverUrl,
+          caption,
+          template_id: template?.id ?? null,
+        },
+      });
+      toast({
+        title: `Reel enviado para ${label}`,
+        description:
+          "O vídeo está a ser processado pela Meta. Acompanhe o estado no painel de Publicações.",
+      });
+    } catch (e: any) {
+      toast({
+        title: `Erro ao publicar no ${label}`,
+        description: e?.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingVideo(false);
       setPublishing(null);
     }
   };
@@ -572,6 +641,61 @@ function StudioTab({ kind, productId, setProductId }: StudioTabProps) {
               <p className="text-xs text-muted-foreground">
                 As Stories expiram ao fim de 24 horas. O criativo é guardado no
                 storage público antes de ser enviado para a Meta.
+              </p>
+            </div>
+          </>
+        )}
+
+        {kind === "reel_cover" && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="reel-video">Vídeo do Reel (MP4 vertical 9:16)</Label>
+              <Input
+                id="reel-video"
+                type="file"
+                accept="video/mp4,video/quicktime"
+                onChange={(e) => {
+                  setVideoFile(e.target.files?.[0] ?? null);
+                  setVideoUrl(null);
+                }}
+              />
+              {videoFile && (
+                <p className="text-xs text-muted-foreground">
+                  {videoFile.name} · {(videoFile.size / 1024 / 1024).toFixed(1)} MB
+                  {videoUrl ? " · carregado" : ""}
+                </p>
+              )}
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => handlePublishReel("instagram_reel")}
+                disabled={!!publishing || !product || !videoFile}
+              >
+                {publishing === "instagram_reel" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Instagram className="mr-2 h-4 w-4" />
+                )}
+                Publicar Reel no Instagram
+              </Button>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => handlePublishReel("facebook_reel")}
+                disabled={!!publishing || !product || !videoFile}
+              >
+                {publishing === "facebook_reel" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Facebook className="mr-2 h-4 w-4" />
+                )}
+                Publicar Reel no Facebook
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                {uploadingVideo
+                  ? "A carregar o vídeo para o storage..."
+                  : "O vídeo é carregado para o storage público e a capa gerada acima é usada como thumbnail. Duração mínima ~3s, máxima 90s."}
               </p>
             </div>
           </>
