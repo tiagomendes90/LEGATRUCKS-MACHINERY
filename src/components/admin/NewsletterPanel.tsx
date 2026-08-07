@@ -50,6 +50,7 @@ import {
 import { NewsletterCampaignEditor } from "./NewsletterCampaignEditor";
 import NewsletterListsPanel from "./NewsletterListsPanel";
 import NewsletterTemplatesPanel from "./NewsletterTemplatesPanel";
+import NewsletterLanguagesPanel from "./NewsletterLanguagesPanel";
 import { usePersistentState } from "@/hooks/usePersistentState";
 
 function statusBadge(status: string) {
@@ -133,6 +134,7 @@ export default function NewsletterPanel() {
           <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
           <TabsTrigger value="lists">Listas</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="languages">Idiomas</TabsTrigger>
           <TabsTrigger value="subscribers">Subscritores</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
@@ -270,6 +272,10 @@ export default function NewsletterPanel() {
 
         <TabsContent value="templates">
           <NewsletterTemplatesPanel />
+        </TabsContent>
+
+        <TabsContent value="languages">
+          <NewsletterLanguagesPanel />
         </TabsContent>
 
         {/* Subscritores */}
