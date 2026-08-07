@@ -235,7 +235,8 @@ export function drawSoldBanner(
   const text = (label || "SOLD / VENDIDO").toUpperCase();
   const angle = -Math.atan2(height, width);
   const diag = Math.hypot(width, height);
-  const scale = diag / Math.hypot(CANVAS_W, CANVAS_H);
+  // Escala pelo lado mais curto: mantém a faixa proporcional em 1:1, 4:5 e 9:16.
+  const scale = Math.min(width, height) / 1080;
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.rotate(angle);
@@ -423,7 +424,9 @@ export async function renderSoldCreative(
   const preset = SOLD_FORMATS[format] ?? SOLD_FORMATS.instagram;
   const W = preset.width;
   const H = preset.height;
-  const s = W / 1080; // escala base
+  // Escala adaptada ao formato: nunca deixa a composição transbordar em 1:1.
+  const s = Math.min(W / 1080, H / 1350);
+  const tall = H / W >= 1.6; // story
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -442,7 +445,7 @@ export async function renderSoldCreative(
 
   // topo: logótipo + faixa de acento
   const showHeader = blocks.logo || blocks.tag;
-  const headerH = showHeader ? 118 * s : 40 * s;
+  const headerH = showHeader ? (tall ? 128 : 110) * s : 36 * s;
   if (blocks.logo) {
     try {
       const logo = await loadImage(LEGA_LOGO);
@@ -474,9 +477,11 @@ export async function renderSoldCreative(
   ].filter(Boolean) as string[];
   const site = blocks.website ? (info.website ?? "www.lega.pt").trim() : "";
   const hasInfo = !!brand || !!model || hasPrice || chips.length > 0 || !!site;
-  const infoH = !hasInfo
+  const rawInfoH = !hasInfo
     ? 40 * s
     : (hasPrice || chips.length ? 300 : 220) * s;
+  // Em formatos mais baixos (1:1) o painel nunca ocupa mais de 34% da altura.
+  const infoH = Math.min(rawInfoH, H * (tall ? 0.34 : 0.32));
   const infoY = H - infoH;
 
   const img = await loadImage(url);
