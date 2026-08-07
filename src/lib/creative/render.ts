@@ -107,25 +107,32 @@ function wrapLines(
   const words = text.split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let current = "";
-  for (const word of words) {
+  let truncated = false;
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
     const next = current ? `${current} ${word}` : word;
     if (ctx.measureText(next).width <= maxWidth || !current) {
       current = next;
     } else {
       lines.push(current);
       current = word;
-      if (lines.length === maxLines) break;
+      if (lines.length === maxLines) {
+        truncated = true;
+        break;
+      }
     }
   }
-  if (lines.length < maxLines && current) lines.push(current);
-  if (lines.length === maxLines) {
+  if (!truncated && lines.length < maxLines && current) lines.push(current);
+  if (truncated || lines.some((l) => ctx.measureText(l).width > maxWidth)) {
     let last = lines[maxLines - 1];
+    if (truncated && !last.endsWith("…")) last = `${last}…`;
     if (ctx.measureText(last).width > maxWidth) {
       while (last.length > 3 && ctx.measureText(`${last}…`).width > maxWidth) {
-        last = last.slice(0, -1);
+        last = last.replace(/…$/, "").slice(0, -1);
       }
-      lines[maxLines - 1] = `${last.trim()}…`;
+      last = `${last.replace(/…$/, "").trim()}…`;
     }
+    lines[maxLines - 1] = last;
   }
   return lines;
 }
