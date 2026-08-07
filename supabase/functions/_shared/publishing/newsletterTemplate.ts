@@ -18,6 +18,7 @@ import {
   resolveCampaignContent,
   type CampaignTranslationRow,
 } from "./i18n/campaignContent.ts";
+import { newsletterViewUrl } from "./i18n/urls.ts";
 
 /** Mesmo asset do header e footer do website. */
 const LOGO_URL = `${SITE_URL}/lovable-uploads/9a1d192d-e9d6-4064-944c-c583427ab323.png`;
