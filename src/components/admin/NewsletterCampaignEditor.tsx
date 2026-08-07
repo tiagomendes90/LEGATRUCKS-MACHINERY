@@ -205,6 +205,9 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
 
   const persistDraft = async (nextStatus?: string) => {
     const saved = await save.mutateAsync({ ...draft, status: nextStatus ?? campaign?.status ?? "draft" });
+    for (const t of translationPayload) {
+      await saveTranslation.mutateAsync({ ...t, campaign_id: saved.id });
+    }
     toast({ title: "Rascunho guardado", description: `Campanha "${saved.title}" atualizada.` });
     return saved;
   };
