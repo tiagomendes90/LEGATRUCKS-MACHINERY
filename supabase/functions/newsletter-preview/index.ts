@@ -5,6 +5,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { renderNewsletterHtml } from "../_shared/publishing/newsletterTemplate.ts";
 import { resolveRecipients } from "../_shared/publishing/channels/newsletter.ts";
 import { loadProductsByIds } from "../_shared/publishing/productQuery.ts";
+import { loadNewsletterI18n } from "../_shared/publishing/i18n/index.ts";
+import { resolveCampaignContent } from "../_shared/publishing/i18n/campaignContent.ts";
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -40,6 +42,8 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const campaignId = body?.campaign_id as string | undefined;
     const testEmail = body?.test_email as string | undefined;
+    const requestedLang = (body?.lang as string | undefined) ?? undefined;
+    const draftTranslations = (body?.translations as any[] | undefined) ?? undefined;
     const draft = body?.draft as
       | {
           title?: string;
@@ -82,6 +86,18 @@ Deno.serve(async (req) => {
       return json(400, { error: "campaign_id or draft required" });
     }
 
+    const i18n = await loadNewsletterI18n(admin);
+    const lang = i18n.resolve(requestedLang ?? campaign.default_language);
+
+    let translations: any[] = draftTranslations ?? [];
+    if (!draftTranslations && campaignId) {
+      const { data: tr } = await admin
+        .from("newsletter_campaign_translations")
+        .select("*")
+        .eq("campaign_id", campaignId);
+      translations = tr ?? [];
+    }
+
     // Exatamente a mesma query usada no envio real → preview idêntico ao email.
     const products = await loadProductsByIds(admin, productIds);
 
@@ -105,8 +121,14 @@ Deno.serve(async (req) => {
       },
       template: templateBlocks,
       products,
+      i18n,
+      lang,
+      translations,
+      publicNumber: campaign.public_number ?? null,
       unsubscribeUrl: testEmail ? "#preview-unsubscribe" : undefined,
     });
+
+    const resolved = resolveCampaignContent(campaign, lang, i18n, translations, templateBlocks as any);
 
     // Estimativa de audiência (mesma resolução usada no envio real).
     let recipientCount = 0;
@@ -130,7 +152,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from,
           to: [testEmail],
-          subject: `[TESTE] ${campaign.subject}`,
+          subject: `[TESTE] ${resolved.subject}`,
           html: html.replaceAll("{{{RESEND_UNSUBSCRIBE_URL}}}", "#teste").replaceAll("{{RESEND_UNSUBSCRIBE_URL}}", "#teste"),
         }),
       });
@@ -144,15 +166,23 @@ Deno.serve(async (req) => {
         entity_id: campaignId ?? null,
         action: "campaign.test_sent",
         actor_id: uid,
-        details: { to: testEmail, subject: campaign.subject },
+        details: { to: testEmail, subject: resolved.subject, language: lang },
       });
-      return json(200, { ok: true, test_sent: true, to: testEmail, id: out?.id ?? null });
+      return json(200, { ok: true, test_sent: true, to: testEmail, language: lang, id: out?.id ?? null });
     }
 
     return json(200, {
       ok: true,
       html,
-      subject: campaign.subject,
+      subject: resolved.subject,
+      language: lang,
+      languages: i18n.languages.map((l) => ({
+        code: l.code,
+        label: l.label,
+        native_label: l.native_label,
+        flag_emoji: l.flag_emoji,
+        is_default: l.is_default,
+      })),
       product_count: products.length,
       recipient_count: recipientCount,
     });

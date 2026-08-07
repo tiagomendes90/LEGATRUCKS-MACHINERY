@@ -7,6 +7,9 @@ import { resendFetch } from "../../resendClient.ts";
 import { loadNewsletterI18n } from "../i18n/index.ts";
 import { resolveCampaignContent } from "../i18n/campaignContent.ts";
 
+/** Substituído por destinatário — permite guardar a preferência de idioma. */
+const TOKEN_PLACEHOLDER = "%%LEGA_SUBSCRIBER_TOKEN%%";
+
 const BATCH_SIZE = 100;
 
 interface Recipient {

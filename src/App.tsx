@@ -14,6 +14,7 @@ import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
+import NewsletterView from "./pages/NewsletterView";
 import AdminLogin from "./admin/AdminLogin";
 import AdminDashboard from "./admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/:slug" element={<NewVehicleCategory />} />
             
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/newsletter/:number" element={<NewsletterView />} />
             <Route path="/contactos" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />

@@ -315,6 +315,8 @@ export function useAdminUnsubscribe() {
 /** Renders campaign HTML via the newsletter-preview edge function. */
 export async function fetchCampaignPreview(input: {
   campaign_id?: string;
+  lang?: string;
+  translations?: Array<Record<string, unknown>>;
   draft?: {
     title: string;
     subject: string;
@@ -326,13 +328,20 @@ export async function fetchCampaignPreview(input: {
     list_ids?: string[];
     tags?: string[];
   };
-}): Promise<{ html: string; subject: string; product_count: number; recipient_count: number }> {
+}): Promise<{
+  html: string;
+  subject: string;
+  product_count: number;
+  recipient_count: number;
+  language?: string;
+  languages?: Array<{ code: string; native_label: string; flag_emoji: string | null; is_default: boolean }>;
+}> {
   const { data, error } = await supabase.functions.invoke("newsletter-preview", {
     body: input,
   });
   if (error) throw error;
   if (!data?.ok) throw new Error((data as any)?.error ?? "preview_failed");
-  return data as { html: string; subject: string; product_count: number; recipient_count: number };
+  return data as any;
 }
 
 /* ------------------------------------------------------------------ */
@@ -717,6 +726,8 @@ export async function sendTestEmail(input: {
   campaign_id?: string;
   draft?: Record<string, unknown>;
   test_email: string;
+  lang?: string;
+  translations?: Array<Record<string, unknown>>;
 }) {
   const { data, error } = await supabase.functions.invoke("newsletter-preview", { body: input });
   if (error) throw error;
