@@ -867,7 +867,7 @@ export default function SocialPublishingPanel() {
             { key: "overview", label: "Visão geral" },
             { key: "ready_for_social", label: "Prontos" },
             { key: "outdated", label: "Desatualizados" },
-            { key: "published", label: "Publicados" },
+            { key: "published", label: "Veículos postados" },
           ] as const
         ).map((t) => (
           <Button
