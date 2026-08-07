@@ -215,6 +215,20 @@ function ProductCard({
       (brand
         ? product.title.replace(new RegExp(`^${brand}\\s*`, "i"), "").trim()
         : product.title) || product.title;
+    // Horas / km a partir das especificações dinâmicas do produto.
+    const specs = product.specs ?? [];
+    const usageSpec = specs.find((s) =>
+      ["operating_hours", "mileage"].includes(s.spec?.name ?? ""),
+    );
+    const usage = usageSpec
+      ? `${new Intl.NumberFormat("pt-PT").format(
+          Number(usageSpec.value_number ?? usageSpec.value_text ?? 0),
+        )} ${usageSpec.spec?.unit ?? ""}`.trim()
+      : null;
+    const location =
+      [product.location_city, product.location_country]
+        .filter(Boolean)
+        .join(", ") || null;
     return {
       brand,
       model,
@@ -226,9 +240,43 @@ function ProductCard({
           }).format(product.price)
         : null,
       year: product.year ? String(product.year) : null,
+      usage,
+      location,
       website: SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, ""),
     };
-  }, [product.brand?.name, product.title, product.price, product.currency, product.year]);
+  }, [
+    product.brand?.name,
+    product.title,
+    product.price,
+    product.currency,
+    product.year,
+    product.specs,
+    product.location_city,
+    product.location_country,
+  ]);
+  // Campos que têm mesmo conteúdo para mostrar no criativo.
+  const soldBlockAvailable = useMemo<Record<SoldBlockKey, boolean>>(
+    () => ({
+      logo: true,
+      tag: true,
+      brand: !!soldInfo.brand,
+      model: !!soldInfo.model,
+      price: !!soldInfo.price,
+      year: !!soldInfo.year,
+      usage: !!soldInfo.usage,
+      location: !!soldInfo.location,
+      website: true,
+    }),
+    [soldInfo],
+  );
+  // Não pedir ao renderer blocos sem dados.
+  const effectiveSoldBlocks = useMemo(() => {
+    const out = { ...soldBlocks };
+    (Object.keys(out) as SoldBlockKey[]).forEach((k) => {
+      if (!soldBlockAvailable[k]) out[k] = false;
+    });
+    return out;
+  }, [soldBlocks, soldBlockAvailable]);
   useEffect(() => {
     let cancelled = false;
     const first = orderedImages[0] ?? image;
