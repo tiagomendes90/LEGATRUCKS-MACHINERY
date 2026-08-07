@@ -928,9 +928,13 @@ export default function SocialPublishingPanel() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {current.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+           {current.map((p) => (
+             <ProductCard
+               key={p.id}
+               product={p}
+               showSoldControl={tab === "published"}
+             />
+           ))}
         </div>
       )}
     </div>
