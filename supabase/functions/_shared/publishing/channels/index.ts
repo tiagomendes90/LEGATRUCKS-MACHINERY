@@ -5,6 +5,7 @@ import { instagramChannel } from "./instagram.ts";
 import { newsletterChannel } from "./newsletter.ts";
 import { searchEnginesChannel } from "./searchEngines.ts";
 import { facebookStoryChannel, instagramStoryChannel } from "./stories.ts";
+import { facebookReelChannel, instagramReelChannel } from "./reels.ts";
 
 // Register every adapter here. Adding a new channel (LinkedIn, WhatsApp, …)
 // means creating a new file in ./channels/ and appending it below.
@@ -15,6 +16,8 @@ export const channels: ChannelAdapter[] = [
   instagramChannel,
   facebookStoryChannel,
   instagramStoryChannel,
+  facebookReelChannel,
+  instagramReelChannel,
   newsletterChannel,
 ];
 
