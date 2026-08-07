@@ -382,8 +382,25 @@ export const SOLD_THEMES: Record<SoldThemeKey, SoldTheme> = {
 export interface SoldCreativeOptions {
   label?: string;
   format?: SoldFormatKey;
-  theme?: SoldThemeKey;
+  /** Chave de tema legado ou tema derivado de um template da biblioteca. */
+  theme?: SoldThemeKey | SoldTheme;
   blocks?: Partial<Record<SoldBlockKey, boolean>>;
+}
+
+/** Converte um template da Biblioteca de Templates num tema de "vendido". */
+export function soldThemeFromConfig(
+  config: TemplateConfig,
+  label = "Template",
+): SoldTheme {
+  return {
+    label,
+    background: config.background ?? "#081B33",
+    surface: config.surface ?? config.background ?? "#0B2545",
+    accent: config.accent ?? "#F39200",
+    text: config.text ?? "#FFFFFF",
+    muted: config.muted ?? "#C7D3E3",
+    photo: config.photoFrame === "card" ? "card" : "full",
+  };
 }
 
 /**
@@ -397,7 +414,11 @@ export async function renderSoldCreative(
 ): Promise<HTMLCanvasElement> {
   const label = options.label || "SOLD / VENDIDO";
   const format = options.format ?? "instagram";
-  const theme = SOLD_THEMES[options.theme ?? "editorial"] ?? SOLD_THEMES.editorial;
+  const theme =
+    typeof options.theme === "object" && options.theme
+      ? options.theme
+      : SOLD_THEMES[(options.theme as SoldThemeKey) ?? "editorial"] ??
+        SOLD_THEMES.editorial;
   const blocks = { ...DEFAULT_SOLD_BLOCKS, ...(options.blocks ?? {}) };
   const preset = SOLD_FORMATS[format] ?? SOLD_FORMATS.instagram;
   const W = preset.width;
