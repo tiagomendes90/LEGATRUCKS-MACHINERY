@@ -194,7 +194,7 @@ function specRows(p: AnyRecord, ctx: Ctx): string {
 }
 
 /** Galeria com as restantes imagens (grelha 3 colunas). */
-function galleryRows(images: string[], title: string, link: string): string {
+function galleryRows(images: string[], title: string, link: string, ctx: Ctx): string {
   const rest = images.slice(1, MAX_GALLERY + 1);
   if (rest.length === 0) return "";
   const cells = rest.map(
@@ -212,25 +212,31 @@ function galleryRows(images: string[], title: string, link: string): string {
     rows.push(`<tr>${group.join("")}</tr>`);
   }
   const extra = images.length - 1 - rest.length;
+  const more = extra > 0
+    ? ctx.i18n.t(ctx.lang, extra === 1 ? "product.gallery_more_one" : "product.gallery_more_many", { count: extra })
+    : "";
   return `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 18px;">
         ${rows.join("")}
       </table>
-      ${extra > 0 ? `<p style="margin:-8px 0 18px;font-size:13px;color:${MUTED};text-align:center;">+${extra} ${extra === 1 ? "imagem" : "imagens"} na página do equipamento</p>` : ""}`;
+      ${more ? `<p style="margin:-8px 0 18px;font-size:13px;color:${MUTED};text-align:center;">${esc(more)}</p>` : ""}`;
 }
 
 function renderProductCard(
   p: AnyRecord,
+  ctx: Ctx,
+  defaultCta: string,
   ov?: { title?: string; description?: string; cta?: string },
 ): string {
-  const title = ov?.title || (p.title as string) || "Equipamento disponível";
+  const content = resolveProductContent(p, ctx.lang, ctx.i18n);
+  const title = ov?.title || content.title || (p.title as string) || "LEGA";
   const images = orderedImageUrls(p);
   const image = images[0] ?? null;
-  const price = fmtPrice(p);
-  const desc = ov?.description || ((p.description as string) ?? "");
+  const price = fmtPrice(p, ctx.locale);
+  const desc = ov?.description || content.description || ((p.description as string) ?? "");
   const cleanDesc = desc.replace(/\s+/g, " ").trim();
   const shortDesc = cleanDesc.slice(0, 600);
-  const cta = ov?.cta || "Ver equipamento";
+  const cta = ov?.cta || defaultCta;
   const link = productUrl(p);
   const brandName = (p.brand as AnyRecord | undefined)?.name as string | undefined;
   const catName = (p.subcategory as AnyRecord | undefined)?.name
@@ -256,13 +262,13 @@ function renderProductCard(
       <!-- Preço em destaque -->
       <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 18px;">
         <tr><td style="background:${price ? "#fff7ed" : "#f1f5f9"};border:1px solid ${price ? "#fed7aa" : LINE};border-radius:10px;padding:10px 16px;">
-          <span style="font-size:${price ? "24px" : "17px"};font-weight:800;color:${price ? BRAND_DARK : MUTED};line-height:1;">${price ? esc(price) : "Sob consulta"}</span>
+          <span style="font-size:${price ? "24px" : "17px"};font-weight:800;color:${price ? BRAND_DARK : MUTED};line-height:1;">${price ? esc(price) : esc(ctx.i18n.t(ctx.lang, "product.price_on_request"))}</span>
         </td></tr>
       </table>
 
-      ${specRows(p)}
+      ${specRows(p, ctx)}
 
-      ${galleryRows(images, title, link)}
+      ${galleryRows(images, title, link, ctx)}
 
       ${
         shortDesc
@@ -277,7 +283,7 @@ function renderProductCard(
         </td></tr>
       </table>
       <p style="margin:12px 0 0;text-align:center;font-size:13px;color:${MUTED};">
-        Ou fale connosco: <a href="${WHATSAPP_URL}" style="color:${BRAND_DARK};text-decoration:none;font-weight:600;">WhatsApp ${esc(PHONE_DISPLAY)}</a>
+        ${esc(ctx.i18n.t(ctx.lang, "product.contact_prefix"))} <a href="${WHATSAPP_URL}" style="color:${BRAND_DARK};text-decoration:none;font-weight:600;">WhatsApp ${esc(PHONE_DISPLAY)}</a>
       </p>
     </td></tr>
   </table>`;
