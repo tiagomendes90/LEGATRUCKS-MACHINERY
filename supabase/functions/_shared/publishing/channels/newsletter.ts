@@ -243,6 +243,7 @@ export const newsletterChannel: ChannelAdapter = {
         lang,
         translations,
         publicNumber: campaign.public_number ?? null,
+        subscriberToken: TOKEN_PLACEHOLDER,
       });
       const version = { html, subject: content.subject };
       versionCache.set(lang, version);
