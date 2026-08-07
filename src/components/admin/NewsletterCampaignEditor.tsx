@@ -197,11 +197,33 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     }
   };
 
-  // Load initial preview
+  // Auto-refresh do preview (debounced) sempre que o conteúdo muda
+  const previewKey = useMemo(
+    () =>
+      JSON.stringify({
+        lang: currentLang,
+        title: draft.title,
+        subject: draft.subject,
+        preheader: draft.preheader,
+        intro,
+        outro,
+        product_ids: productIds,
+        template_id: templateId,
+        audience_mode: audienceMode,
+        list_ids: listIds,
+        tags,
+        translations: translationPayload,
+      }),
+    [currentLang, draft, intro, outro, productIds, templateId, audienceMode, listIds, tags, translationPayload],
+  );
+
   useEffect(() => {
-    refreshPreview();
+    const t = setTimeout(() => {
+      refreshPreview();
+    }, 700);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLang]);
+  }, [previewKey]);
 
   const persistDraft = async (nextStatus?: string) => {
     const saved = await save.mutateAsync({ ...draft, status: nextStatus ?? campaign?.status ?? "draft" });
