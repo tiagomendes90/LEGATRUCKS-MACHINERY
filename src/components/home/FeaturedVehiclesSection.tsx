@@ -17,9 +17,21 @@ const FeaturedVehiclesSection = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const featuredCount = featuredProducts.length;
+  // Embla desativa o loop quando não há slides suficientes para preencher a
+  // viewport (3 por vista em desktop). Duplicamos os slides para garantir
+  // continuidade infinita sem espaços vazios.
+  const baseSlides = featuredProducts.slice(0, 9);
+  const repeats = baseSlides.length > 0 && baseSlides.length < 6
+    ? Math.ceil(6 / baseSlides.length)
+    : 1;
+  const slides = Array.from({ length: repeats }).flatMap((_, r) =>
+    baseSlides.map((item: any, i: number) => ({ item, key: `${item.id}-${r}-${i}` }))
+  );
+
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
-      loop: true,
+      loop: baseSlides.length > 1,
       align: "start",
       slidesToScroll: 1,
       dragFree: false,
@@ -58,6 +70,10 @@ const FeaturedVehiclesSection = () => {
     };
   }, [emblaApi, onSelect]);
 
+  useEffect(() => {
+    emblaApi?.reInit();
+  }, [emblaApi, slides.length]);
+
   if (isLoading) {
     return (
       <div className="py-16">
@@ -83,7 +99,7 @@ const FeaturedVehiclesSection = () => {
     );
   }
 
-  if (!featuredProducts.length) {
+  if (!featuredCount) {
     return (
       <div className="py-16">
         <div className="container mx-auto px-6">
@@ -96,8 +112,7 @@ const FeaturedVehiclesSection = () => {
     );
   }
 
-  const slides = featuredProducts.slice(0, 9);
-  const totalSlides = slides.length;
+  const totalSlides = baseSlides.length;
 
   return (
     <section className="py-16 bg-muted/30">
@@ -129,15 +144,15 @@ const FeaturedVehiclesSection = () => {
           {/* Carousel */}
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex -ml-4">
-              {slides.map((item: any, index: number) => {
-                const product = item.product;
+              {slides.map(({ item, key }, index: number) => {
+                const product = (item as any).product;
                 if (!product) return null;
 
-                const isActive = index === selectedIndex;
+                const isActive = index % totalSlides === selectedIndex % totalSlides;
 
                 return (
                   <div
-                    key={item.id}
+                    key={key}
                     className="min-w-0 shrink-0 grow-0 basis-full sm:basis-1/2 lg:basis-1/3 pl-4"
                   >
                     <div
@@ -211,7 +226,7 @@ const FeaturedVehiclesSection = () => {
                   key={i}
                   onClick={() => emblaApi?.scrollTo(i)}
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    i === selectedIndex
+                    i === selectedIndex % totalSlides
                       ? "w-8 bg-primary"
                       : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
                   }`}
