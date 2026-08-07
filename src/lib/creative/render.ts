@@ -518,7 +518,7 @@ export async function renderSoldCreative(
   }
 
   // painel de dados
-  let y = infoY + 66 * s;
+  let y = infoY + Math.min(66 * s, infoH * 0.24);
   if (brand) {
     setFont(ctx, 700, 28 * s, 6);
     ctx.fillStyle = ACCENT;
@@ -527,7 +527,14 @@ export async function renderSoldCreative(
   }
   if (model) {
     ctx.fillStyle = TEXT;
-    const { size, lines } = fitHeadline(ctx, model, W - pad * 2, 2, 66 * s, 34 * s);
+    const { size, lines } = fitHeadline(
+      ctx,
+      model,
+      W - pad * 2,
+      tall ? 2 : 1,
+      (tall ? 66 : 58) * s,
+      32 * s,
+    );
     for (const line of lines) {
       ctx.fillText(line, pad, y);
       y += size * 1.12;
