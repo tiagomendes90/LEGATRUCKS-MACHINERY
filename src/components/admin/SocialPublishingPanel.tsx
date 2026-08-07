@@ -195,7 +195,6 @@ function ProductCard({
     const def = active.find((t) => t.is_default) ?? active[0];
     return def ? [def] : [];
   }, [creativeTemplates]);
-  );
   const [soldTemplateId, setSoldTemplateId] = useState<string | null>(null);
   useEffect(() => {
     if (soldTemplateId || soldTemplates.length === 0) return;
