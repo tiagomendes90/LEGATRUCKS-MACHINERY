@@ -189,10 +189,12 @@ function ProductCard({
   const [soldFormat, setSoldFormat] = useState<SoldFormatKey>("instagram");
   // Template (Biblioteca de Templates) e blocos de informação do criativo.
   const { data: creativeTemplates = [] } = useCreativeTemplates();
-  const soldTemplates = useMemo(
-    () => creativeTemplates.filter((t) => t.is_active),
-    [creativeTemplates],
-  );
+  // Apenas o template por defeito (Capa Reel Escura) é usado nos anúncios de vendido.
+  const soldTemplates = useMemo(() => {
+    const active = creativeTemplates.filter((t) => t.is_active);
+    const def = active.find((t) => t.is_default) ?? active[0];
+    return def ? [def] : [];
+  }, [creativeTemplates]);
   const [soldTemplateId, setSoldTemplateId] = useState<string | null>(null);
   useEffect(() => {
     if (soldTemplateId || soldTemplates.length === 0) return;
