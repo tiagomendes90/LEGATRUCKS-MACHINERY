@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { selectInstagramCarousel } from "../imageValidation.ts";
 import { GRAPH, graphFetch, formatMetaError, resolveMetaCredentials } from "../metaClient.ts";
 import { syncProductSocialStatus } from "../socialStatus.ts";
+import { deleteSocialPost } from "../socialDelete.ts";
 
 const CHANNEL_KEY = "instagram";
 const MAX_CAROUSEL = 10;
@@ -122,49 +123,13 @@ export const instagramChannel: ChannelAdapter = {
 
     // ---------- DELETE ----------
     if (eventType === "social.delete") {
-      const targetId =
-        (payload.external_id as string | undefined) ??
-        (await loadLatestExternalId(admin, productId));
-      if (!targetId) {
-        return { status: "skipped", response: { reason: "no external_id to delete" } };
-      }
-      try {
-        const res = await graphFetch(
-          `${GRAPH}/${targetId}?access_token=${encodeURIComponent(token)}`,
-          { method: "DELETE" },
-        );
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          return {
-            status: "failed",
-            request: { endpoint: `DELETE ${targetId}` },
-            response: json,
-            error: formatMetaError(json, res.status),
-          };
-        }
-        await admin
-          .from("product_social_posts")
-          .update({ status: "deleted", updated_at: new Date().toISOString() })
-          .eq("product_id", productId)
-          .eq("channel_key", CHANNEL_KEY)
-          .eq("external_id", targetId);
-
-        const { count } = await admin
-          .from("product_social_posts")
-          .select("*", { count: "exact", head: true })
-          .eq("product_id", productId)
-          .eq("channel_key", CHANNEL_KEY)
-          .eq("status", "published");
-        // Estado global multi-canal (Facebook pode continuar publicado).
-        await syncProductSocialStatus(admin, productId);
-        return {
-          status: "success",
-          request: { action: "delete", external_id: targetId, remaining: count ?? 0 },
-          response: json,
-        };
-      } catch (err) {
-        return { status: "failed", error: err instanceof Error ? err.message : String(err) };
-      }
+      return await deleteSocialPost({
+        admin,
+        token,
+        channelKey: CHANNEL_KEY,
+        productId,
+        externalId: (payload.external_id as string | undefined) ?? null,
+      });
     }
 
     // ---------- PUBLISH / REPUBLISH ----------

@@ -5,6 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Facebook,
   Instagram,
   ExternalLink,
@@ -185,6 +196,50 @@ function ProductCard({ product }: { product: SocialProductRow }) {
     return () => clearTimeout(t);
   }, [pending]);
   const busy = publishMut.isPending || syncMut.isPending || pending?.channel === channel;
+
+  // Eliminação por canal (independente): mantém o botão em curso até o post sair.
+  const [deletingChannel, setDeletingChannel] = useState<ChannelKey | null>(null);
+  useEffect(() => {
+    if (deletingChannel && !postByChannel(deletingChannel)) setDeletingChannel(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts, deletingChannel]);
+  const deletingHere = deletingChannel === channel || deleteMut.isPending;
+
+  const runDelete = () => {
+    if (deletingHere) return;
+    setDeletingChannel(channel);
+    deleteMut.mutate(
+      {
+        productId: product.id,
+        channel,
+        externalId: activePost?.external_id,
+      },
+      {
+        onSuccess: (res: any) => {
+          toast({
+            title: res?.deduped
+              ? "Eliminação já em curso"
+              : `A eliminar publicação no ${CHANNEL_META[channel].label}…`,
+            description: res?.deduped
+              ? "Já existe um pedido idêntico em processamento."
+              : "O estado é atualizado automaticamente assim que a Meta confirmar.",
+          });
+          // Reconcilia com a Meta pouco depois, para refletir o estado real
+          // mesmo que a publicação já tivesse sido removida manualmente.
+          setTimeout(() => syncMut.mutate(product.id), 6000);
+          setTimeout(() => setDeletingChannel(null), 60000);
+        },
+        onError: (e: any) => {
+          setDeletingChannel(null);
+          toast({
+            title: "Não foi possível eliminar",
+            description: String(e?.message ?? e),
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
 
   const runPublish = async (opts: { republish?: boolean; deletePrevious?: boolean } = {}) => {
     // Guarda dura contra duplo clique: se já há uma publicação em curso, ignora.
@@ -453,25 +508,37 @@ function ProductCard({ product }: { product: SocialProductRow }) {
                 )}
                 {busy ? "A publicar…" : "Republicar"}
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() =>
-                  deleteMut.mutate(
-                    {
-                      productId: product.id,
-                          channel,
-                          externalId: activePost?.external_id,
-                    },
-                    {
-                      onSuccess: () =>
-                        toast({ title: "Apagamento enfileirado" }),
-                    },
-                  )
-                }
-                disabled={deleteMut.isPending}
-              >
-                <Trash2 className="h-4 w-4 mr-2" /> Apagar publicação
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={deletingHere}>
+                    {deletingHere ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    {deletingHere
+                      ? "A eliminar…"
+                      : `Eliminar publicação (${CHANNEL_META[channel].label})`}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Tem a certeza que pretende eliminar esta publicação do{" "}
+                      {CHANNEL_META[channel].label}?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação remove permanentemente a publicação
+                      {channel === "facebook" ? " da Página" : " do perfil"} e o artigo volta a
+                      ficar como “Não publicado”, permitindo publicar de novo.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={runDelete}>Eliminar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
                 </>
               )}
             </>

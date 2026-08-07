@@ -7,6 +7,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { GRAPH, graphJson, formatMetaError, resolveMetaCredentials } from "../_shared/publishing/metaClient.ts";
 import { syncProductSocialStatus } from "../_shared/publishing/socialStatus.ts";
+import { isGoneError, classifyConnectionProblem } from "../_shared/publishing/socialDelete.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,44 +27,8 @@ function json(body: unknown, status = 200) {
   });
 }
 
-/** Erros da Graph API que significam "este objeto já não existe". */
-function isGone(err: any): boolean {
-  if (!err) return false;
-  const code = Number(err.code);
-  const sub = Number(err.error_subcode);
-  const msg = String(err.message ?? "").toLowerCase();
-  if (code === 803) return true;
-  if (code === 100 && (sub === 33 || sub === 21)) return true;
-  if (
-    msg.includes("unsupported get request") ||
-    msg.includes("unknown object") ||
-    msg.includes("object does not exist") ||
-    msg.includes("object not found") ||
-    msg.includes("media id is not available") ||
-    msg.includes("no longer exists")
-  ) {
-    return true;
-  }
-  return false;
-}
-
-/** Erros que indicam problema de ligação/permissões — nunca marcar como removido. */
-function isConnectionProblem(err: any): { problem: boolean; kind?: string } {
-  if (!err) return { problem: false };
-  const code = Number(err.code);
-  const sub = Number(err.error_subcode);
-  if (code === 190) {
-    if (sub === 463 || sub === 467) return { problem: true, kind: "token_expired" };
-    return { problem: true, kind: "token_invalid" };
-  }
-  if (code === 200 || code === 10 || code === 3 || code === 299) {
-    return { problem: true, kind: "missing_permissions" };
-  }
-  if (code === 4 || code === 17 || code === 32 || code === 613) {
-    return { problem: true, kind: "rate_limited" };
-  }
-  return { problem: false };
-}
+const isGone = isGoneError;
+const isConnectionProblem = classifyConnectionProblem;
 
 async function requireAuth(req: Request): Promise<boolean> {
   const cron = req.headers.get("x-cron-secret");
