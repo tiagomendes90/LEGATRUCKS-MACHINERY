@@ -726,6 +726,8 @@ export async function sendTestEmail(input: {
   campaign_id?: string;
   draft?: Record<string, unknown>;
   test_email: string;
+  lang?: string;
+  translations?: Array<Record<string, unknown>>;
 }) {
   const { data, error } = await supabase.functions.invoke("newsletter-preview", { body: input });
   if (error) throw error;
