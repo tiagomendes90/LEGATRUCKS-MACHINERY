@@ -513,8 +513,8 @@ export async function renderSoldCreative(
     panel = measurePanel(k);
   }
   const infoH = Math.min(panel.h, maxInfoH);
-  // Painel de informação no canto superior esquerdo, mais próximo do topo.
-  const infoY = Math.max(0, headerH - 48 * s);
+  // O logótipo ocupa o cabeçalho; o texto começa abaixo dele para evitar sobreposição.
+  const infoY = headerH + 16 * s;
 
   const img = await loadImage(url);
   if (theme.photo === "full") {
