@@ -487,7 +487,7 @@ export async function renderSoldCreative(
 
   /** Mede o painel para uma escala `k` e devolve altura + linhas do modelo. */
   const measurePanel = (k: number) => {
-    const topPad = 44 * k;
+    const topPad = 8 * k;
     const bottomPad = (site ? 78 : 44) * k;
     let h = hasInfo ? topPad + bottomPad : 24 * s;
     let modelLines: string[] = [];
@@ -520,7 +520,7 @@ export async function renderSoldCreative(
   }
   const infoH = Math.min(panel.h, maxInfoH);
   // O logótipo ocupa o cabeçalho; o texto começa abaixo dele para evitar sobreposição.
-  const infoY = headerH + 16 * s;
+  const infoY = headerH - 12 * s;
 
   const img = await loadImage(url);
   if (theme.photo === "full") {
@@ -561,7 +561,7 @@ export async function renderSoldCreative(
   await drawHeader();
 
   // painel de dados
-  let y = infoY + 44 * k;
+  let y = infoY + 8 * k;
   if (brand) {
     setFont(ctx, 700, 26 * k, 6);
     ctx.fillStyle = ACCENT;
