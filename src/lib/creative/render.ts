@@ -440,28 +440,34 @@ export async function renderSoldCreative(
   ctx.fillStyle = BG;
   ctx.fillRect(0, 0, W, H);
 
-  // topo: logótipo + faixa de acento
+  // topo: logótipo + faixa de acento (desenhados depois da fotografia)
   const showHeader = blocks.logo || blocks.tag;
   const headerH = showHeader ? (tall ? 128 : 110) * s : 36 * s;
-  if (blocks.logo) {
-    try {
-      const logo = await loadImage(LEGA_LOGO);
-      const lh = 56 * s;
-      const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
-      ctx.drawImage(logo, pad, (headerH - lh) / 2, lw, lh);
-    } catch {
-      setFont(ctx, 800, 44 * s, 2);
-      ctx.fillStyle = TEXT;
-      ctx.fillText("LEGA", pad, headerH / 2 + 16 * s);
+  const drawHeader = async () => {
+    if (blocks.logo) {
+      try {
+        const logo = await loadImage(LEGA_LOGO);
+        const lh = 56 * s;
+        const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.45)";
+        ctx.shadowBlur = 18 * s;
+        ctx.drawImage(logo, pad, (headerH - lh) / 2, lw, lh);
+        ctx.restore();
+      } catch {
+        setFont(ctx, 800, 44 * s, 2);
+        ctx.fillStyle = TEXT;
+        ctx.fillText("LEGA", pad, headerH / 2 + 16 * s);
+      }
     }
-  }
-  if (blocks.tag) {
-    setFont(ctx, 700, 26 * s, 4);
-    ctx.fillStyle = ACCENT;
-    ctx.textAlign = "right";
-    ctx.fillText("VENDIDO", W - pad, headerH / 2 + 9 * s);
-    ctx.textAlign = "left";
-  }
+    if (blocks.tag) {
+      setFont(ctx, 700, 26 * s, 4);
+      ctx.fillStyle = ACCENT;
+      ctx.textAlign = "right";
+      ctx.fillText("VENDIDO", W - pad, headerH / 2 + 9 * s);
+      ctx.textAlign = "left";
+    }
+  };
 
   // bloco de informação (rodapé) — medido antes de desenhar para nunca transbordar
   const brand = blocks.brand ? (info.brand ?? "").trim() : "";
@@ -550,6 +556,9 @@ export async function renderSoldCreative(
     ctx.fillRect(photoX, photoY, photoW, photoH);
     ctx.restore();
   }
+
+  // cabeçalho por cima da fotografia
+  await drawHeader();
 
   // painel de dados
   let y = infoY + 44 * k;
