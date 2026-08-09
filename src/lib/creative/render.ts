@@ -513,8 +513,8 @@ export async function renderSoldCreative(
     panel = measurePanel(k);
   }
   const infoH = Math.min(panel.h, maxInfoH);
-  // Painel de informação no canto superior esquerdo, ligeiramente mais elevado.
-  const infoY = Math.max(0, headerH - 24 * s);
+  // Painel de informação no canto superior esquerdo, mais próximo do topo.
+  const infoY = Math.max(0, headerH - 48 * s);
 
   const img = await loadImage(url);
   if (theme.photo === "full") {
