@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, Edit, Trash2, Star, ImageDown } from 'lucide-react';
+import { Eye, Edit, Trash2, Star, ImageDown, Archive, ArchiveRestore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import ProductForm from '@/admin/ProductForm';
@@ -68,6 +68,30 @@ export default function ProductList() {
   };
 
   const handleDelete = async (id: string) => {
+
+  };
+
+  const handleToggleArchive = async (product: any) => {
+    const archiving = product.is_active;
+    if (archiving && !confirm('Arquivar este produto como VENDIDO? Deixará de aparecer no site.')) return;
+
+    const { error } = await supabase
+      .from('products')
+      .update({
+        is_active: !archiving,
+        stock_status: archiving ? 'vendido' : 'disponivel',
+      })
+      .eq('id', product.id);
+
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: archiving ? 'Produto arquivado (vendido)' : 'Produto reativado' });
+    loadProducts();
+  };
+
+  const handleDeleteOriginal = async (id: string) => {
     if (!confirm('Tem a certeza que deseja eliminar este produto?')) return;
 
     const { error } = await supabase.from('products').delete().eq('id', id);
