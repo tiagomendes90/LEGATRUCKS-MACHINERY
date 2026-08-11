@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, Edit, Trash2, Star, ImageDown } from 'lucide-react';
+import { Eye, Edit, Trash2, Star, ImageDown, Archive, ArchiveRestore } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import ProductForm from '@/admin/ProductForm';
@@ -65,6 +65,26 @@ export default function ProductList() {
       setFeaturedIds(prev => new Set(prev).add(productId));
       toast({ title: 'Produto destacado' });
     }
+  };
+
+  const handleToggleArchive = async (product: any) => {
+    const archiving = product.is_active;
+    if (archiving && !confirm('Arquivar este produto como VENDIDO? Deixará de aparecer no site.')) return;
+
+    const { error } = await supabase
+      .from('products')
+      .update({
+        is_active: !archiving,
+        stock_status: archiving ? 'vendido' : 'disponivel',
+      })
+      .eq('id', product.id);
+
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: archiving ? 'Produto arquivado (vendido)' : 'Produto reativado' });
+    loadProducts();
   };
 
   const handleDelete = async (id: string) => {
@@ -131,7 +151,7 @@ export default function ProductList() {
                   <TableCell>{p.price ? `€${Number(p.price).toLocaleString()}` : '—'}</TableCell>
                   <TableCell>
                     <Badge variant={p.is_active ? 'default' : 'secondary'}>
-                      {p.is_active ? 'Ativo' : 'Inativo'}
+                      {p.is_active ? 'Ativo' : p.stock_status === 'vendido' ? 'Vendido' : 'Inativo'}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -165,6 +185,15 @@ export default function ProductList() {
                           <ImageDown className="h-4 w-4" />
                         </Button>
                       )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        title={p.is_active ? 'Arquivar (vendido)' : 'Reativar produto'}
+                        aria-label={p.is_active ? `Arquivar ${p.title}` : `Reativar ${p.title}`}
+                        onClick={() => handleToggleArchive(p)}
+                      >
+                        {p.is_active ? <Archive className="h-4 w-4" /> : <ArchiveRestore className="h-4 w-4" />}
+                      </Button>
                       <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDelete(p.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
