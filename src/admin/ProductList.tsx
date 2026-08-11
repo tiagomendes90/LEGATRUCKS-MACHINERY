@@ -67,10 +67,6 @@ export default function ProductList() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-
-  };
-
   const handleToggleArchive = async (product: any) => {
     const archiving = product.is_active;
     if (archiving && !confirm('Arquivar este produto como VENDIDO? Deixará de aparecer no site.')) return;
@@ -91,7 +87,7 @@ export default function ProductList() {
     loadProducts();
   };
 
-  const handleDeleteOriginal = async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Tem a certeza que deseja eliminar este produto?')) return;
 
     const { error } = await supabase.from('products').delete().eq('id', id);
