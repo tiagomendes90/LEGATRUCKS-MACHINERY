@@ -151,7 +151,7 @@ export default function ProductList() {
                   <TableCell>{p.price ? `€${Number(p.price).toLocaleString()}` : '—'}</TableCell>
                   <TableCell>
                     <Badge variant={p.is_active ? 'default' : 'secondary'}>
-                      {p.is_active ? 'Ativo' : 'Inativo'}
+                      {p.is_active ? 'Ativo' : p.stock_status === 'vendido' ? 'Vendido' : 'Inativo'}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -185,6 +185,15 @@ export default function ProductList() {
                           <ImageDown className="h-4 w-4" />
                         </Button>
                       )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        title={p.is_active ? 'Arquivar (vendido)' : 'Reativar produto'}
+                        aria-label={p.is_active ? `Arquivar ${p.title}` : `Reativar ${p.title}`}
+                        onClick={() => handleToggleArchive(p)}
+                      >
+                        {p.is_active ? <Archive className="h-4 w-4" /> : <ArchiveRestore className="h-4 w-4" />}
+                      </Button>
                       <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDelete(p.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
