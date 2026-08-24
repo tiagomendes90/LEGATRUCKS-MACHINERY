@@ -57,6 +57,7 @@ const SLUG_TO_NAV_KEY: Record<string, string> = {
   tractores: "nav.tractors",
   reboques: "nav.trailers",
   pecas: "nav.parts",
+  vans: "nav.vans",
 };
 
 const NewVehicleCategory = () => {
@@ -64,7 +65,8 @@ const NewVehicleCategory = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const category = location.pathname.substring(1);
+  const category = location.pathname.replace(/^\/(categoria\/)?/, "");
+
   const { data: categories = [] } = useCategories();
 
   const [filters, setFilters] = useState<SidebarFilters>({

@@ -41,7 +41,9 @@ const App = () => (
             <Route path="/pecas" element={<NewVehicleCategory />} />
             <Route path="/sobre" element={<About />} />
             <Route path="/about" element={<About />} />
+            <Route path="/categoria/:slug" element={<NewVehicleCategory />} />
             <Route path="/:slug" element={<NewVehicleCategory />} />
+
             
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
             <Route path="/newsletter/:number" element={<NewsletterView />} />

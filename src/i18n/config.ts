@@ -11,6 +11,7 @@ const resources = {
         machinery: "Machines",
         tractors: "Tractors",
         trailers: "Trailers",
+        vans: "Vans",
         parts: "Parts",
         about: "About",
         contact: "Contact"
@@ -580,6 +581,7 @@ const resources = {
         machinery: "Máquinas",
         tractors: "Tractores",
         trailers: "Reboques",
+        vans: "Carrinhas",
         parts: "Peças",
         about: "Sobre",
         contact: "Contactos"
@@ -1148,6 +1150,7 @@ const resources = {
         machinery: "Machines",
         tractors: "Tracteurs",
         trailers: "Remorques",
+        vans: "Fourgons",
         parts: "Pièces",
         about: "À propos",
         contact: "Contact"
