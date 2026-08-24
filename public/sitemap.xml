@@ -51,6 +51,21 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://www.lega.pt/vehicle/a3d6b745-2bd8-41ec-9b5e-3aebbb83ea4d</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.lega.pt/vehicle/a6061828-33c5-436e-b2e2-231a15dbb39a</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.lega.pt/vehicle/8aa165e3-79cd-47c3-99f6-8a05bb9cd040</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.lega.pt/vehicle/82037e1a-077b-490c-b5bd-5a07a32a5ea0</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
