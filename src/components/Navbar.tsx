@@ -27,11 +27,13 @@ const Navbar = () => {
     tractores: 'nav.tractors',
     reboques: 'nav.trailers',
     pecas: 'nav.parts',
+    vans: 'nav.vans',
   };
 
   // Build nav items dynamically from categories with translations
   // Desired order for known slugs
-  const order = ['camioes', 'maquinas', 'reboques', 'tractores', 'pecas'];
+  const order = ['camioes', 'maquinas', 'reboques', 'tractores', 'vans', 'pecas'];
+
   const categoryItems = (categories as any[])
     .slice()
     .sort((a, b) => {
