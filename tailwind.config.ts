@@ -19,6 +19,7 @@ export default {
 		},
 		extend: {
 			colors: {
+				'lega-blue': 'hsl(var(--lega-blue))',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
