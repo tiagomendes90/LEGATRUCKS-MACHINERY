@@ -9,7 +9,7 @@ import ReboquesIcon from "@/components/icons/ReboquesIcon";
 import TractoresIcon from "@/components/icons/TractoresIcon";
 import VenderIcon from "@/components/icons/VenderIcon";
 
-const iconClass = "h-6 w-12 text-lega-blue";
+const iconClass = "h-[1.8rem] w-[3.6rem] text-lega-blue";
 
 const FeaturesSection = () => {
   const { t } = useTranslation();
@@ -21,10 +21,10 @@ const FeaturesSection = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
           {[
             { to: "/camioes", icon: <CamioesIcon className={iconClass} />, titleKey: "home.trucksTitle", descKey: "home.trucksDescription" },
-            { to: "/categoria/vans", icon: <CarrinhasIcon className={iconClass} />, titleKey: "home.vansTitle", descKey: "home.vansDescription" },
             { to: "/maquinas", icon: <MaquinasIcon className={iconClass} />, titleKey: "home.machineryTitle", descKey: "home.machineryDescription" },
             { to: "/reboques", icon: <ReboquesIcon className={iconClass} />, titleKey: "home.trailersTitle", descKey: "home.trailersDescription" },
             { to: "/tractores", icon: <TractoresIcon className={iconClass} />, titleKey: "home.tractorsTitle", descKey: "home.tractorsDescription" },
+            { to: "/categoria/vans", icon: <CarrinhasIcon className={iconClass} />, titleKey: "home.vansTitle", descKey: "home.vansDescription" },
             { to: "/pecas", icon: <PecasIcon className={iconClass} />, titleKey: "home.partsTitle", descKey: "home.partsDescription" },
             { to: "/contactos", icon: <VenderIcon className={iconClass} />, titleKey: "home.wantToSellTitle", descKey: "home.wantToSellDescription" },
           ].map((item) => (
