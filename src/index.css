@@ -34,6 +34,10 @@
 
     --radius: 0.5rem;
 
+    /* LEGA brand blue (logo: #1579BE) */
+    --lega-blue: 206 80% 41%;
+
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
