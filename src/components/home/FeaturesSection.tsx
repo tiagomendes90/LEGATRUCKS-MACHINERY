@@ -9,7 +9,7 @@ import ReboquesIcon from "@/components/icons/ReboquesIcon";
 import TractoresIcon from "@/components/icons/TractoresIcon";
 import VenderIcon from "@/components/icons/VenderIcon";
 
-const iconClass = "h-6 w-12 text-lega-blue";
+const iconClass = "h-[1.8rem] w-[3.6rem] text-lega-blue";
 
 const FeaturesSection = () => {
   const { t } = useTranslation();
