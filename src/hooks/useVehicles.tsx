@@ -23,8 +23,14 @@ export interface Vehicle {
   created_at: string;
   // Joined data
   brand?: { name: string; slug: string };
-  subcategory?: { name: string; slug: string; category?: { name: string; slug: string } };
+  subcategory?: {
+    name: string;
+    slug: string;
+    translations?: { language_code: string; name?: string | null }[];
+    category?: { name: string; slug: string; translations?: { language_code: string; name?: string | null }[] };
+  };
   images?: { image_url: string; is_primary?: boolean | null; sort_order: number | null }[];
+  translations?: { language_code: string; title?: string | null; description?: string | null; fields?: Record<string, unknown> | null }[];
 }
 
 export interface VehicleFilters {
@@ -54,10 +60,12 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
         .select(`
           *,
           brand:brands(name, slug),
+          translations:product_translations(language_code, title, description, fields),
           subcategory:subcategories(
+            id,
             name, 
             slug,
-            category:categories(name, slug)
+            category:categories(id, name, slug)
           ),
           images:product_images(id, image_url, is_primary, sort_order)
         `)
@@ -175,10 +183,12 @@ export const useVehicle = (id: string) => {
         .select(`
           *,
           brand:brands(name, slug),
+          translations:product_translations(language_code, title, description, fields),
           subcategory:subcategories(
+            id,
             name, 
             slug,
-            category:categories(name, slug)
+            category:categories(id, name, slug)
           ),
           images:product_images(id, image_url, is_primary, sort_order)
         `)

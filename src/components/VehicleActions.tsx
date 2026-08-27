@@ -7,6 +7,7 @@ import ContactVehicleModal from "./ContactVehicleModal";
 import { Vehicle } from "@/hooks/useVehicles";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { getPrimaryImageUrl } from "@/utils/productImages";
+import { useProductLanguage } from "@/hooks/useProductLanguage";
 
 interface VehicleActionsProps {
   vehicle: Vehicle;
@@ -14,11 +15,12 @@ interface VehicleActionsProps {
 
 const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
   const { t } = useTranslation();
+  const { tTitle } = useProductLanguage();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handleWhatsAppClick = () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    const message = `Olá! Tenho interesse no veículo "${vehicle.title}".\n${url}`;
+    const message = `Olá! Tenho interesse no veículo "${tTitle(vehicle as any)}".\n${url}`;
     openWhatsApp(message);
   };
 
@@ -28,8 +30,8 @@ const VehicleActions = ({ vehicle }: VehicleActionsProps) => {
 
   const handleShareClick = () => {
     const shareData: ShareData = {
-      title: vehicle.title,
-      text: `${vehicle.title}${vehicle.price ? ` - €${vehicle.price.toLocaleString()}` : ""}`,
+      title: tTitle(vehicle as any),
+      text: `${tTitle(vehicle as any)}${vehicle.price ? ` - €${vehicle.price.toLocaleString()}` : ""}`,
       url: typeof window !== "undefined" ? window.location.href : "",
     };
     if (navigator.share) {

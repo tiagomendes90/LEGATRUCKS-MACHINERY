@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import { getPrimaryImageUrl } from "@/utils/productImages";
 import SEO from "@/components/SEO";
 import PageHero from "@/components/PageHero";
+import { useProductLanguage } from "@/hooks/useProductLanguage";
 
 const CATEGORY_SEO: Record<string, { title: string; description: string }> = {
   camioes: {
@@ -62,6 +63,7 @@ const SLUG_TO_NAV_KEY: Record<string, string> = {
 
 const NewVehicleCategory = () => {
   const { t } = useTranslation();
+  const { tTitle } = useProductLanguage();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -189,7 +191,7 @@ const NewVehicleCategory = () => {
         "@type": "ListItem",
         position: i + 1,
         url: `https://www.lega.pt/vehicle/${v.id}`,
-        name: v.title,
+        name: tTitle(v),
       })),
     },
   ];
@@ -297,7 +299,7 @@ const NewVehicleCategory = () => {
                               getPrimaryImageUrl(vehicle.images) ||
                               "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=900&h=600&fit=crop"
                             }
-                            alt={`${vehicle.title}${vehicle.brand?.name ? ` - ${vehicle.brand.name}` : ''}${vehicle.year ? ` (${vehicle.year})` : ''} | LEGA`}
+                            alt={`${tTitle(vehicle)}${vehicle.brand?.name ? ` - ${vehicle.brand.name}` : ''}${vehicle.year ? ` (${vehicle.year})` : ''} | LEGA`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             loading="lazy"
                             decoding="async"
@@ -321,7 +323,7 @@ const NewVehicleCategory = () => {
                             )}
                           </div>
                           <CardTitle className={`${titleClass} text-gray-900`}>
-                            {vehicle.title}
+                            {tTitle(vehicle)}
                           </CardTitle>
                           <div className={`${priceClass} font-bold text-orange-600 mt-1`}>
                             {vehicle.price

@@ -1,4 +1,4 @@
-// Alias de compatibilidade: a newsletter usa o motor central de tradução.
+// Tradução global de produtos e taxonomia (site + admin).
 import { handleTranslateProducts } from "../_shared/translateProducts.ts";
 
 Deno.serve(handleTranslateProducts);

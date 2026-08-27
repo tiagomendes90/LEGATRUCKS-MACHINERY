@@ -11,11 +11,13 @@ import Autoplay from "embla-carousel-autoplay";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getPrimaryImageUrl } from "@/utils/productImages";
+import { useProductLanguage } from "@/hooks/useProductLanguage";
 
 const FeaturedVehiclesSection = () => {
   const { data: featuredProducts = [], isLoading } = useFeaturedVehicles();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { tTitle } = useProductLanguage();
 
   const featuredCount = featuredProducts.length;
   // Embla desativa o loop quando não há slides suficientes para preencher a
@@ -172,7 +174,7 @@ const FeaturedVehiclesSection = () => {
                               getPrimaryImageUrl(product.images) ||
                               "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=280&fit=crop"
                             }
-                            alt={`${product.title}${product.brand?.name ? ` - ${product.brand.name}` : ''}${product.year ? ` (${product.year})` : ''} | LEGA`}
+                            alt={`${tTitle(product)}${product.brand?.name ? ` - ${product.brand.name}` : ''}${product.year ? ` (${product.year})` : ''} | LEGA`}
                             className="w-full h-56 object-cover transition-transform duration-500 hover:scale-105"
                             loading="lazy"
                             decoding="async"
@@ -193,7 +195,7 @@ const FeaturedVehiclesSection = () => {
                         </div>
                         <CardContent className="p-5">
                           <h3 className="text-lg font-semibold mb-1 line-clamp-1">
-                            {product.title}
+                            {tTitle(product)}
                           </h3>
                           <p className="text-sm text-muted-foreground mb-3">
                             {product.brand?.name}

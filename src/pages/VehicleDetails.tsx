@@ -14,11 +14,14 @@ import WhatsAppFloat from "@/components/WhatsAppFloat";
 import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import { getGalleryImageUrls } from "@/utils/productImages";
+import { useProductLanguage } from "@/hooks/useProductLanguage";
+import { productFields } from "@/lib/i18n/productContent";
 
 const VehicleDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const { data: vehicle, isLoading, error } = useVehicle(id!);
+  const { language, tp, tTaxonomy, tSpec } = useProductLanguage();
 
   if (isLoading) {
     return (
@@ -59,20 +62,22 @@ const VehicleDetails = () => {
   }
 
   const imageUrls = getGalleryImageUrls(vehicle.images);
+  const content = tp(vehicle as any);
+  const fields = productFields(vehicle as any, language);
 
-  const seoTitle = `${vehicle.title} | LEGA`;
-  const seoDescription = (vehicle.description || `${vehicle.title} disponível na LEGA. Contacte-nos para orçamento e mais informações.`)
+  const seoTitle = `${content.title} | LEGA`;
+  const seoDescription = (content.description || `${content.title} disponível na LEGA. Contacte-nos para orçamento e mais informações.`)
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 160);
   const primaryImage = imageUrls[0] || "https://www.lega.pt/logo-hero.png";
   const categorySlug = (vehicle as any).category?.slug || "camioes";
-  const categoryName = (vehicle as any).category?.name || (vehicle as any).subcategory?.name || "Equipamentos";
+  const categoryName = tTaxonomy((vehicle as any).category) || tTaxonomy((vehicle as any).subcategory) || "Equipamentos";
 
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: vehicle.title,
+    name: content.title,
     description: seoDescription,
     image: imageUrls.length ? imageUrls : [primaryImage],
     sku: vehicle.id,
@@ -105,7 +110,7 @@ const VehicleDetails = () => {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Início", item: "https://www.lega.pt/" },
       { "@type": "ListItem", position: 2, name: categoryName, item: `https://www.lega.pt/${categorySlug}` },
-      { "@type": "ListItem", position: 3, name: vehicle.title, item: `https://www.lega.pt/vehicle/${vehicle.id}` },
+      { "@type": "ListItem", position: 3, name: content.title, item: `https://www.lega.pt/vehicle/${vehicle.id}` },
     ],
   };
 
@@ -116,7 +121,7 @@ const VehicleDetails = () => {
     let value: string | number | boolean | null = null;
     if (def.data_type === 'number') value = sv.value_number;
     else if (def.data_type === 'boolean') value = sv.value_boolean;
-    else value = sv.value_text;
+    else value = tSpec(sv.value_text, vehicle as any);
     
     const displayValue = def.data_type === 'boolean' 
       ? (value ? '✓' : '✗')
@@ -126,7 +131,7 @@ const VehicleDetails = () => {
 
     return {
       id: sv.id,
-      label: def.label || def.name,
+      label: (fields[`label:${def.name}`] as string) || def.label || def.name,
       value: displayValue,
     };
   }).filter(Boolean);
@@ -147,11 +152,11 @@ const VehicleDetails = () => {
         {/* TITLE + PRICE + BADGES */}
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <Badge variant="secondary">{vehicle.subcategory?.name || t('vehicleDetails.product')}</Badge>
+            <Badge variant="secondary">{tTaxonomy(vehicle.subcategory) || t('vehicleDetails.product')}</Badge>
             <Badge variant="outline">{vehicle.condition}</Badge>
             {vehicle.brand?.name && <Badge variant="outline">{vehicle.brand.name}</Badge>}
           </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{vehicle.title}</h1>
+          <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{content.title}</h1>
           <p className="text-2xl lg:text-3xl font-bold text-primary mt-2">
             {vehicle.price ? `€${vehicle.price.toLocaleString()}` : t('vehicleDetails.contactForPrice')}
           </p>
@@ -159,7 +164,7 @@ const VehicleDetails = () => {
 
         {/* PREMIUM GALLERY */}
         <div className="mb-12">
-          <VehicleImageGallery images={imageUrls} vehicleName={vehicle.title} />
+          <VehicleImageGallery images={imageUrls} vehicleName={content.title} />
         </div>
 
         {/* CONTENT: Description + Specs | Contact sidebar */}
@@ -170,7 +175,7 @@ const VehicleDetails = () => {
             {/* Description */}
             <div>
               <h2 className="text-xl font-semibold text-foreground mb-3">{t('vehicleDetails.description')}</h2>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{vehicle.description}</p>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{content.description}</p>
             </div>
 
             {/* Base Specifications */}
