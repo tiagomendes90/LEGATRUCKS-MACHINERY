@@ -19,6 +19,7 @@ import {
 
 export { STRING_KEYS, STRING_LABELS } from "./defaults.ts";
 export type { StringKey } from "./defaults.ts";
+export { translateTerm, termKey } from "./terms.ts";
 
 export interface NewsletterLanguage {
   code: string;
@@ -44,6 +45,8 @@ export interface NewsletterI18n {
   chain: (code: string) => string[];
   /** Texto institucional traduzido, com interpolação `{var}`. */
   t: (code: string, key: StringKey, vars?: Record<string, string | number>) => string;
+  /** Valor bruto de uma chave arbitrária (ex.: `term.<x>`) num idioma. */
+  raw: (code: string, key: string) => string | undefined;
   language: (code: string) => NewsletterLanguage | undefined;
 }
 
@@ -131,6 +134,7 @@ export async function loadNewsletterI18n(supabase: any): Promise<NewsletterI18n>
     resolve,
     chain,
     t,
+    raw: (code: string, key: string) => overrides[code]?.[key],
     language: (code: string) => byCode.get(code),
   };
 }
