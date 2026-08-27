@@ -19,6 +19,7 @@ import {
 
 export { STRING_KEYS, STRING_LABELS } from "./defaults.ts";
 export type { StringKey } from "./defaults.ts";
+export { translateTerm, termKey } from "./terms.ts";
 
 export interface NewsletterLanguage {
   code: string;
@@ -44,6 +45,8 @@ export interface NewsletterI18n {
   chain: (code: string) => string[];
   /** Texto institucional traduzido, com interpolação `{var}`. */
   t: (code: string, key: StringKey, vars?: Record<string, string | number>) => string;
+  /** Valor bruto de uma chave arbitrária (ex.: `term.<x>`) num idioma. */
+  raw: (code: string, key: string) => string | undefined;
   language: (code: string) => NewsletterLanguage | undefined;
 }
 
@@ -131,6 +134,7 @@ export async function loadNewsletterI18n(supabase: any): Promise<NewsletterI18n>
     resolve,
     chain,
     t,
+    raw: (code: string, key: string) => overrides[code]?.[key],
     language: (code: string) => byCode.get(code),
   };
 }
@@ -165,12 +169,18 @@ export function resolveProductContent(
   const byLang = new Map<string, any>(rows.map((r) => [String(r.language_code), r]));
 
   const pick = (field: "title" | "description"): [string, string] => {
+    // 1) tradução exacta do idioma pedido
+    const exact = byLang.get(lang)?.[field];
+    if (typeof exact === "string" && exact.trim() !== "") return [exact.trim(), lang];
+    // 2) conteúdo original do produto (evita mostrar outro idioma traduzido)
+    const original = product?.[field];
+    if (typeof original === "string" && original.trim() !== "") return [original, "source"];
+    // 3) cadeia de fallback
     for (const c of i18n.chain(lang)) {
       const v = byLang.get(c)?.[field];
       if (typeof v === "string" && v.trim() !== "") return [v.trim(), c];
     }
-    const original = product?.[field];
-    return [typeof original === "string" ? original : "", "source"];
+    return [""," source"];
   };
 
   const [title, titleLanguage] = pick("title");
