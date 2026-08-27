@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import AntiSpamFields, { type AntiSpamFieldsHandle } from "@/components/AntiSpamFields";
 import { useToast } from "@/hooks/use-toast";
 import { mapAntiSpamError } from "@/lib/antiSpamErrors";
+import { useProductLanguage } from "@/hooks/useProductLanguage";
 
 interface ContactVehicleModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface ContactVehicleModalProps {
 
 const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalProps) => {
   const { t } = useTranslation();
+  const { tTitle } = useProductLanguage();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -71,7 +73,7 @@ const ContactVehicleModal = ({ isOpen, onClose, vehicle }: ContactVehicleModalPr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{t('contactModal.title', { vehicle: vehicle.title })}</DialogTitle>
+          <DialogTitle>{t('contactModal.title', { vehicle: tTitle(vehicle as any) })}</DialogTitle>
           <DialogDescription>
             {t('contactModal.description')}
             {' '}{t('contactModal.priceLabel', { price: (vehicle.price || 0).toLocaleString() })}
