@@ -45,6 +45,8 @@ import {
   useDuplicateCampaign,
   useRetryFailedSends,
   useNewsletterAudit,
+  useLists,
+  useListMemberCounts,
   type NewsletterCampaign,
 } from "@/hooks/useNewsletter";
 import { NewsletterCampaignEditor } from "./NewsletterCampaignEditor";
