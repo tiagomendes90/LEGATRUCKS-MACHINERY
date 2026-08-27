@@ -12,6 +12,7 @@ import { orderedImageUrls, specPairs } from "./productQuery.ts";
 import {
   type NewsletterI18n,
   resolveProductContent,
+  translateTerm,
   type StringKey,
 } from "./i18n/index.ts";
 import {
@@ -132,6 +133,11 @@ const STOCK_KEY: Record<string, StringKey> = {
   vendido: "stock.sold",
 };
 
+/** Tradução de termos livres (categorias, rótulos, valores textuais). */
+function term(ctx: Ctx, text: unknown): string {
+  return translateTerm(ctx.i18n, ctx.lang, text);
+}
+
 interface Ctx {
   i18n: NewsletterI18n;
   lang: string;
@@ -150,8 +156,8 @@ function collectSpecs(p: AnyRecord, ctx: Ctx): Array<[string, string]> {
   const specs: Array<[string, string]> = [];
   if (brand?.name) specs.push([t("spec.brand"), String(brand.name)]);
   if (p.model) specs.push([t("spec.model"), String(p.model)]);
-  if (category?.name) specs.push([t("spec.category"), String(category.name)]);
-  if (subcategory?.name) specs.push([t("spec.subcategory"), String(subcategory.name)]);
+  if (category?.name) specs.push([t("spec.category"), term(ctx, category.name)]);
+  if (subcategory?.name) specs.push([t("spec.subcategory"), term(ctx, subcategory.name)]);
   if (p.year) specs.push([t("spec.year"), String(p.year)]);
   if (condRaw) {
     const key = CONDITION_KEY[condRaw.toLowerCase()];
@@ -161,8 +167,12 @@ function collectSpecs(p: AnyRecord, ctx: Ctx): Array<[string, string]> {
     const key = STOCK_KEY[stockRaw.toLowerCase()];
     specs.push([t("spec.availability"), key ? t(key) : stockRaw]);
   }
-  if (location) specs.push([t("spec.location"), location]);
-  specs.push(...specPairs(p));
+  if (location) specs.push([t("spec.location"), term(ctx, location)]);
+  // Especificações dinâmicas: rótulo sempre traduzível; valor apenas quando
+  // for texto puro (valores com dígitos são técnicos e ficam intactos).
+  for (const [label, value] of specPairs(p)) {
+    specs.push([term(ctx, label), /\d/.test(value) ? value : term(ctx, value)]);
+  }
   return specs;
 }
 
@@ -240,8 +250,9 @@ function renderProductCard(
   const cta = ov?.cta || defaultCta;
   const link = productUrl(p);
   const brandName = (p.brand as AnyRecord | undefined)?.name as string | undefined;
-  const catName = (p.subcategory as AnyRecord | undefined)?.name
+  const catNameRaw = (p.subcategory as AnyRecord | undefined)?.name
     ?? (p.category as AnyRecord | undefined)?.name;
+  const catName = catNameRaw ? term(ctx, catNameRaw) : undefined;
 
   return `
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;background:#ffffff;border:1px solid ${LINE};border-radius:14px;overflow:hidden;">
