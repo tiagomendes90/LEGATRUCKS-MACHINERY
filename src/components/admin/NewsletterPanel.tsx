@@ -30,7 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Copy, History, Loader2, Mail, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, Copy, History, Loader2, Mail, MoreHorizontal, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   useCampaigns,
