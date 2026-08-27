@@ -343,7 +343,6 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     );
   }, [products.data, productSearch]);
 
-  const [step, setStep] = useState<string>("content");
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -395,26 +394,6 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
       <div className="grid lg:grid-cols-[420px_1fr] gap-4">
         {/* Editor */}
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-1.5 rounded-lg border bg-card p-1.5">
-            {([
-              ["content", "1. Conteúdo"],
-              ["languages", "2. Idiomas"],
-              ["audience", "3. Destinatários"],
-              ["products", "4. Produtos"],
-            ] as [string, string][]).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setStep(value)}
-                className={`flex-1 min-w-[92px] rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                  step === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {step === "content" && (
           <Card>
             <CardHeader><CardTitle className="text-base">Conteúdo</CardTitle></CardHeader>
             <CardContent className="space-y-3">
@@ -440,9 +419,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               </div>
             </CardContent>
           </Card>
-          )}
 
-          {step === "languages" && (
           <Card>
             <CardHeader className="space-y-1">
               <CardTitle className="text-base flex items-center gap-2">
@@ -555,9 +532,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               )}
             </CardContent>
           </Card>
-          )}
 
-          {step === "audience" && (
           <Card>
             <CardHeader><CardTitle className="text-base">Destinatários e template</CardTitle></CardHeader>
             <CardContent className="space-y-3">
@@ -695,9 +670,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               </div>
             </CardContent>
           </Card>
-          )}
 
-          {step === "products" && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center justify-between">
@@ -756,7 +729,6 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
               </ScrollArea>
             </CardContent>
           </Card>
-          )}
         </div>
 
         {/* Preview */}
