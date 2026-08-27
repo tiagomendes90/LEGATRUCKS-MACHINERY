@@ -16,8 +16,10 @@ export interface FeaturedVehicle {
     price: number;
     condition: string;
     year: number;
+    description?: string | null;
     brand?: { name: string; slug: string };
-    subcategory?: { name: string; slug: string };
+    subcategory?: { name: string; slug: string; translations?: { language_code: string; name?: string | null }[] };
+    translations?: { language_code: string; title?: string | null; description?: string | null; fields?: Record<string, unknown> | null }[];
     images?: { image_url: string; is_primary?: boolean | null; sort_order: number | null }[];
   };
 }
@@ -38,8 +40,10 @@ export const useFeaturedVehicles = () => {
             price,
             condition,
             year,
+            description,
             brand:brands(name, slug),
-            subcategory:subcategories(name, slug),
+            translations:product_translations(language_code, title, description, fields),
+            subcategory:subcategories(name, slug, translations:taxonomy_translations(language_code, name)),
             images:product_images(id, image_url, is_primary, sort_order)
           )
         `)
