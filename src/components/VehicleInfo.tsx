@@ -13,7 +13,7 @@ interface VehicleInfoProps {
 const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
   const { t } = useTranslation();
   const { tp, tTaxonomy } = useProductLanguage();
-  const content = tp(vehicle);
+  const content = tp(vehicle as any);
 
   return (
     <div className="space-y-6">
