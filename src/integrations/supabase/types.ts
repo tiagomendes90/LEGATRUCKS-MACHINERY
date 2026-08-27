@@ -1171,27 +1171,33 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          fields: Json
           id: string
           language_code: string
           product_id: string
+          source_language: string | null
           title: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string | null
+          fields?: Json
           id?: string
           language_code: string
           product_id: string
+          source_language?: string | null
           title?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string | null
+          fields?: Json
           id?: string
           language_code?: string
           product_id?: string
+          source_language?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -1653,6 +1659,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      taxonomy_translations: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          language_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          language_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
