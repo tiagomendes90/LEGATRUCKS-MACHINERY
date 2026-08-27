@@ -734,3 +734,236 @@ export async function sendTestEmail(input: {
   if (!(data as any)?.ok) throw new Error((data as any)?.error ?? "test_send_failed");
   return data as { ok: true; to: string };
 }
+
+/* ------------------------------------------------------------------ */
+/* Contactos de uma lista (gestão completa)                            */
+/* ------------------------------------------------------------------ */
+
+export interface ListContact extends NewsletterSubscriber {
+  preferred_language: string;
+  metadata: Record<string, any> | null;
+}
+
+export function useListContacts(listId: string | null) {
+  return useQuery({
+    queryKey: ["newsletter_list_contacts", listId],
+    enabled: !!listId,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("newsletter_list_subscribers")
+        .select("subscriber:newsletter_subscribers(*)")
+        .eq("list_id", listId!)
+        .limit(10000);
+      if (error) throw error;
+      return ((data ?? []) as any[])
+        .map((r) => r.subscriber)
+        .filter(Boolean)
+        .sort((a, b) => a.email.localeCompare(b.email)) as ListContact[];
+    },
+  });
+}
+
+function invalidateContacts(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ["newsletter_list_contacts"] });
+  qc.invalidateQueries({ queryKey: ["newsletter_list_counts"] });
+  qc.invalidateQueries({ queryKey: ["newsletter_subscribers"] });
+  qc.invalidateQueries({ queryKey: ["newsletter_subscribers_stats"] });
+}
+
+export interface ContactInput {
+  email: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  company?: string | null;
+  country?: string | null;
+  phone?: string | null;
+  preferred_language?: string;
+}
+
+/** Cria (ou reutiliza) um contacto e associa-o à lista. Nunca duplica emails. */
+export function useAddContactToList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ listId, contact }: { listId: string; contact: ContactInput }) => {
+      const email = contact.email.trim().toLowerCase();
+      const { data: existing } = await (supabase as any)
+        .from("newsletter_subscribers")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+      let subscriberId = existing?.id as string | undefined;
+      const metadata = Object.fromEntries(
+        Object.entries({
+          company: contact.company?.trim() || null,
+          country: contact.country?.trim() || null,
+          phone: contact.phone?.trim() || null,
+        }).filter(([, v]) => v),
+      );
+
+      if (!subscriberId) {
+        const { data, error } = await (supabase as any)
+          .from("newsletter_subscribers")
+          .insert({
+            email,
+            first_name: contact.first_name?.trim() || null,
+            last_name: contact.last_name?.trim() || null,
+            status: "active",
+            consent: true,
+            source: "admin_manual",
+            preferred_language: contact.preferred_language ?? "en",
+            metadata,
+          })
+          .select("id")
+          .maybeSingle();
+        if (error) throw error;
+        subscriberId = data!.id;
+      }
+
+      const { error: le } = await (supabase as any)
+        .from("newsletter_list_subscribers")
+        .upsert({ list_id: listId, subscriber_id: subscriberId }, {
+          onConflict: "list_id,subscriber_id",
+          ignoreDuplicates: true,
+        });
+      if (le) throw le;
+      return { subscriberId, reused: !!existing };
+    },
+    onSuccess: () => invalidateContacts(qc),
+  });
+}
+
+/** Remove o contacto apenas desta lista — mantém-no nas restantes. */
+export function useRemoveContactFromList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ listId, subscriberIds }: { listId: string; subscriberIds: string[] }) => {
+      const { error } = await (supabase as any)
+        .from("newsletter_list_subscribers")
+        .delete()
+        .eq("list_id", listId)
+        .in("subscriber_id", subscriberIds);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateContacts(qc),
+  });
+}
+
+/** Move (ou copia) contactos de uma lista para outra. */
+export function useMoveContacts() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      fromListId,
+      toListId,
+      subscriberIds,
+      keepOriginal,
+    }: { fromListId: string; toListId: string; subscriberIds: string[]; keepOriginal?: boolean }) => {
+      if (subscriberIds.length === 0) return;
+      const { error } = await (supabase as any)
+        .from("newsletter_list_subscribers")
+        .upsert(
+          subscriberIds.map((id) => ({ list_id: toListId, subscriber_id: id })),
+          { onConflict: "list_id,subscriber_id", ignoreDuplicates: true },
+        );
+      if (error) throw error;
+      if (!keepOriginal) {
+        const { error: de } = await (supabase as any)
+          .from("newsletter_list_subscribers")
+          .delete()
+          .eq("list_id", fromListId)
+          .in("subscriber_id", subscriberIds);
+        if (de) throw de;
+      }
+    },
+    onSuccess: () => invalidateContacts(qc),
+  });
+}
+
+/** Ativa/desativa (unsubscribe manual) um contacto globalmente. */
+export function useSetSubscriberStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "active" | "unsubscribed" }) => {
+      const { error } = await (supabase as any)
+        .from("newsletter_subscribers")
+        .update({
+          status,
+          unsubscribed_at: status === "unsubscribed" ? new Date().toISOString() : null,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateContacts(qc),
+  });
+}
+
+export function useUpdateSubscriber() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
+      const { error } = await (supabase as any)
+        .from("newsletter_subscribers")
+        .update(patch)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => invalidateContacts(qc),
+  });
+}
+
+/** Importa contactos (CSV) para uma lista, reutilizando contactos existentes. */
+export function useImportContacts() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ listId, rows }: { listId: string; rows: ContactInput[] }) => {
+      const clean = rows
+        .map((r) => ({ ...r, email: (r.email ?? "").trim().toLowerCase() }))
+        .filter((r) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email));
+      const unique = new Map(clean.map((r) => [r.email, r]));
+      const emails = [...unique.keys()];
+      if (emails.length === 0) return { imported: 0, linked: 0 };
+
+      for (let i = 0; i < emails.length; i += 400) {
+        const chunk = emails.slice(i, i + 400).map((e) => unique.get(e)!);
+        const payload = chunk.map((r) => ({
+          email: r.email,
+          first_name: r.first_name?.toString().trim() || null,
+          status: "active",
+          consent: true,
+          source: "admin_import",
+          preferred_language: r.preferred_language ?? "en",
+          metadata: Object.fromEntries(
+            Object.entries({
+              company: r.company?.toString().trim() || null,
+              country: r.country?.toString().trim() || null,
+              phone: r.phone?.toString().trim() || null,
+            }).filter(([, v]) => v),
+          ),
+        }));
+        const { error } = await (supabase as any)
+          .from("newsletter_subscribers")
+          .upsert(payload, { onConflict: "email", ignoreDuplicates: true });
+        if (error) throw error;
+      }
+
+      let linked = 0;
+      for (let i = 0; i < emails.length; i += 400) {
+        const chunk = emails.slice(i, i + 400);
+        const { data, error } = await (supabase as any)
+          .from("newsletter_subscribers")
+          .select("id")
+          .in("email", chunk);
+        if (error) throw error;
+        const links = (data ?? []).map((s: any) => ({ list_id: listId, subscriber_id: s.id }));
+        const { error: le } = await (supabase as any)
+          .from("newsletter_list_subscribers")
+          .upsert(links, { onConflict: "list_id,subscriber_id", ignoreDuplicates: true });
+        if (le) throw le;
+        linked += links.length;
+      }
+      return { imported: emails.length, linked };
+    },
+    onSuccess: () => invalidateContacts(qc),
+  });
+}
