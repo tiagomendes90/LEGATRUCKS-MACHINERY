@@ -366,12 +366,17 @@ export default function NewsletterPanel() {
       <AlertDialog open={!!confirmSend} onOpenChange={(o) => !o && setConfirmSend(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar envio da campanha</AlertDialogTitle>
-            <AlertDialogDescription>
-              Vais enviar <strong>{confirmSend?.title}</strong> para{" "}
-              <strong>{stats.data?.active ?? 0}</strong> subscritores ativos.
-              Assunto: <em>{confirmSend?.subject}</em>. Esta ação é irreversível.
+            <AlertDialogTitle>Confirmar envio</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-1 text-sm">
+                <p><strong>Lista:</strong> {confirmSend ? audienceLabel(confirmSend) : "—"}</p>
+                <p><strong>Destinatários:</strong> {recipientsFor(confirmSend).toLocaleString("pt-PT")}</p>
+                <p><strong>Idioma principal:</strong> English</p>
+                <p><strong>Assunto:</strong> {confirmSend?.subject}</p>
+                <p className="pt-2">Tem a certeza de que pretende enviar esta newsletter? Esta ação é irreversível.</p>
+              </div>
             </AlertDialogDescription>
+
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
