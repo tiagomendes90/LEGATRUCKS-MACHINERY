@@ -11,6 +11,7 @@ import {
   type TranslatableProduct,
   type TranslatableTaxonomy,
 } from "@/lib/i18n/productContent";
+import { useTaxonomyTranslations } from "@/hooks/useTaxonomyTranslations";
 
 /** Dicionário estático já existente para as categorias principais. */
 const CATEGORY_NAV_KEY: Record<string, string> = {
@@ -29,6 +30,16 @@ const CATEGORY_NAV_KEY: Record<string, string> = {
 export function useProductLanguage() {
   const { i18n, t } = useTranslation();
   const language = normalizeLanguage(i18n.language) as AppLanguage;
+  const { data: taxonomyRows } = useTaxonomyTranslations();
+
+  // Mapa entity_id|lang -> nome traduzido (uma só passagem, memoizado).
+  const taxonomyMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of taxonomyRows ?? []) {
+      m.set(`${r.entity_id}|${normalizeLanguage(r.language_code)}`, r.name);
+    }
+    return m;
+  }, [taxonomyRows]);
 
   const staticBySlug = useCallback(
     (slug: string) => {
@@ -52,9 +63,14 @@ export function useProductLanguage() {
   );
 
   const tTaxonomy = useCallback(
-    (entity: TranslatableTaxonomy | null | undefined) =>
-      resolveTaxonomyName(entity, language, staticBySlug),
-    [language, staticBySlug],
+    (entity: TranslatableTaxonomy | null | undefined) => {
+      if (!entity) return "";
+      const id = (entity as any).id as string | undefined;
+      const fromDb = id ? taxonomyMap.get(`${id}|${language}`) : undefined;
+      if (fromDb && fromDb.trim() !== "") return fromDb;
+      return resolveTaxonomyName(entity, language, staticBySlug);
+    },
+    [language, staticBySlug, taxonomyMap],
   );
 
   const tSpec = useCallback(
