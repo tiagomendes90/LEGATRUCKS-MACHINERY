@@ -41,7 +41,8 @@ async function translateJson(
           role: "system",
           content:
             "You translate vehicle and machinery listings for LEGA, a trucks and machinery dealer. " +
-            `Translate every value from ${sourceLang} into ${targetLabel}. ` +
+            `Translate every value into ${targetLabel} (source is usually ${sourceLang}; detect it automatically). ` +
+            "If a value is already written in the target language, return it unchanged. " +
             "STRICT RULES: never translate brand names (Peugeot, Mercedes-Benz, Volvo, ...), " +
             "model names, numbers, units, measurements, mileage, power, displacement, seats, " +
             "dates, prices, references, codes, URLs or IDs — copy them exactly. " +
