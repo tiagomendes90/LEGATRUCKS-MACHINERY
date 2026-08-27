@@ -79,6 +79,8 @@ export default function NewsletterPanel() {
   const campaigns = useCampaigns();
   const subscribers = useSubscribers();
   const stats = useSubscriberStats();
+  const lists = useLists();
+  const listCounts = useListMemberCounts();
   const save = useSaveCampaign();
   const send = useSendCampaign();
   const cancel = useCancelCampaign();
@@ -86,6 +88,38 @@ export default function NewsletterPanel() {
   const retryFailed = useRetryFailedSends();
   const del = useDeleteCampaign();
   const adminUnsub = useAdminUnsubscribe();
+  const [campaignFilter, setCampaignFilter] = usePersistentState<string>("newsletter.campaigns.filter", "all");
+
+  const listById = useMemo(
+    () => Object.fromEntries((lists.data ?? []).map((l) => [l.id, l])),
+    [lists.data],
+  );
+
+  const audienceLabel = (c: NewsletterCampaign) => {
+    const ids = [...(c.list_ids ?? []), c.list_id].filter(Boolean) as string[];
+    if (c.audience_mode === "all") return "Todos os subscritores";
+    if (ids.length > 0) {
+      const names = [...new Set(ids)].map((id) => listById[id]?.name ?? "lista removida");
+      return names.join(", ");
+    }
+    return `${c.tags?.length ?? 0} etiqueta(s)`;
+  };
+
+  const recipientsFor = (c: NewsletterCampaign | null) => {
+    if (!c) return 0;
+    if (c.recipients_count) return c.recipients_count;
+    const ids = [...new Set([...(c.list_ids ?? []), c.list_id].filter(Boolean) as string[])];
+    if (c.audience_mode === "all" || ids.length === 0) return stats.data?.active ?? 0;
+    return ids.reduce((sum, id) => sum + (listCounts.data?.[id]?.active ?? 0), 0);
+  };
+
+  const filteredCampaigns = useMemo(() => {
+    const all = campaigns.data ?? [];
+    if (campaignFilter === "drafts") return all.filter((c) => c.status === "draft" || c.status === "ready");
+    if (campaignFilter === "scheduled") return all.filter((c) => c.status === "scheduled");
+    if (campaignFilter === "sent") return all.filter((c) => c.status === "sent" || c.status === "sending");
+    return all;
+  }, [campaigns.data, campaignFilter]);
 
   const isEditing = editing !== null || creatingNew;
 
