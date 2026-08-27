@@ -114,7 +114,7 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
         
         <TabsContent value="description" className="space-y-4 mt-6">
           <div className="prose max-w-none">
-            <p className="text-gray-700 leading-relaxed text-lg">{vehicle.description}</p>
+            <p className="text-gray-700 leading-relaxed text-lg">{content.description}</p>
           </div>
         </TabsContent>
       </Tabs>
