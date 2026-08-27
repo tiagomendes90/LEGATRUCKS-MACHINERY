@@ -30,13 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown, Copy, History, Loader2, Mail, MoreHorizontal, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
+import { Copy, History, Loader2, Mail, Plus, RefreshCw, Send, Trash2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   useCampaigns,
@@ -142,71 +136,51 @@ export default function NewsletterPanel() {
     );
   }
 
-  const counts = useMemo(() => {
-    const all = campaigns.data ?? [];
-    return {
-      total: all.length,
-      drafts: all.filter((c) => c.status === "draft" || c.status === "ready").length,
-      scheduled: all.filter((c) => c.status === "scheduled").length,
-      sent: all.filter((c) => c.status === "sent" || c.status === "sending").length,
-    };
-  }, [campaigns.data]);
-
-  const secondaryTabs: [string, string][] = [
-    ["history", "Histórico"],
-    ["templates", "Templates"],
-    ["languages", "Idiomas"],
-    ["audit", "Auditoria"],
-  ];
-  const secondaryLabel = secondaryTabs.find(([v]) => v === tab)?.[1];
-
   return (
-    <div className="space-y-5">
-      {/* Barra de estatísticas compacta */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border bg-card px-4 py-2.5 text-sm">
-        {[
-          ["Ativos", stats.data?.active ?? "—"],
-          ["Cancelados", stats.data?.unsubscribed ?? "—"],
-          ["Bounces", stats.data?.bounced ?? 0],
-          ["Campanhas", campaigns.data?.length ?? "—"],
-        ].map(([label, value]) => (
-          <div key={String(label)} className="flex items-baseline gap-1.5">
-            <span className="font-semibold">
-              {typeof value === "number" ? value.toLocaleString("pt-PT") : value}
-            </span>
-            <span className="text-muted-foreground">{label}</span>
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="grid md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">Subscritores ativos</p>
+            <p className="text-2xl font-bold">{stats.data?.active ?? "—"}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">Cancelados</p>
+            <p className="text-2xl font-bold">{stats.data?.unsubscribed ?? "—"}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">Bounces</p>
+            <p className="text-2xl font-bold">{stats.data?.bounced ?? 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">Campanhas totais</p>
+            <p className="text-2xl font-bold">{campaigns.data?.length ?? "—"}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <div className="flex flex-wrap items-center gap-2">
-          <TabsList>
-            <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
-            <TabsTrigger value="lists">Listas</TabsTrigger>
-            <TabsTrigger value="subscribers">Contactos</TabsTrigger>
-          </TabsList>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant={secondaryLabel ? "default" : "outline"} size="sm">
-                {secondaryLabel ?? "Mais"} <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {secondaryTabs.map(([value, label]) => (
-                <DropdownMenuItem key={value} onSelect={() => setTab(value)}>
-                  {label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <TabsList>
+          <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
+          <TabsTrigger value="lists">Listas</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="languages">Idiomas</TabsTrigger>
+          <TabsTrigger value="subscribers">Subscritores</TabsTrigger>
+          <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="audit">Auditoria</TabsTrigger>
+        </TabsList>
 
         {/* Campanhas */}
         <TabsContent value="campaigns" className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Newsletter</h3>
+              <h3 className="text-lg font-semibold">Campanhas</h3>
               <p className="text-sm text-muted-foreground">
                 O envio requer sempre confirmação manual. Nada é enviado automaticamente.
               </p>
@@ -216,143 +190,145 @@ export default function NewsletterPanel() {
             </Button>
           </div>
 
-          {/* Resumo + filtro (dupla função) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {([
-              ["all", "Total de campanhas", counts.total],
-              ["drafts", "Rascunhos", counts.drafts],
-              ["scheduled", "Agendadas", counts.scheduled],
-              ["sent", "Enviadas", counts.sent],
-            ] as [string, string, number][]).map(([value, label, count]) => (
-              <button
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+            {(lists.data ?? []).filter((l) => !l.archived_at).map((l) => (
+              <Card key={l.id}>
+                <CardContent className="p-3">
+                  <p className="text-sm font-medium truncate">{l.name}</p>
+                  <p className="text-xl font-bold">
+                    {(listCounts.data?.[l.id]?.active ?? 0).toLocaleString("pt-PT")}
+                    <span className="text-xs font-normal text-muted-foreground"> contactos ativos</span>
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {[
+              ["all", "Todas"],
+              ["drafts", "Rascunhos"],
+              ["scheduled", "Agendadas"],
+              ["sent", "Enviadas"],
+            ].map(([value, label]) => (
+              <Button
                 key={value}
-                type="button"
+                size="sm"
+                variant={campaignFilter === value ? "default" : "outline"}
                 onClick={() => setCampaignFilter(value)}
-                className={`rounded-lg border px-3 py-2 text-left transition-colors ${
-                  campaignFilter === value ? "border-primary bg-accent" : "hover:bg-accent/50"
-                }`}
               >
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="text-xl font-bold">{count}</p>
-              </button>
+                {label}
+              </Button>
             ))}
           </div>
 
           <Card>
-            <CardContent className="p-0 overflow-x-auto">
+            <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Campanha</TableHead>
+                    <TableHead>Título</TableHead>
                     <TableHead>Assunto</TableHead>
-                    <TableHead className="hidden md:table-cell">Produtos</TableHead>
-                    <TableHead className="hidden md:table-cell">Lista</TableHead>
+                    <TableHead>Produtos</TableHead>
+                    <TableHead>Lista de destinatários</TableHead>
+                    <TableHead>Enviados / Falhas</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead className="hidden lg:table-cell">Data</TableHead>
+                    <TableHead>Atualizado</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {campaigns.isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> A carregar…
                       </TableCell>
                     </TableRow>
                   ) : filteredCampaigns.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                         Nenhuma campanha nesta secção.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredCampaigns.map((c) => {
-                      const isSent = c.status === "sent" || c.status === "sending";
-                      const isScheduled = c.status === "scheduled";
-                      return (
-                        <TableRow key={c.id}>
-                          <TableCell className="font-medium">{c.title}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground truncate max-w-[240px]">
-                            {c.subject}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">{c.product_ids?.length ?? 0}</TableCell>
-                          <TableCell className="hidden md:table-cell text-xs text-muted-foreground max-w-[200px] truncate">
-                            {audienceLabel(c)}
-                          </TableCell>
-                          <TableCell>{statusBadge(c.status)}</TableCell>
-                          <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true, locale: pt })}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button size="sm" variant="outline" onClick={() => setEditing(c)}>
-                                {isSent ? "Ver" : "Editar"}
-                              </Button>
-                              {!isSent && !isScheduled && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => setConfirmSend(c)}
-                                  disabled={c.product_ids?.length === 0}
-                                >
-                                  <Send className="h-3.5 w-3.5 mr-1" /> Enviar
-                                </Button>
-                              )}
-                              {isScheduled && (
-                                <Button size="sm" variant="outline" onClick={() => cancel.mutate(c.id)}>
-                                  <XCircle className="h-3.5 w-3.5 mr-1" /> Cancelar
-                                </Button>
-                              )}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button size="sm" variant="ghost" aria-label="Mais ações">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onSelect={() => duplicate.mutate(c)}>
-                                    <Copy className="h-4 w-4 mr-2" /> Duplicar
-                                  </DropdownMenuItem>
-                                  {c.status === "sending" && (
-                                    <DropdownMenuItem onSelect={() => cancel.mutate(c.id)}>
-                                      <XCircle className="h-4 w-4 mr-2" /> Cancelar envio
-                                    </DropdownMenuItem>
-                                  )}
-                                  {(c.failed_count ?? 0) > 0 && c.status !== "sending" && (
-                                    <DropdownMenuItem
-                                      onSelect={async () => {
-                                        await retryFailed.mutateAsync(c.id);
-                                        toast({
-                                          title: "Reenvio na fila",
-                                          description: "Apenas os destinatários falhados serão contactados.",
-                                        });
-                                      }}
-                                    >
-                                      <RefreshCw className="h-4 w-4 mr-2" /> Reenviar falhados (
-                                      {c.failed_count})
-                                    </DropdownMenuItem>
-                                  )}
-                                  {c.status !== "sent" && (
-                                    <DropdownMenuItem
-                                      className="text-destructive"
-                                      onSelect={() => setConfirmDelete(c)}
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-                                    </DropdownMenuItem>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                    filteredCampaigns.map((c) => (
+                      <TableRow key={c.id}>
+                        <TableCell className="font-medium">{c.title}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground truncate max-w-[240px]">
+                          {c.subject}
+                        </TableCell>
+                        <TableCell>{c.product_ids?.length ?? 0}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
+                          {audienceLabel(c)}
+                        </TableCell>
+
+                        <TableCell className="text-sm">
+                          <span className="text-emerald-600 font-medium">{c.sent_count ?? 0}</span>
+                          {" / "}
+                          <span className={c.failed_count ? "text-destructive font-medium" : "text-muted-foreground"}>
+                            {c.failed_count ?? 0}
+                          </span>
+                        </TableCell>
+                        <TableCell>{statusBadge(c.status)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true, locale: pt })}
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button size="sm" variant="outline" onClick={() => setEditing(c)}>
+                            {c.status === "sent" ? "Ver" : "Editar"}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => duplicate.mutate(c)} title="Duplicar">
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                          {c.status !== "sent" && c.status !== "sending" && (
+                            <Button
+                              size="sm"
+                              onClick={() => setConfirmSend(c)}
+                              disabled={c.product_ids?.length === 0}
+                            >
+                              <Send className="h-3.5 w-3.5 mr-1" /> Enviar
+                            </Button>
+                          )}
+                          {(c.status === "scheduled" || c.status === "sending") && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => cancel.mutate(c.id)}
+                            >
+                              <XCircle className="h-3.5 w-3.5 mr-1" /> Cancelar
+                            </Button>
+                          )}
+                          {(c.failed_count ?? 0) > 0 && c.status !== "sending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              title="Reenviar apenas os destinatários que falharam"
+                              onClick={async () => {
+                                await retryFailed.mutateAsync(c.id);
+                                toast({ title: "Reenvio na fila", description: "Apenas os destinatários falhados serão contactados." });
+                              }}
+                            >
+                              <RefreshCw className="h-3.5 w-3.5 mr-1" /> Reenviar falhados
+                            </Button>
+                          )}
+                          {c.status !== "sent" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setConfirmDelete(c)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
-
 
         <TabsContent value="lists">
           <NewsletterListsPanel />
