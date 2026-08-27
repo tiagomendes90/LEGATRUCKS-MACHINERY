@@ -185,10 +185,43 @@ export default function NewsletterPanel() {
                 O envio requer sempre confirmação manual. Nada é enviado automaticamente.
               </p>
             </div>
-            <Button onClick={() => setCreatingNew(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Nova campanha
+            <Button size="lg" onClick={() => setCreatingNew(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Criar nova newsletter
             </Button>
           </div>
+
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+            {(lists.data ?? []).filter((l) => !l.archived_at).map((l) => (
+              <Card key={l.id}>
+                <CardContent className="p-3">
+                  <p className="text-sm font-medium truncate">{l.name}</p>
+                  <p className="text-xl font-bold">
+                    {(listCounts.data?.[l.id]?.active ?? 0).toLocaleString("pt-PT")}
+                    <span className="text-xs font-normal text-muted-foreground"> contactos ativos</span>
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {[
+              ["all", "Todas"],
+              ["drafts", "Rascunhos"],
+              ["scheduled", "Agendadas"],
+              ["sent", "Enviadas"],
+            ].map(([value, label]) => (
+              <Button
+                key={value}
+                size="sm"
+                variant={campaignFilter === value ? "default" : "outline"}
+                onClick={() => setCampaignFilter(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -197,7 +230,7 @@ export default function NewsletterPanel() {
                     <TableHead>Título</TableHead>
                     <TableHead>Assunto</TableHead>
                     <TableHead>Produtos</TableHead>
-                    <TableHead>Audiência</TableHead>
+                    <TableHead>Lista de destinatários</TableHead>
                     <TableHead>Enviados / Falhas</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Atualizado</TableHead>
@@ -211,29 +244,24 @@ export default function NewsletterPanel() {
                         <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> A carregar…
                       </TableCell>
                     </TableRow>
-                  ) : (campaigns.data ?? []).length === 0 ? (
+                  ) : filteredCampaigns.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
-                        Ainda não existem campanhas. Cria a primeira newsletter.
+                        Nenhuma campanha nesta secção.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    (campaigns.data ?? []).map((c) => (
+                    filteredCampaigns.map((c) => (
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">{c.title}</TableCell>
                         <TableCell className="text-sm text-muted-foreground truncate max-w-[240px]">
                           {c.subject}
                         </TableCell>
                         <TableCell>{c.product_ids?.length ?? 0}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {c.audience_mode === "all"
-                            ? "Todos"
-                            : c.audience_mode === "tags"
-                              ? `${c.tags?.length ?? 0} etiqueta(s)`
-                              : c.audience_mode === "mixed"
-                                ? `${c.list_ids?.length ?? 0} lista(s) + ${c.tags?.length ?? 0} etiqueta(s)`
-                                : `${c.list_ids?.length ?? 0} lista(s)`}
+                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
+                          {audienceLabel(c)}
                         </TableCell>
+
                         <TableCell className="text-sm">
                           <span className="text-emerald-600 font-medium">{c.sent_count ?? 0}</span>
                           {" / "}
