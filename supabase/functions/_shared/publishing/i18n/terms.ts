@@ -27,10 +27,8 @@ export function translateTerm(
 ): string {
   const original = text == null ? "" : String(text);
   if (!original.trim()) return original;
-  const key = termKey(original);
-  for (const c of lookup.chain(lang)) {
-    const v = lookup.raw(c, key);
-    if (typeof v === "string" && v.trim() !== "") return v;
-  }
-  return original;
+  // Só a tradução exacta do idioma pedido é usada: o termo original é sempre
+  // preferível a uma tradução noutro idioma da cadeia de fallback.
+  const v = lookup.raw(lang, termKey(original));
+  return typeof v === "string" && v.trim() !== "" ? v : original;
 }
