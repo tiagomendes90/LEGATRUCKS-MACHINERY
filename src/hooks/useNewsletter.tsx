@@ -967,3 +967,38 @@ export function useImportContacts() {
     onSuccess: () => invalidateContacts(qc),
   });
 }
+
+/* ------------------------------------------------------------------ */
+/* Traduções do conteúdo dos produtos incluídos numa campanha          */
+/* ------------------------------------------------------------------ */
+
+export interface ProductTranslationCoverage {
+  [languageCode: string]: { total: number; translated: number; missing?: string[] };
+}
+
+/** Consulta (sem gerar nada) quantos produtos já têm tradução por idioma. */
+export async function fetchProductTranslationCoverage(
+  productIds: string[],
+  targets?: string[],
+): Promise<{ default_language: string; coverage: ProductTranslationCoverage }> {
+  const { data, error } = await supabase.functions.invoke("newsletter-translate-products", {
+    body: { product_ids: productIds, targets, check_only: true },
+  });
+  if (error) throw error;
+  if (!(data as any)?.ok) throw new Error((data as any)?.error ?? "coverage_failed");
+  return data as any;
+}
+
+/** Gera as traduções em falta (idempotente — reutiliza o que já existe). */
+export async function translateCampaignProducts(input: {
+  productIds: string[];
+  targets?: string[];
+  force?: boolean;
+}): Promise<{ default_language: string; coverage: ProductTranslationCoverage }> {
+  const { data, error } = await supabase.functions.invoke("newsletter-translate-products", {
+    body: { product_ids: input.productIds, targets: input.targets, force: input.force === true },
+  });
+  if (error) throw error;
+  if (!(data as any)?.ok) throw new Error((data as any)?.error ?? "translate_failed");
+  return data as any;
+}
