@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
 import { Vehicle } from "@/hooks/useVehicles";
+import { useProductLanguage } from "@/hooks/useProductLanguage";
 
 interface VehicleInfoProps {
   vehicle: Vehicle;
@@ -11,16 +12,18 @@ interface VehicleInfoProps {
 
 const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
   const { t } = useTranslation();
+  const { tp, tTaxonomy } = useProductLanguage();
+  const content = tp(vehicle);
 
   return (
     <div className="space-y-6">
       {/* Header Info */}
       <div>
         <Badge variant="secondary" className="mb-3">
-          {vehicle.subcategory?.category?.name || 'Produto'}
+          {tTaxonomy(vehicle.subcategory?.category) || 'Produto'}
         </Badge>
         <h1 className="text-3xl lg:text-4xl font-bold mb-2">
-          {vehicle.brand?.name} {vehicle.title}
+          {vehicle.brand?.name} {content.title}
         </h1>
         <p className="text-3xl lg:text-4xl text-primary font-bold">
           €{(vehicle.price || 0).toLocaleString()}
@@ -60,12 +63,12 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.category')}</h4>
-                <p className="text-lg">{vehicle.subcategory?.category?.name}</p>
+                <p className="text-lg">{tTaxonomy(vehicle.subcategory?.category)}</p>
               </div>
               {vehicle.subcategory && (
                 <div>
                   <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.subcategory')}</h4>
-                  <p className="text-lg">{vehicle.subcategory.name}</p>
+                  <p className="text-lg">{tTaxonomy(vehicle.subcategory)}</p>
                 </div>
               )}
             </div>

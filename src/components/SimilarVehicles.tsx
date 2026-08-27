@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getPrimaryImageUrl } from '@/utils/productImages';
+import { useProductLanguage } from "@/hooks/useProductLanguage";
 
 interface SimilarVehiclesProps {
   vehicleId: string;
@@ -16,6 +17,7 @@ interface SimilarVehiclesProps {
 const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategoryId }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { tTitle, tTaxonomy } = useProductLanguage();
   
   const { data: vehiclesRaw, isLoading } = useVehicles(
     { subcategory: subcategoryId },
@@ -36,17 +38,17 @@ const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategor
             <div className="relative overflow-hidden">
               <img 
                 src={getPrimaryImageUrl(vehicle.images) || "https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=250&fit=crop"} 
-                alt={`${vehicle.title}${vehicle.brand?.name ? ` - ${vehicle.brand.name}` : ''} | LEGA`}
+                alt={`${tTitle(vehicle)}${vehicle.brand?.name ? ` - ${vehicle.brand.name}` : ''} | LEGA`}
                 loading="lazy"
                 decoding="async"
                 width={400}
                 height={192}
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              <Badge className="absolute top-3 left-3 bg-blue-600">{vehicle.subcategory?.name}</Badge>
+              <Badge className="absolute top-3 left-3 bg-blue-600">{tTaxonomy(vehicle.subcategory)}</Badge>
             </div>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg line-clamp-2">{vehicle.title}</CardTitle>
+              <CardTitle className="text-lg line-clamp-2">{tTitle(vehicle)}</CardTitle>
               <div className="text-xl font-bold text-orange-600">€{(vehicle.price || 0).toLocaleString()}</div>
             </CardHeader>
             <CardContent>
