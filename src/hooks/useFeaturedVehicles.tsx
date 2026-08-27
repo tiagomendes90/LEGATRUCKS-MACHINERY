@@ -43,7 +43,7 @@ export const useFeaturedVehicles = () => {
             description,
             brand:brands(name, slug),
             translations:product_translations(language_code, title, description, fields),
-            subcategory:subcategories(name, slug),
+            subcategory:subcategories(id, name, slug),
             images:product_images(id, image_url, is_primary, sort_order)
           )
         `)

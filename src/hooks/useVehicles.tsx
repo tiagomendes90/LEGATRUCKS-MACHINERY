@@ -62,9 +62,10 @@ export const useVehicles = (filters?: VehicleFilters, limit = 12, includeUnpubli
           brand:brands(name, slug),
           translations:product_translations(language_code, title, description, fields),
           subcategory:subcategories(
+            id,
             name, 
             slug,
-            category:categories(name, slug)
+            category:categories(id, name, slug)
           ),
           images:product_images(id, image_url, is_primary, sort_order)
         `)
@@ -184,9 +185,10 @@ export const useVehicle = (id: string) => {
           brand:brands(name, slug),
           translations:product_translations(language_code, title, description, fields),
           subcategory:subcategories(
+            id,
             name, 
             slug,
-            category:categories(name, slug)
+            category:categories(id, name, slug)
           ),
           images:product_images(id, image_url, is_primary, sort_order)
         `)
