@@ -26,6 +26,9 @@ import {
   useScheduleCampaign,
   sendTestEmail,
   usePublishableProducts,
+  fetchProductTranslationCoverage,
+  translateCampaignProducts,
+  type ProductTranslationCoverage,
   useLists,
   useTemplates,
   useSubscribers,
@@ -72,6 +75,8 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   const [previewLang, setPreviewLang] = useState<string>("");
   const [translations, setTranslations] = useState<Record<string, TranslationDraft>>({});
   const [translating, setTranslating] = useState(false);
+  const [productCoverage, setProductCoverage] = useState<ProductTranslationCoverage>({});
+  const [translatingProducts, setTranslatingProducts] = useState(false);
 
   const save = useSaveCampaign();
   const send = useSendCampaign();
@@ -241,6 +246,67 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
 
   const persistDraft = async (nextStatus?: string) => {
     return await doPersistDraft(nextStatus);
+  };
+
+  // Cobertura das traduções de produto — consulta leve, sem gerar nada.
+  const refreshProductCoverage = async () => {
+    if (productIds.length === 0 || activeLanguages.length === 0) {
+      setProductCoverage({});
+      return;
+    }
+    try {
+      const res = await fetchProductTranslationCoverage(
+        productIds,
+        activeLanguages.map((l) => l.code),
+      );
+      setProductCoverage(res.coverage ?? {});
+    } catch {
+      /* silencioso — indicador é informativo */
+    }
+  };
+
+  useEffect(() => {
+    const t = setTimeout(refreshProductCoverage, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productIds.join(","), activeLanguages.map((l) => l.code).join(",")]);
+
+  /** Gera as traduções em falta dos produtos e actualiza o preview. */
+  const translateProducts = async (only?: string) => {
+    if (productIds.length === 0) {
+      toast({ title: "Sem produtos", description: "Selecciona produtos antes de traduzir." });
+      return;
+    }
+    const targets = (only ? [only] : activeLanguages.map((l) => l.code)).filter(
+      (c) => c !== defaultLang,
+    );
+    if (targets.length === 0) {
+      toast({ title: "Nada a traduzir", description: "Só existe o idioma base ativo." });
+      return;
+    }
+    setTranslatingProducts(true);
+    try {
+      const res = await translateCampaignProducts({ productIds, targets });
+      setProductCoverage(res.coverage ?? {});
+      toast({
+        title: "Produtos traduzidos",
+        description: targets.map((t) => t.toUpperCase()).join(", "),
+      });
+      await refreshPreview();
+    } catch (err: any) {
+      const msg = String(err?.message ?? err);
+      toast({
+        title: "Falha na tradução dos produtos",
+        description: msg.includes("rate_limited")
+          ? "Demasiados pedidos — tenta novamente daqui a pouco."
+          : msg.includes("payment_required")
+            ? "Créditos de IA esgotados."
+            : msg,
+        variant: "destructive",
+      });
+    } finally {
+      setTranslatingProducts(false);
+    }
   };
 
   const autoTranslate = async (only?: string) => {
@@ -451,6 +517,46 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                       Traduzir só {currentLang.toUpperCase()}
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={translatingProducts || productIds.length === 0}
+                    onClick={() => translateProducts()}
+                  >
+                    {translatingProducts ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Languages className="h-4 w-4 mr-1" />
+                    )}
+                    Traduzir produtos
+                  </Button>
+                  {currentLang !== defaultLang && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={translatingProducts || productIds.length === 0}
+                      onClick={() => translateProducts(currentLang)}
+                    >
+                      Produtos só {currentLang.toUpperCase()}
+                    </Button>
+                  )}
+                </div>
+              )}
+              {productIds.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                  <span>Produtos traduzidos:</span>
+                  {activeLanguages.map((l) => {
+                    const c = productCoverage[l.code];
+                    const done = l.code === defaultLang ? productIds.length : (c?.translated ?? 0);
+                    return (
+                      <Badge
+                        key={l.code}
+                        variant={done >= productIds.length ? "default" : "outline"}
+                      >
+                        {l.code.toUpperCase()} {done}/{productIds.length}
+                      </Badge>
+                    );
+                  })}
                 </div>
               )}
               <div className="flex flex-wrap gap-1.5">
