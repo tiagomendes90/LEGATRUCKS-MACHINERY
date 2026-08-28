@@ -19,7 +19,7 @@ export const LANGUAGE_LABELS: Record<string, string> = {
   fr: "French",
 };
 
-const MODEL = "google/gemini-3.7-flash";
+const MODEL = "google/gemini-2.5-flash";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const termKey = (t: string) => `term.${t.toLowerCase().replace(/\s+/g, " ").trim()}`;
