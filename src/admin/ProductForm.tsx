@@ -22,6 +22,7 @@ import {
   type AdminProductDraftForm,
 } from '@/utils/adminProductDraftStorage';
 import { tryEmitPublishingEvent } from '@/lib/publishing';
+import ProductTranslationsPanel from './ProductTranslationsPanel';
 
 type StoredImage = {
   id?: string | null;
@@ -788,6 +789,8 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
             </div>
           )}
         </div>
+
+        {editingProduct?.id && <ProductTranslationsPanel productId={editingProduct.id} />}
 
         <div className="flex gap-2 pt-4">
           <Button onClick={handleSave} disabled={loading || uploading}>
