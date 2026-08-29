@@ -153,7 +153,7 @@ const VehicleDetails = () => {
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Badge variant="secondary">{tTaxonomy(vehicle.subcategory) || t('vehicleDetails.product')}</Badge>
-            <Badge variant="outline">{vehicle.condition}</Badge>
+            <Badge variant="outline">{t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}</Badge>
             {vehicle.brand?.name && <Badge variant="outline">{vehicle.brand.name}</Badge>}
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold text-foreground">{content.title}</h1>
