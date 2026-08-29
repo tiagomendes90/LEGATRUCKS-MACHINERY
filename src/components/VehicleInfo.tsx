@@ -40,7 +40,7 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
         )}
         <div className="text-center">
           <p className="text-sm text-gray-600">{t('vehicleDetails.condition')}</p>
-          <p className="font-semibold text-lg">{vehicle.condition}</p>
+          <p className="font-semibold text-lg">{t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}</p>
         </div>
         {vehicle.model && (
           <div className="text-center">
@@ -98,7 +98,7 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
               )}
               <div>
                 <h4 className="font-semibold text-gray-600 mb-1">{t('vehicleDetails.condition')}</h4>
-                <p className="text-lg">{vehicle.condition}</p>
+                <p className="text-lg">{t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}</p>
               </div>
             </div>
             <div className="space-y-4">
