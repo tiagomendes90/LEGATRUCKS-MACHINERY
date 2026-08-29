@@ -53,7 +53,7 @@ const SimilarVehicles: React.FC<SimilarVehiclesProps> = ({ vehicleId, subcategor
             </CardHeader>
             <CardContent>
               <div className="text-sm text-muted-foreground mb-4">
-                {vehicle.year && `${vehicle.year} • `}{vehicle.condition}
+                {vehicle.year && `${vehicle.year} • `}{t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}
               </div>
               <Button className="w-full bg-slate-800 hover:bg-slate-700"
                 onClick={(e) => { e.stopPropagation(); navigate(`/vehicle/${vehicle.id}`); }}>
