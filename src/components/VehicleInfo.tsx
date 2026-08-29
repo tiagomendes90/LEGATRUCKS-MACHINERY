@@ -40,7 +40,7 @@ const VehicleInfo = ({ vehicle }: VehicleInfoProps) => {
         )}
         <div className="text-center">
           <p className="text-sm text-gray-600">{t('vehicleDetails.condition')}</p>
-          <p className="font-semibold text-lg">{vehicle.condition}</p>
+          <p className="font-semibold text-lg">{t(`filterPanel.${vehicle.condition}`, { defaultValue: vehicle.condition }) as string}</p>
         </div>
         {vehicle.model && (
           <div className="text-center">
