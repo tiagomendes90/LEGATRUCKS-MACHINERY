@@ -252,7 +252,7 @@ const VehicleDetails = () => {
         </div>
       </div>
       <Footer />
-      <WhatsAppFloat />
+      <WhatsAppFloat productTitle={content.title} />
     </div>
   );
 };

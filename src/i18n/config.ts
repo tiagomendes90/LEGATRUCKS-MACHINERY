@@ -367,6 +367,8 @@ const resources = {
       },
       whatsapp: {
         message: "Hello! I'm interested in your trucks and machinery.",
+        productMessage: "Hello, I am interested in this vehicle: {{title}}. I would like more information.",
+        genericMessage: "Hello, I would like more information about the vehicles and machinery available at LEGA.",
         ariaLabel: "Contact us on WhatsApp"
       },
       searchBar: {
@@ -498,7 +500,7 @@ const resources = {
           title: "Terms and Conditions",
           intro: "By accessing or using this website, you accept these Terms and Conditions in full. Please read them carefully before using our services.",
           sections: [
-            { title: "1. Company Information", body: "This website is operated by LEGA Trucks & Machinery, headquartered at Travessa do Monte, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal. Contact: +351 912 406 089. The company is dedicated to the commercialization of used trucks, industrial machinery, agricultural tractors, trailers and spare parts." },
+            { title: "1. Company Information", body: "This website is operated by LEGA Trucks & Machinery, headquartered at Travessa do Monte, nº 560, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal. Contact: +351 912 406 089. The company is dedicated to the commercialization of used trucks, industrial machinery, agricultural tractors, trailers and spare parts." },
             { title: "2. Object", body: "These Terms govern the access to and use of the website https://www.lega.pt, including the consultation of vehicles and equipment available for sale, requests for information, quotation requests and any other functionalities made available." },
             { title: "3. Acceptance", body: "Browsing this website implies the full and unreserved acceptance of these Terms. If you do not agree, you must immediately cease using the website." },
             { title: "4. Use of the Website", body: "The user undertakes to use the website lawfully and in accordance with public order and good faith, and not to: (a) use the content for illegal purposes; (b) introduce viruses, malicious code or any element that may damage the system; (c) attempt to gain unauthorised access to restricted areas; (d) reproduce, copy or distribute content without authorisation." },
@@ -519,7 +521,7 @@ const resources = {
           title: "Privacy Policy",
           intro: "LEGA Trucks & Machinery is committed to protecting the privacy of its visitors and customers. This Policy explains what data we collect, how we use it and what rights you have, in accordance with the GDPR.",
           sections: [
-            { title: "1. Data Controller", body: "LEGA Trucks & Machinery, with registered office at Travessa do Monte, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal, is the controller of the personal data collected through this website. Contacts: geral@lega.pt | +351 912 406 089." },
+            { title: "1. Data Controller", body: "LEGA Trucks & Machinery, with registered office at Travessa do Monte, nº 560, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal, is the controller of the personal data collected through this website. Contacts: geral@lega.pt | +351 912 406 089." },
             { title: "2. Data We Collect", body: "We may collect the following categories of personal data:\n• Identification and contact data: name, email, telephone, country.\n• Information related to your enquiry: vehicle/equipment of interest, message content.\n• Browsing data: IP address, type of browser, device, operating system, pages visited, time of access (via cookies and analytics tools).\nWe do not collect special categories of data (health, religion, ethnicity, etc.)." },
             { title: "3. Purposes of Processing", body: "Your data is processed for the following purposes:\n• To respond to information and quotation requests submitted through forms or WhatsApp.\n• To manage the commercial relationship and execute sale contracts.\n• To comply with legal and tax obligations.\n• To improve the website, content and services offered.\n• When you have given consent, to send commercial communications about products and promotions." },
             { title: "4. Legal Basis", body: "The processing is based on: (a) execution of pre-contractual measures or contract (Art. 6(1)(b) GDPR); (b) compliance with legal obligations (Art. 6(1)(c)); (c) legitimate interest in managing and improving our services (Art. 6(1)(f)); (d) consent, where applicable, for marketing or non-essential cookies (Art. 6(1)(a))." },
@@ -938,6 +940,8 @@ const resources = {
       },
       whatsapp: {
         message: "Olá! Tenho interesse nos vossos camiões e maquinaria.",
+        productMessage: "Olá, estou interessado neste veículo: {{title}}. Gostaria de obter mais informações.",
+        genericMessage: "Olá, gostaria de obter mais informações sobre os veículos e máquinas disponíveis na LEGA.",
         ariaLabel: "Contacte-nos pelo WhatsApp"
       },
       searchBar: {
@@ -1069,7 +1073,7 @@ const resources = {
           title: "Termos e Condições",
           intro: "Ao aceder ou utilizar este website, aceita integralmente os presentes Termos e Condições. Leia-os com atenção antes de utilizar os nossos serviços.",
           sections: [
-            { title: "1. Identificação da Empresa", body: "Este website é explorado pela LEGA Trucks & Machinery, com sede na Travessa do Monte, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal. Contacto: +351 912 406 089. A empresa dedica-se à comercialização de camiões usados, máquinas industriais, tractores agrícolas, reboques e peças." },
+            { title: "1. Identificação da Empresa", body: "Este website é explorado pela LEGA Trucks & Machinery, com sede na Travessa do Monte, nº 560, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal. Contacto: +351 912 406 089. A empresa dedica-se à comercialização de camiões usados, máquinas industriais, tractores agrícolas, reboques e peças." },
             { title: "2. Objeto", body: "Os presentes Termos regulam o acesso e a utilização do website https://www.lega.pt, incluindo a consulta de veículos e equipamentos disponíveis para venda, pedidos de informação, pedidos de cotação e demais funcionalidades disponibilizadas." },
             { title: "3. Aceitação", body: "A navegação neste website implica a aceitação plena e sem reservas dos presentes Termos. Caso não concorde, deverá cessar imediatamente a utilização do website." },
             { title: "4. Utilização do Website", body: "O utilizador compromete-se a utilizar o website de forma lícita e em conformidade com a ordem pública e a boa-fé, e a não: (a) utilizar os conteúdos para fins ilícitos; (b) introduzir vírus, código malicioso ou qualquer elemento que possa danificar o sistema; (c) tentar aceder de forma não autorizada a áreas restritas; (d) reproduzir, copiar ou distribuir conteúdos sem autorização." },
@@ -1090,7 +1094,7 @@ const resources = {
           title: "Política de Privacidade",
           intro: "A LEGA Trucks & Machinery está comprometida em proteger a privacidade dos seus visitantes e clientes. A presente Política explica que dados recolhemos, como os utilizamos e quais os seus direitos, em conformidade com o RGPD.",
           sections: [
-            { title: "1. Responsável pelo Tratamento", body: "A LEGA Trucks & Machinery, com sede na Travessa do Monte, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal, é a entidade responsável pelo tratamento dos dados pessoais recolhidos através deste website. Contactos: geral@lega.pt | +351 912 406 089." },
+            { title: "1. Responsável pelo Tratamento", body: "A LEGA Trucks & Machinery, com sede na Travessa do Monte, nº 560, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal, é a entidade responsável pelo tratamento dos dados pessoais recolhidos através deste website. Contactos: geral@lega.pt | +351 912 406 089." },
             { title: "2. Dados que Recolhemos", body: "Podemos recolher as seguintes categorias de dados pessoais:\n• Dados de identificação e contacto: nome, email, telefone, país.\n• Informação relacionada com o seu pedido: veículo/equipamento de interesse, conteúdo da mensagem.\n• Dados de navegação: endereço IP, tipo de navegador, dispositivo, sistema operativo, páginas visitadas, hora de acesso (através de cookies e ferramentas de analítica).\nNão recolhemos categorias especiais de dados (saúde, religião, etnia, etc.)." },
             { title: "3. Finalidades do Tratamento", body: "Os seus dados são tratados para as seguintes finalidades:\n• Resposta a pedidos de informação e cotação submetidos via formulários ou WhatsApp.\n• Gestão da relação comercial e execução de contratos de compra e venda.\n• Cumprimento de obrigações legais e fiscais.\n• Melhoria do website, conteúdos e serviços disponibilizados.\n• Quando tenha dado consentimento, envio de comunicações comerciais sobre produtos e promoções." },
             { title: "4. Fundamento Legal", body: "O tratamento baseia-se em: (a) execução de diligências pré-contratuais ou de contrato (art. 6.º, n.º 1, al. b) RGPD); (b) cumprimento de obrigações legais (art. 6.º, n.º 1, al. c)); (c) interesse legítimo na gestão e melhoria dos nossos serviços (art. 6.º, n.º 1, al. f)); (d) consentimento, quando aplicável a marketing ou cookies não essenciais (art. 6.º, n.º 1, al. a))." },
@@ -1509,6 +1513,8 @@ const resources = {
       },
       whatsapp: {
         message: "Bonjour ! Je suis intéressé par vos camions et machines.",
+        productMessage: "Bonjour, je suis intéressé par ce véhicule : {{title}}. Je souhaiterais obtenir plus d'informations.",
+        genericMessage: "Bonjour, je souhaiterais obtenir plus d'informations sur les véhicules et machines disponibles chez LEGA.",
         ariaLabel: "Contactez-nous sur WhatsApp"
       },
       searchBar: {
@@ -1640,7 +1646,7 @@ const resources = {
           title: "Conditions Générales",
           intro: "En accédant ou en utilisant ce site web, vous acceptez intégralement les présentes Conditions Générales. Veuillez les lire attentivement avant d'utiliser nos services.",
           sections: [
-            { title: "1. Identification de l'Entreprise", body: "Ce site est exploité par LEGA Trucks & Machinery, dont le siège est situé Travessa do Monte, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal. Contact : +351 912 406 089. L'entreprise est spécialisée dans la commercialisation de camions d'occasion, machines industrielles, tracteurs agricoles, remorques et pièces détachées." },
+            { title: "1. Identification de l'Entreprise", body: "Ce site est exploité par LEGA Trucks & Machinery, dont le siège est situé Travessa do Monte, nº 560, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal. Contact : +351 912 406 089. L'entreprise est spécialisée dans la commercialisation de camions d'occasion, machines industrielles, tracteurs agricoles, remorques et pièces détachées." },
             { title: "2. Objet", body: "Les présentes Conditions régissent l'accès et l'utilisation du site https://www.lega.pt, y compris la consultation des véhicules et équipements disponibles à la vente, les demandes d'information, les demandes de devis et les autres fonctionnalités proposées." },
             { title: "3. Acceptation", body: "La navigation sur ce site implique l'acceptation pleine et sans réserve des présentes Conditions. Si vous n'êtes pas d'accord, vous devez cesser immédiatement d'utiliser le site." },
             { title: "4. Utilisation du Site", body: "L'utilisateur s'engage à utiliser le site de manière licite et conformément à l'ordre public et à la bonne foi, et à ne pas : (a) utiliser les contenus à des fins illicites ; (b) introduire des virus, du code malveillant ou tout élément susceptible d'endommager le système ; (c) tenter d'accéder de manière non autorisée à des zones restreintes ; (d) reproduire, copier ou distribuer les contenus sans autorisation." },
@@ -1661,7 +1667,7 @@ const resources = {
           title: "Politique de Confidentialité",
           intro: "LEGA Trucks & Machinery s'engage à protéger la vie privée de ses visiteurs et clients. La présente Politique explique quelles données nous collectons, comment nous les utilisons et quels sont vos droits, conformément au RGPD.",
           sections: [
-            { title: "1. Responsable du Traitement", body: "LEGA Trucks & Machinery, dont le siège social est situé Travessa do Monte, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal, est responsable du traitement des données personnelles collectées via ce site. Contacts : geral@lega.pt | +351 912 406 089." },
+            { title: "1. Responsable du Traitement", body: "LEGA Trucks & Machinery, dont le siège social est situé Travessa do Monte, nº 560, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal, est responsable du traitement des données personnelles collectées via ce site. Contacts : geral@lega.pt | +351 912 406 089." },
             { title: "2. Données Collectées", body: "Nous pouvons collecter les catégories suivantes de données personnelles :\n• Données d'identification et de contact : nom, email, téléphone, pays.\n• Informations liées à votre demande : véhicule/équipement d'intérêt, contenu du message.\n• Données de navigation : adresse IP, type de navigateur, appareil, système d'exploitation, pages visitées, heure d'accès (via cookies et outils analytiques).\nNous ne collectons pas de catégories particulières de données (santé, religion, origine ethnique, etc.)." },
             { title: "3. Finalités du Traitement", body: "Vos données sont traitées aux fins suivantes :\n• Réponse aux demandes d'information et de devis soumises via les formulaires ou WhatsApp.\n• Gestion de la relation commerciale et exécution des contrats de vente.\n• Respect des obligations légales et fiscales.\n• Amélioration du site, des contenus et des services proposés.\n• Lorsque vous avez donné votre consentement, envoi de communications commerciales sur les produits et promotions." },
             { title: "4. Base Légale", body: "Le traitement repose sur : (a) l'exécution de mesures précontractuelles ou d'un contrat (art. 6(1)(b) RGPD) ; (b) le respect d'obligations légales (art. 6(1)(c)) ; (c) l'intérêt légitime dans la gestion et l'amélioration de nos services (art. 6(1)(f)) ; (d) le consentement, le cas échéant, pour le marketing ou les cookies non essentiels (art. 6(1)(a))." },

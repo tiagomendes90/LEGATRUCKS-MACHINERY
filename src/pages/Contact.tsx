@@ -10,9 +10,11 @@ import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import PageHero from "@/components/PageHero";
+import { COMPANY_ADDRESS_LINES, GOOGLE_MAPS_EMBED_URL } from "@/lib/company";
 import { getWhatsAppUrl, WHATSAPP_DISPLAY } from "@/lib/whatsapp";
 import { useSubmitForm } from "@/hooks/useSubmitForm";
 import AntiSpamFields, { type AntiSpamFieldsHandle } from "@/components/AntiSpamFields";
@@ -131,10 +133,9 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold text-slate-800">{t('contact.location')}</h3>
                       <p className="text-gray-700">LEGA Trucks & Machinery</p>
-                      <p className="text-gray-700">Travessa do Monte</p>
-                      <p className="text-gray-700">4765-326 Oliveira Santa Maria</p>
-                      <p className="text-gray-700">Vila Nova de Famalicão</p>
-                      <p className="text-gray-700">Portugal</p>
+                      {COMPANY_ADDRESS_LINES.map((line) => (
+                        <p key={line} className="text-gray-700">{line}</p>
+                      ))}
                     </div>
                   </div>
 
@@ -172,7 +173,7 @@ const Contact = () => {
               <Card className="shadow-lg overflow-hidden">
                 <iframe
                   title="LEGA location"
-                  src="https://www.google.com/maps?q=Travessa+do+Monte,+4765-326+Oliveira+Santa+Maria,+Vila+Nova+de+Famalic%C3%A3o,+Portugal&output=embed"
+                  src={GOOGLE_MAPS_EMBED_URL}
                   width="100%"
                   height="300"
                   style={{ border: 0, display: "block" }}
@@ -289,6 +290,7 @@ const Contact = () => {
       </section>
 
       <Footer />
+      <WhatsAppFloat />
     </div>
   );
 };
