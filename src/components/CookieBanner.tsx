@@ -55,9 +55,9 @@ const CookieBanner = () => {
       role="dialog"
       aria-live="polite"
       aria-label={t("cookies.title")}
-      className="fixed bottom-0 inset-x-0 z-50 p-4 md:p-6"
+      className="fixed bottom-0 inset-x-0 z-50 p-4 md:p-6 pointer-events-none"
     >
-      <div className="mx-auto max-w-5xl bg-background border border-border shadow-2xl rounded-xl p-5 md:p-6">
+      <div className="pointer-events-auto mx-auto max-w-5xl bg-background border border-border shadow-2xl rounded-xl p-5 md:p-6">
         {!customize ? (
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1">
