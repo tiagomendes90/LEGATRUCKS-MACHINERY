@@ -10,6 +10,7 @@ import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import PageHero from "@/components/PageHero";
@@ -289,6 +290,7 @@ const Contact = () => {
       </section>
 
       <Footer />
+      <WhatsAppFloat />
     </div>
   );
 };
