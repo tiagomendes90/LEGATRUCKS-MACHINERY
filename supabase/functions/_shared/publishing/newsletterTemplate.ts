@@ -37,7 +37,7 @@ const FONT =
 const PHONE_DISPLAY = "+351 912 406 089";
 const PHONE_TEL = "+351912406089";
 const EMAIL = "info@lega.pt";
-const ADDRESS = "Travessa do Monte, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal";
+const ADDRESS = "Travessa do Monte, nº 560, 4765-326 Oliveira Santa Maria, Vila Nova de Famalicão, Portugal";
 const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61573724754152";
 const INSTAGRAM_URL = "https://www.instagram.com/lega_trucks_and_machinery/";
 const LINKEDIN_URL = Deno.env.get("LEGA_LINKEDIN_URL") ?? "";
