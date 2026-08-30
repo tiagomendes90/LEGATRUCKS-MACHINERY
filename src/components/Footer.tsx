@@ -8,6 +8,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { WHATSAPP_DISPLAY } from "@/lib/whatsapp";
+import { COMPANY_ADDRESS_LINES, GOOGLE_MAPS_URL } from "@/lib/company";
+
 import { supabase } from "@/integrations/supabase/client";
 
 const Footer = () => {
@@ -202,7 +204,7 @@ const Footer = () => {
               <div className="flex items-start space-x-2 text-white">
                 <MapPin className="h-4 w-4 mt-1 shrink-0" />
                 <span className="text-white whitespace-pre-line text-xs leading-snug">
-                  {"Travessa do Monte\n4765-326 Oliveira Santa Maria\nVila Nova de Famalicão, Portugal"}
+                  {COMPANY_ADDRESS_LINES.join("\n")}
                 </span> 
               </div>
             </div>
@@ -215,22 +217,21 @@ const Footer = () => {
             <div className="w-full h-24 rounded-lg overflow-hidden bg-white/10 flex items-center justify-center">
               <div className="text-center">
                 <MapPin className="h-5 w-5 text-white mx-auto mb-1" />
-                <p className="text-white text-xs leading-snug">
-  Travessa do Monte<br />
-  4765-326 Oliveira Santa Maria<br />
-  Vila Nova de Famalicão, Portugal
-</p>
+                <p className="text-white text-xs leading-snug whitespace-pre-line">
+                  {COMPANY_ADDRESS_LINES.join("\n")}
+                </p>
                 <a
-  href="https://www.google.com/maps/search/?api=1&query=Travessa+do+Monte+4765-326+Oliveira+Santa+Maria+Vila+Nova+de+Famalic%C3%A3o+Portugal"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="text-white underline text-xs"
->
-  {t('footer.viewOnGoogleMaps')}
-</a>
+                  href={GOOGLE_MAPS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white underline text-xs"
+                >
+                  {t('footer.viewOnGoogleMaps')}
+                </a>
               </div>
             </div>
           </div>
+
         </div>
 
         <div className="border-t border-white/20 mt-4 pt-3 text-center">
