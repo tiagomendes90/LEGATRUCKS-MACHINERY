@@ -6,8 +6,8 @@ export const PRODUCT_SELECT = `
   id, title, model, description, price, currency, year, condition,
   stock_status, location_city, location_country, is_active, social_caption,
   brand:brands(name, slug),
-  category:categories(name, slug),
-  subcategory:subcategories(name, slug),
+  category:categories(id, name, slug),
+  subcategory:subcategories(id, name, slug),
   images:product_images(image_url, is_primary, sort_order),
   translations:product_translations(language_code, title, description),
   specs:spec_values(

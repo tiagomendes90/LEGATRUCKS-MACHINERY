@@ -47,6 +47,8 @@ export interface NewsletterI18n {
   t: (code: string, key: StringKey, vars?: Record<string, string | number>) => string;
   /** Valor bruto de uma chave arbitrária (ex.: `term.<x>`) num idioma. */
   raw: (code: string, key: string) => string | undefined;
+  /** Nome traduzido de uma categoria/subcategoria (tabela `taxonomy_translations`). */
+  taxonomy: (code: string, entityId?: string | null) => string | undefined;
   language: (code: string) => NewsletterLanguage | undefined;
 }
 
@@ -69,10 +71,19 @@ const FALLBACK_LANGUAGE: NewsletterLanguage = {
 
 /** Carrega idiomas + traduções (uma única vez por execução). */
 export async function loadNewsletterI18n(supabase: any): Promise<NewsletterI18n> {
-  const [{ data: langRows }, { data: trRows }] = await Promise.all([
+  const [{ data: langRows }, { data: trRows }, { data: taxRows }] = await Promise.all([
     supabase.from("newsletter_languages").select("*").order("sort_order", { ascending: true }),
     supabase.from("newsletter_translations").select("language_code, key, value"),
+    supabase.from("taxonomy_translations").select("entity_id, language_code, name"),
   ]);
+
+  // Traduções centralizadas de categorias/subcategorias (sistema global do site).
+  const taxonomyMap = new Map<string, string>();
+  for (const r of (taxRows ?? []) as Array<{ entity_id: string; language_code: string; name: string }>) {
+    if (!r?.entity_id || !r?.language_code) continue;
+    if (typeof r.name !== "string" || r.name.trim() === "") continue;
+    taxonomyMap.set(`${r.entity_id}|${String(r.language_code).toLowerCase().split(/[-_]/)[0]}`, r.name.trim());
+  }
 
   const allLanguages: NewsletterLanguage[] =
     ((langRows ?? []) as NewsletterLanguage[]).length > 0
@@ -135,6 +146,8 @@ export async function loadNewsletterI18n(supabase: any): Promise<NewsletterI18n>
     chain,
     t,
     raw: (code: string, key: string) => overrides[code]?.[key],
+    taxonomy: (code: string, entityId?: string | null) =>
+      entityId ? taxonomyMap.get(`${entityId}|${code}`) : undefined,
     language: (code: string) => byCode.get(code),
   };
 }
