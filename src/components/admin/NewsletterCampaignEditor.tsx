@@ -162,6 +162,47 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     [campaign, title, subject, preheader, intro, outro, productIds, listId, templateId, audienceMode, listIds, tags],
   );
 
+  /** Texto padrão editorial nos idiomas suportados (sem marcadores técnicos). */
+  const DEFAULT_COPY: Record<string, { subject: string; preheader: string; intro: string; outro: string }> = {
+    en: {
+      subject: "LEGA — Latest stock highlights",
+      preheader: "The latest arrivals in the LEGA stock.",
+      intro: "Discover the latest arrivals in our stock.",
+      outro: "Need more information? Reply to this email or contact us.",
+    },
+    pt: {
+      subject: "LEGA — Destaques do stock",
+      preheader: "As novidades mais recentes do stock LEGA.",
+      intro: "Confira as novidades mais recentes do nosso stock.",
+      outro: "Precisa de mais informações? Responda a este email ou contacte-nos.",
+    },
+    fr: {
+      subject: "LEGA — Nouveautés du stock",
+      preheader: "Les dernières nouveautés du stock LEGA.",
+      intro: "Découvrez les dernières nouveautés de notre stock.",
+      outro: "Besoin de plus d'informations ? Répondez à cet email ou contactez-nous.",
+    },
+  };
+
+  const [defaultTextLang, setDefaultTextLang] = useState<string>(defaultLang);
+
+  /** Remove marcadores técnicos como "(padrão)" de nomes usados no conteúdo. */
+  const cleanName = (name: string) =>
+    name.replace(/\s*\((padr[aã]o|default|standard)\)\s*/gi, " ").replace(/\s+/g, " ").trim();
+
+  const copyFor = (lang: string) => DEFAULT_COPY[lang] ?? DEFAULT_COPY.en;
+
+  /** Carrega o texto padrão no idioma escolhido. */
+  const applyDefaultText = (lang: string) => {
+    setDefaultTextLang(lang);
+    const c = copyFor(lang);
+    setSubject(c.subject);
+    setPreheader(c.preheader);
+    setIntro(c.intro);
+    setOutro(c.outro);
+    toast({ title: "Texto padrão aplicado", description: lang.toUpperCase() });
+  };
+
   const applyTemplate = (id: string) => {
     const tpl = (templates.data ?? []).find((t) => t.id === id);
     setTemplateId(id || null);
@@ -169,20 +210,16 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
 
     const tplIntro = (tpl.content_json?.intro ?? "").toString().trim();
     const tplOutro = (tpl.content_json?.outro ?? "").toString().trim();
+    const name = cleanName(tpl.name);
+    const c = copyFor(defaultTextLang);
 
-    // Texto pré-definido para o template ficar imediatamente utilizável
-    const fallbackSubject = `LEGA — ${tpl.name}`;
-    const fallbackPreheader = "As novidades mais recentes do stock LEGA.";
-    const fallbackIntro = "Confira as novidades mais recentes do nosso stock.";
-    const fallbackOutro = "Precisa de mais informações? Responda a este email ou contacte-nos.";
+    if (!title.trim()) setTitle(name);
+    if (!subject.trim()) setSubject(cleanName(tpl.subject_template?.trim() || c.subject));
+    if (!(preheader ?? "").trim()) setPreheader(tpl.preheader_template?.trim() || c.preheader);
+    setIntro(cleanName(tplIntro) || c.intro);
+    setOutro(cleanName(tplOutro) || c.outro);
 
-    if (!title.trim()) setTitle(tpl.name);
-    if (!subject.trim()) setSubject(tpl.subject_template?.trim() || fallbackSubject);
-    if (!(preheader ?? "").trim()) setPreheader(tpl.preheader_template?.trim() || fallbackPreheader);
-    setIntro(tplIntro || fallbackIntro);
-    setOutro(tplOutro || fallbackOutro);
-
-    toast({ title: "Template aplicado", description: tpl.name });
+    toast({ title: "Template aplicado", description: name });
   };
 
   const refreshPreview = async () => {
@@ -732,6 +769,23 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <Label>Texto padrão</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={defaultTextLang}
+                  disabled={isReadOnly}
+                  onChange={(e) => applyDefaultText(e.target.value)}
+                >
+                  <option value="en">English</option>
+                  <option value="pt">Português</option>
+                  <option value="fr">Français</option>
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Carrega automaticamente o texto pré-definido no idioma escolhido.
+                </p>
               </div>
 
               <div>

@@ -133,6 +133,17 @@ const STOCK_KEY: Record<string, StringKey> = {
   vendido: "stock.sold",
 };
 
+/**
+ * Nome de uma categoria/subcategoria no idioma pedido. Usa primeiro o sistema
+ * central `taxonomy_translations` (por id) e só depois o dicionário de termos.
+ */
+function taxonomyName(ctx: Ctx, entity: AnyRecord | undefined): string | undefined {
+  if (!entity?.name) return undefined;
+  const fromDb = ctx.i18n.taxonomy(ctx.lang, entity.id as string | undefined);
+  if (fromDb && fromDb.trim() !== "") return fromDb;
+  return translateTerm(ctx.i18n, ctx.lang, entity.name);
+}
+
 /** Tradução de termos livres (categorias, rótulos, valores textuais). */
 function term(ctx: Ctx, text: unknown): string {
   return translateTerm(ctx.i18n, ctx.lang, text);
@@ -156,8 +167,8 @@ function collectSpecs(p: AnyRecord, ctx: Ctx): Array<[string, string]> {
   const specs: Array<[string, string]> = [];
   if (brand?.name) specs.push([t("spec.brand"), String(brand.name)]);
   if (p.model) specs.push([t("spec.model"), String(p.model)]);
-  if (category?.name) specs.push([t("spec.category"), term(ctx, category.name)]);
-  if (subcategory?.name) specs.push([t("spec.subcategory"), term(ctx, subcategory.name)]);
+  if (category?.name) specs.push([t("spec.category"), taxonomyName(ctx, category)!]);
+  if (subcategory?.name) specs.push([t("spec.subcategory"), taxonomyName(ctx, subcategory)!]);
   if (p.year) specs.push([t("spec.year"), String(p.year)]);
   if (condRaw) {
     const key = CONDITION_KEY[condRaw.toLowerCase()];
@@ -250,9 +261,8 @@ function renderProductCard(
   const cta = ov?.cta || defaultCta;
   const link = productUrl(p);
   const brandName = (p.brand as AnyRecord | undefined)?.name as string | undefined;
-  const catNameRaw = (p.subcategory as AnyRecord | undefined)?.name
-    ?? (p.category as AnyRecord | undefined)?.name;
-  const catName = catNameRaw ? term(ctx, catNameRaw) : undefined;
+  const catName = taxonomyName(ctx, p.subcategory as AnyRecord | undefined)
+    ?? taxonomyName(ctx, p.category as AnyRecord | undefined);
 
   return `
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;background:#ffffff;border:1px solid ${LINE};border-radius:14px;overflow:hidden;">
