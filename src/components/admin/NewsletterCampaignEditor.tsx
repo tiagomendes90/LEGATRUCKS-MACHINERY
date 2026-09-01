@@ -163,23 +163,29 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
   );
 
   /** Texto padrão editorial nos idiomas suportados (sem marcadores técnicos). */
-  const DEFAULT_COPY: Record<string, { subject: string; preheader: string; intro: string; outro: string }> = {
+  const DEFAULT_COPY: Record<
+    string,
+    { subject: string; preheader: string; title: string; intro: string; outro: string }
+  > = {
     en: {
       subject: "LEGA — Latest stock highlights",
       preheader: "The latest arrivals in the LEGA stock.",
-      intro: "Discover the latest arrivals in our stock.",
+      title: "Latest Product Highlights",
+      intro: "Discover the latest arrivals in our LEGA stock.",
       outro: "Need more information? Reply to this email or contact us.",
     },
     pt: {
       subject: "LEGA — Destaques do stock",
       preheader: "As novidades mais recentes do stock LEGA.",
+      title: "Destaque de Produtos",
       intro: "Confira as novidades mais recentes do nosso stock.",
       outro: "Precisa de mais informações? Responda a este email ou contacte-nos.",
     },
     fr: {
       subject: "LEGA — Nouveautés du stock",
       preheader: "Les dernières nouveautés du stock LEGA.",
-      intro: "Découvrez les dernières nouveautés de notre stock.",
+      title: "Nouveautés Produits",
+      intro: "Découvrez les dernières nouveautés de notre stock LEGA.",
       outro: "Besoin de plus d'informations ? Répondez à cet email ou contactez-nous.",
     },
   };
@@ -192,7 +198,10 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
 
   const copyFor = (lang: string) => DEFAULT_COPY[lang] ?? DEFAULT_COPY.en;
 
-  /** Carrega o texto padrão no idioma escolhido. */
+  /**
+   * Carrega o texto padrão no idioma escolhido e garante que cada idioma activo
+   * tem a sua própria versão editorial (independente entre idiomas).
+   */
   const applyDefaultText = (lang: string) => {
     setDefaultTextLang(lang);
     const c = copyFor(lang);
@@ -200,6 +209,30 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     setPreheader(c.preheader);
     setIntro(c.intro);
     setOutro(c.outro);
+
+    setTranslations((prev) => {
+      const next = { ...prev };
+      const codes = activeLanguages.length ? activeLanguages.map((l) => l.code) : [lang];
+      for (const code of codes) {
+        const copy = DEFAULT_COPY[code];
+        if (!copy) continue;
+        const cur = prev[code];
+        const keep = (v: string | null | undefined, fallback: string) =>
+          code !== lang && (v ?? "").trim() !== "" ? (v as string) : fallback;
+        next[code] = {
+          language_code: code,
+          cta_label: cur?.cta_label ?? null,
+          footer_note: cur?.footer_note ?? null,
+          subject: keep(cur?.subject, copy.subject),
+          preheader: keep(cur?.preheader, copy.preheader),
+          title: keep(cur?.title, copy.title),
+          intro: keep(cur?.intro, copy.intro),
+          outro: keep(cur?.outro, copy.outro),
+        } as TranslationDraft;
+      }
+      return next;
+    });
+
     toast({ title: "Texto padrão aplicado", description: lang.toUpperCase() });
   };
 
@@ -361,10 +394,11 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           source_language: defaultLang,
           targets,
           source: {
-            subject,
-            preheader,
-            intro,
-            outro,
+            subject: translations[defaultLang]?.subject || subject,
+            preheader: translations[defaultLang]?.preheader || preheader,
+            title: translations[defaultLang]?.title || copyFor(defaultLang).title,
+            intro: translations[defaultLang]?.intro || intro,
+            outro: translations[defaultLang]?.outro || outro,
           },
         },
       });
@@ -609,12 +643,12 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                 ))}
               </div>
 
-              {currentLang === defaultLang ? (
-                <p className="text-xs text-muted-foreground">
-                  Este é o idioma base da campanha — edita o conteúdo no cartão acima.
-                </p>
-              ) : (
-                <>
+              <>
+                  {currentLang === defaultLang && (
+                    <p className="text-xs text-muted-foreground">
+                      Idioma base — estes campos substituem o conteúdo do cartão acima nesta língua.
+                    </p>
+                  )}
                   <div>
                     <Label>Assunto</Label>
                     <Input
@@ -631,6 +665,15 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                       placeholder={preheader ?? ""}
                       disabled={isReadOnly}
                       onChange={(e) => setTranslationField(currentLang, "preheader", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Título editorial</Label>
+                    <Input
+                      value={translations[currentLang]?.title ?? ""}
+                      placeholder={copyFor(currentLang).title}
+                      disabled={isReadOnly}
+                      onChange={(e) => setTranslationField(currentLang, "title", e.target.value)}
                     />
                   </div>
                   <div>
@@ -672,7 +715,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                     </div>
                   </div>
                 </>
-              )}
+
             </CardContent>
           </Card>
 

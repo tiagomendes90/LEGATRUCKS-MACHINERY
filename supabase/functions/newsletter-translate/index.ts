@@ -10,7 +10,7 @@ function json(status: number, body: unknown) {
   });
 }
 
-const FIELDS = ["subject", "preheader", "intro", "outro", "cta_label", "footer_note"] as const;
+const FIELDS = ["subject", "preheader", "title", "intro", "outro", "cta_label", "footer_note"] as const;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
