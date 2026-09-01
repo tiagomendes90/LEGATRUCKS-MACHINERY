@@ -642,12 +642,12 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                 ))}
               </div>
 
-              {currentLang === defaultLang ? (
-                <p className="text-xs text-muted-foreground">
-                  Este é o idioma base da campanha — edita o conteúdo no cartão acima.
-                </p>
-              ) : (
-                <>
+              <>
+                  {currentLang === defaultLang && (
+                    <p className="text-xs text-muted-foreground">
+                      Idioma base — estes campos substituem o conteúdo do cartão acima nesta língua.
+                    </p>
+                  )}
                   <div>
                     <Label>Assunto</Label>
                     <Input
@@ -664,6 +664,15 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                       placeholder={preheader ?? ""}
                       disabled={isReadOnly}
                       onChange={(e) => setTranslationField(currentLang, "preheader", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Título editorial</Label>
+                    <Input
+                      value={translations[currentLang]?.title ?? ""}
+                      placeholder={copyFor(currentLang).title}
+                      disabled={isReadOnly}
+                      onChange={(e) => setTranslationField(currentLang, "title", e.target.value)}
                     />
                   </div>
                   <div>
@@ -705,7 +714,7 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
                     </div>
                   </div>
                 </>
-              )}
+
             </CardContent>
           </Card>
 
