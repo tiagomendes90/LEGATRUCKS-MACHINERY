@@ -394,10 +394,11 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
           source_language: defaultLang,
           targets,
           source: {
-            subject,
-            preheader,
-            intro,
-            outro,
+            subject: translations[defaultLang]?.subject || subject,
+            preheader: translations[defaultLang]?.preheader || preheader,
+            title: translations[defaultLang]?.title || copyFor(defaultLang).title,
+            intro: translations[defaultLang]?.intro || intro,
+            outro: translations[defaultLang]?.outro || outro,
           },
         },
       });
