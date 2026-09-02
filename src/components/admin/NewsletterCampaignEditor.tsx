@@ -1019,7 +1019,9 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
             <AlertDialogAction
               onClick={async () => {
                 setConfirmSend(false);
-                const saved = campaign ?? (await persistDraft("ready"));
+                // Persistir SEMPRE (inclui traduções editoriais) antes de enviar,
+                // para que o email use exactamente o mesmo conteúdo do preview.
+                const saved = await persistDraft("ready");
                 const res = await send.mutateAsync(saved.id);
                 if ((res as any)?.ok) {
                   toast({ title: "Envio agendado", description: "A campanha entrou na fila de envio." });
