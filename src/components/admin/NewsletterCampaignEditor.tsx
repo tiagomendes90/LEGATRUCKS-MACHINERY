@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, CalendarClock, Globe, Languages, Loader2, Monitor, Save, Send, Smartphone, TestTube2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -94,10 +94,19 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
     activeLanguages.find((l) => l.is_default)?.code ?? activeLanguages[0]?.code ?? "en";
   const currentLang = previewLang || defaultLang;
 
+  /**
+   * Hidrata as traduções guardadas UMA vez por campanha. Refetches posteriores
+   * (foco da janela, invalidações) não podem apagar edições locais ainda por
+   * gravar — era isso que fazia o preview voltar ao conteúdo base em PT.
+   */
+  const hydratedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!savedTranslations.data) return;
+    const key = campaign?.id ?? "__new__";
+    if (hydratedFor.current === key) return;
+    if (campaign?.id && !savedTranslations.data) return;
+    hydratedFor.current = key;
     const next: Record<string, TranslationDraft> = {};
-    for (const t of savedTranslations.data) {
+    for (const t of savedTranslations.data ?? []) {
       next[t.language_code] = {
         language_code: t.language_code,
         subject: t.subject,
@@ -109,8 +118,18 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
         footer_note: t.footer_note,
       };
     }
-    setTranslations(next);
-  }, [savedTranslations.data]);
+    setTranslations((prev) => {
+      const merged = { ...next };
+      // Preserva edições locais não vazias que ainda não existam na BD.
+      for (const [code, draftRow] of Object.entries(prev)) {
+        const base = merged[code];
+        merged[code] = { ...(base ?? { language_code: code }), ...Object.fromEntries(
+          Object.entries(draftRow).filter(([, v]) => (v ?? "").toString().trim() !== ""),
+        ) } as TranslationDraft;
+      }
+      return merged;
+    });
+  }, [campaign?.id, savedTranslations.data]);
 
   const translationPayload = useMemo(
     () =>
@@ -1000,7 +1019,9 @@ export function NewsletterCampaignEditor({ campaign, subscriberCount, onClose }:
             <AlertDialogAction
               onClick={async () => {
                 setConfirmSend(false);
-                const saved = campaign ?? (await persistDraft("ready"));
+                // Persistir SEMPRE (inclui traduções editoriais) antes de enviar,
+                // para que o email use exactamente o mesmo conteúdo do preview.
+                const saved = await persistDraft("ready");
                 const res = await send.mutateAsync(saved.id);
                 if ((res as any)?.ok) {
                   toast({ title: "Envio agendado", description: "A campanha entrou na fila de envio." });
