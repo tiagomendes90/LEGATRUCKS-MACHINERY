@@ -730,9 +730,26 @@ export async function sendTestEmail(input: {
   translations?: Array<Record<string, unknown>>;
 }) {
   const { data, error } = await supabase.functions.invoke("newsletter-preview", { body: input });
-  if (error) throw error;
-  if (!(data as any)?.ok) throw new Error((data as any)?.error ?? "test_send_failed");
+  if (error) {
+    // `invoke` devolve sempre "non-2xx status code" — ler o corpo real da resposta.
+    let detail = error.message;
+    try {
+      const ctx = (error as any)?.context;
+      if (ctx && typeof ctx.text === "function") {
+        const raw = await ctx.text();
+        const parsed = JSON.parse(raw);
+        detail = parsed?.message ?? parsed?.error ?? raw ?? detail;
+      }
+    } catch {
+      /* mantém a mensagem original */
+    }
+    throw new Error(detail);
+  }
+  if (!(data as any)?.ok) {
+    throw new Error((data as any)?.message ?? (data as any)?.error ?? "Falha no envio de teste.");
+  }
   return data as { ok: true; to: string };
+
 }
 
 /* ------------------------------------------------------------------ */
