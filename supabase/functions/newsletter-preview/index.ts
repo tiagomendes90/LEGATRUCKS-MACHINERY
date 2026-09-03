@@ -7,6 +7,7 @@ import { resolveRecipients } from "../_shared/publishing/channels/newsletter.ts"
 import { loadProductsByIds } from "../_shared/publishing/productQuery.ts";
 import { loadNewsletterI18n } from "../_shared/publishing/i18n/index.ts";
 import { resolveCampaignContent } from "../_shared/publishing/i18n/campaignContent.ts";
+import { resendFetch } from "../_shared/resendClient.ts";
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -142,13 +143,21 @@ Deno.serve(async (req) => {
     if (testEmail) {
       const apiKey = Deno.env.get("RESEND_API_KEY");
       const from = Deno.env.get("RESEND_FROM_EMAIL");
-      if (!apiKey || !from) return json(400, { error: "missing_resend_config" });
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(testEmail)) {
-        return json(400, { error: "invalid_email" });
+      if (!apiKey || !from) {
+        return json(400, {
+          error: "missing_resend_config",
+          message: !apiKey
+            ? "Falta a chave RESEND_API_KEY nas definições das Edge Functions."
+            : "Falta o remetente RESEND_FROM_EMAIL (domínio verificado no Resend).",
+        });
       }
-      const res = await fetch("https://api.resend.com/emails", {
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(testEmail)) {
+        return json(400, { error: "invalid_email", message: "Endereço de email de teste inválido." });
+      }
+      // Usa o cliente Resend partilhado — a ligação Resend deste projeto é gerida
+      // pelo conector Lovable, logo as chamadas têm de passar pelo gateway.
+      const res = await resendFetch("/emails", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
           from,
           to: [testEmail],
@@ -159,7 +168,16 @@ Deno.serve(async (req) => {
       const out = await res.json().catch(() => ({}));
       if (!res.ok) {
         console.error(`[newsletter-preview] test send failed [${res.status}]`, JSON.stringify(out));
-        return json(res.status, { error: "test_send_failed", details: out });
+        const providerMsg = (out as any)?.message ?? (out as any)?.error?.message ?? null;
+        const message =
+          res.status === 401 || res.status === 403
+            ? `O serviço de email recusou a autenticação (${res.status}). Verifique a ligação Resend nas definições.`
+            : res.status === 422
+              ? `O serviço de email rejeitou a mensagem: ${providerMsg ?? "dados inválidos"}.`
+              : res.status === 429
+                ? "Limite de envios do serviço de email atingido. Tente novamente dentro de momentos."
+                : `Falha no envio de teste (HTTP ${res.status})${providerMsg ? `: ${providerMsg}` : ""}.`;
+        return json(502, { error: "test_send_failed", status: res.status, message, details: providerMsg });
       }
       await admin.from("newsletter_audit_log").insert({
         entity_type: "campaign",
