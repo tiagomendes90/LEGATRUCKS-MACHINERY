@@ -6,6 +6,7 @@ import { loadProductsByIds } from "../productQuery.ts";
 import { resendFetch } from "../../resendClient.ts";
 import { loadNewsletterI18n } from "../i18n/index.ts";
 import { resolveCampaignContent } from "../i18n/campaignContent.ts";
+import { isValidEmail, processCampaignQueue } from "../newsletterQueue.ts";
 
 /** Substituído por destinatário — permite guardar a preferência de idioma. */
 const TOKEN_PLACEHOLDER = "%%LEGA_SUBSCRIBER_TOKEN%%";
@@ -205,205 +206,60 @@ export const newsletterChannel: ChannelAdapter = {
       return { status: "skipped", response: { reason: "campaign already sent" } };
     }
 
-    // Produtos (ordem definida pelo admin) — mesma query partilhada por
-    // Facebook/Instagram/preview, garantindo conteúdo base idêntico.
-    const products = await loadProductsByIds(supabase, campaign.product_ids ?? []);
-
-    // Template reutilizável (cabeçalho / rodapé / intro / fecho)
-    let template: Record<string, any> | null = null;
-    if (campaign.template_id) {
-      const { data: t } = await supabase
-        .from("newsletter_templates").select("*").eq("id", campaign.template_id).maybeSingle();
-      template = t ?? null;
-    }
-
-    // ---- Multilingue: uma versão independente por idioma ----------------
-    const i18n = await loadNewsletterI18n(supabase);
-    const { data: trRows } = await supabase
-      .from("newsletter_campaign_translations")
-      .select("*")
-      .eq("campaign_id", campaignId);
-    const translations = (trRows ?? []) as any[];
-
-    const versionCache = new Map<string, { html: string; subject: string }>();
-    const versionFor = (langCode: string) => {
-      const lang = i18n.resolve(langCode);
-      const cached = versionCache.get(lang);
-      if (cached) return { lang, ...cached };
-      const content = resolveCampaignContent(
-        campaign, lang, i18n, translations, template?.content_json ?? null,
-      );
-      const html = renderNewsletterHtml({
-        campaign: {
-          title: campaign.title,
-          subject: campaign.subject,
-          preheader: campaign.preheader,
-          content_json: campaign.content_json,
-        },
-        template: template?.content_json ?? null,
-        products,
-        i18n,
-        lang,
-        translations,
-        publicNumber: campaign.public_number ?? null,
-        subscriberToken: TOKEN_PLACEHOLDER,
-      });
-      const version = { html, subject: content.subject };
-      versionCache.set(lang, version);
-      return { lang, ...version };
-    };
-
-    // Destinatários já entregues com sucesso — nunca reenviar.
-    const { data: doneRows } = await supabase
-      .from("newsletter_sends")
-      .select("subscriber_id")
-      .eq("campaign_id", campaignId)
-      .eq("status", "sent")
-      .limit(10000);
-    const alreadySent = new Set(
-      ((doneRows ?? []) as any[]).map((r) => r.subscriber_id).filter(Boolean),
-    );
-
-    let recipients = await resolveRecipients(supabase, campaign);
-    const totalAudience = recipients.length;
-    recipients = recipients.filter((r) => !alreadySent.has(r.id));
-
+    // ---- Fila persistente: cria os destinatários (idempotente) -----------
+    const recipients = await resolveRecipients(supabase, campaign);
     if (recipients.length === 0) {
       await supabase.from("newsletter_campaigns").update({
-        status: totalAudience > 0 ? "sent" : "failed",
-        last_error: totalAudience > 0 ? null : "audiência sem subscritores ativos",
+        status: "failed", last_error: "audiência sem subscritores ativos",
       }).eq("id", campaignId);
-      return {
-        status: totalAudience > 0 ? "success" : "failed",
-        response: { reason: totalAudience > 0 ? "all recipients already delivered" : "empty audience" },
-        error: totalAudience > 0 ? undefined : "audiência sem subscritores ativos",
-      };
+      return { status: "failed", error: "audiência sem subscritores ativos" };
     }
 
-    const startedAt = new Date();
+    // Já entregues em execuções anteriores (sistema antigo) → nunca reenviar.
+    const { data: doneRows } = await supabase
+      .from("newsletter_sends").select("subscriber_id")
+      .eq("campaign_id", campaignId).eq("status", "sent").limit(10000);
+    const alreadySent = new Set(((doneRows ?? []) as any[]).map((r) => r.subscriber_id));
+
+    const i18n = await loadNewsletterI18n(supabase);
+    const rows = recipients.map((r) => {
+      const valid = isValidEmail(r.email);
+      const done = alreadySent.has(r.id);
+      return {
+        campaign_id: campaignId,
+        subscriber_id: r.id,
+        email: (r.email ?? "").trim(),
+        language: i18n.resolve(r.preferred_language ?? campaign.default_language),
+        status: done ? "sent" : valid ? "pending" : "skipped",
+        last_error: !done && !valid ? "email inválido (formato ou caracteres não-ASCII)" : null,
+        sent_at: done ? new Date().toISOString() : null,
+      };
+    });
+    // ON CONFLICT DO NOTHING — linhas já existentes (sent/failed/pending) ficam intactas.
+    for (let i = 0; i < rows.length; i += 500) {
+      const { error } = await supabase.from("newsletter_send_queue")
+        .upsert(rows.slice(i, i + 500), { onConflict: "campaign_id,subscriber_id", ignoreDuplicates: true });
+      if (error) return { status: "failed", error: `fila: ${error.message}` };
+    }
+    // Reenviar falhados: volta a pôr os `failed` em pending (nunca os `sent`).
+    if (retryFailedOnly) {
+      await supabase.from("newsletter_send_queue")
+        .update({ status: "pending", attempts: 0, next_attempt_at: null, last_error: null })
+        .eq("campaign_id", campaignId).eq("status", "failed");
+    }
+
     await supabase.from("newsletter_campaigns").update({
       status: "sending",
-      send_started_at: startedAt.toISOString(),
-      recipients_count: totalAudience,
+      send_started_at: campaign.send_started_at ?? new Date().toISOString(),
+      next_run_at: new Date().toISOString(),
     }).eq("id", campaignId);
 
-    const batches: Record<string, unknown>[] = [];
-    let sent = 0;
-    let failed = 0;
-
-    // Agrupar destinatários pelo idioma preferido — cada grupo recebe a sua
-    // versão independente (assunto + HTML próprios).
-    const groups = new Map<string, Recipient[]>();
-    for (const r of recipients) {
-      const lang = i18n.resolve(r.preferred_language ?? campaign.default_language);
-      (groups.get(lang) ?? groups.set(lang, []).get(lang)!).push(r);
-    }
-
-    const perLanguage: Record<string, { sent: number; failed: number }> = {};
-    const flat: Array<{ lang: string; chunk: Recipient[] }> = [];
-    for (const [lang, list] of groups) {
-      for (let i = 0; i < list.length; i += BATCH_SIZE) {
-        flat.push({ lang, chunk: list.slice(i, i + BATCH_SIZE) });
-      }
-    }
-
-    for (const { lang, chunk } of flat) {
-      const version = versionFor(lang);
-      let ok = false;
-      let json: any = {};
-      let status = 0;
-      try {
-        const res = await resendFetch(`/emails/batch`, {
-          method: "POST",
-          body: JSON.stringify(
-            chunk.map((s) => ({
-              from,
-              to: [s.email],
-              subject: version.subject,
-              html: version.html
-                .replaceAll(TOKEN_PLACEHOLDER, s.unsubscribe_token)
-                .replaceAll(
-                  "{{{RESEND_UNSUBSCRIBE_URL}}}",
-                  unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
-                )
-                .replaceAll(
-                  "{{RESEND_UNSUBSCRIBE_URL}}",
-                  unsubUrl(ctx.supabaseUrl, s.unsubscribe_token),
-                ),
-            })),
-          ),
-        });
-        status = res.status;
-        json = await res.json().catch(() => ({}));
-        ok = res.ok;
-      } catch (err) {
-        json = { error: err instanceof Error ? err.message : String(err) };
-      }
-
-      ok ? (sent += chunk.length) : (failed += chunk.length);
-      const agg = (perLanguage[lang] ??= { sent: 0, failed: 0 });
-      ok ? (agg.sent += chunk.length) : (agg.failed += chunk.length);
-      batches.push({ ok, status, size: chunk.length, language: lang, body: json });
-
-      const ids = (json?.data ?? []) as any[];
-      // Insert (não upsert): o índice único parcial garante que um envio
-      // bem-sucedido nunca é duplicado; falhas ficam no histórico.
-      const { error: logErr } = await supabase.from("newsletter_sends").insert(
-        chunk.map((s, idx) => ({
-          campaign_id: campaignId,
-          subscriber_id: s.id,
-          channel_key: "newsletter",
-          language: lang,
-          status: ok ? "sent" : "failed",
-          resend_message_id: ok ? (ids[idx]?.id ?? null) : null,
-          error: ok ? null : (json?.message ?? `HTTP ${status}`),
-          raw_response: json,
-          sent_at: ok ? new Date().toISOString() : null,
-        })),
-      );
-      if (logErr) console.warn("[newsletter] failed to log sends", logErr.message);
-    }
-
-    const finishedAt = new Date();
-    const durationMs = finishedAt.getTime() - startedAt.getTime();
-    const finalStatus = sent === 0 ? "failed" : "sent";
-
-    await supabase.from("newsletter_campaigns").update({
-      status: finalStatus,
-      sent_at: finishedAt.toISOString(),
-      send_finished_at: finishedAt.toISOString(),
-      duration_ms: durationMs,
-      content_html: versionFor(campaign.default_language ?? i18n.defaultLanguage).html,
-      recipients_count: totalAudience,
-      sent_count: (campaign.sent_count ?? 0) + sent,
-      delivered_count: (campaign.delivered_count ?? 0) + sent,
-      failed_count: failed,
-      last_error: failed > 0 ? `${failed} destinatários falharam` : null,
-      stats: {
-        mode: campaign.audience_mode ?? "all",
-        audience: totalAudience,
-        attempted: recipients.length,
-        skipped_already_sent: totalAudience - recipients.length,
-        sent,
-        failed,
-        duration_ms: durationMs,
-        retry_failed_only: retryFailedOnly,
-        languages: perLanguage,
-      },
-    }).eq("id", campaignId);
-
+    // Processa já o máximo permitido; o resto continua via cron do dispatcher.
+    const run = await processCampaignQueue(supabase, ctx.supabaseUrl, campaignId, from);
     return {
-      status: finalStatus === "failed" ? "failed" : "success",
-      request: {
-        mode: campaign.audience_mode ?? "all",
-        list_ids: campaign.list_ids ?? [],
-        tags: campaign.tags ?? [],
-        audience: totalAudience,
-        attempted: recipients.length,
-        from,
-      },
-      response: { batches, sent, failed, duration_ms: durationMs, languages: perLanguage },
-      error: failed > 0 ? `${failed} destinatários falharam` : undefined,
+      status: "success",
+      request: { mode: campaign.audience_mode ?? "all", audience: recipients.length, from },
+      response: { queued: rows.length, ...run },
     };
   },
 };
