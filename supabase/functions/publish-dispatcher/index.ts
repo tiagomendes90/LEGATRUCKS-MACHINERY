@@ -5,6 +5,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { channels } from "../_shared/publishing/channels/index.ts";
 import { loadProduct } from "../_shared/publishing/productQuery.ts";
+import { processDueNewsletterQueues } from "../_shared/publishing/newsletterQueue.ts";
 import type {
   ChannelResult,
   PublishingContext,
@@ -205,6 +206,17 @@ Deno.serve(async (req) => {
       events = (data ?? []) as PublishingEvent[];
     }
 
+    // Fila da newsletter: retoma campanhas cujo próximo período já chegou.
+    // Barato quando não há trabalho (1 query indexada).
+    let newsletterQueue: unknown[] = [];
+    if (!eventId) {
+      try {
+        newsletterQueue = await processDueNewsletterQueues(supabase, SUPABASE_URL);
+      } catch (err) {
+        console.error("[dispatcher] newsletter queue failed", err);
+      }
+    }
+
     const processed: Record<string, unknown>[] = [];
     for (const e of events) {
       try {
@@ -226,7 +238,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, processed }), {
+    return new Response(JSON.stringify({ ok: true, processed, newsletterQueue }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
