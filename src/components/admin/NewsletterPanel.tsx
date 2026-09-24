@@ -69,6 +69,31 @@ function statusBadge(status: string) {
   return <Badge className={cfg.className} variant="secondary">{cfg.label}</Badge>;
 }
 
+function QueueProgress({ c }: { c: any }) {
+  const q = c?.stats?.queue;
+  if (!q || !q.total) return null;
+  const pending = (q.pending ?? 0) + (q.processing ?? 0);
+  const label =
+    c.status === "sent"
+      ? "Concluída"
+      : c.status === "sending"
+        ? q.waiting_quota
+          ? "A aguardar próximo período de envio"
+          : "Em envio automático"
+        : null;
+  return (
+    <div className="mt-1 text-[11px] leading-tight text-muted-foreground space-y-0.5">
+      {label && <div className="font-medium">{label}</div>}
+      <div>Enviados: {c.sent_count ?? q.sent ?? 0} / {q.total}</div>
+      {pending > 0 && <div>Pendentes: {pending}</div>}
+      <div>Erros: {c.failed_count ?? q.failed ?? 0}{q.skipped ? ` · Ignorados: ${q.skipped}` : ""}</div>
+      {c.status === "sending" && c.next_run_at && (
+        <div>Próximo processamento: automático ({new Date(c.next_run_at).toLocaleString("pt-PT")})</div>
+      )}
+    </div>
+  );
+}
+
 export default function NewsletterPanel() {
   const [tab, setTab] = usePersistentState<string>("newsletter.tab", "campaigns");
   const [editing, setEditing] = useState<NewsletterCampaign | null>(null);
@@ -269,7 +294,10 @@ export default function NewsletterPanel() {
                             {c.failed_count ?? 0}
                           </span>
                         </TableCell>
-                        <TableCell>{statusBadge(c.status)}</TableCell>
+                        <TableCell>
+                          {statusBadge(c.status)}
+                          <QueueProgress c={c} />
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true, locale: pt })}
                         </TableCell>

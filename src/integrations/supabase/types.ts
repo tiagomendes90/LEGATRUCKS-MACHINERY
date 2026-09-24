@@ -477,12 +477,15 @@ export type Database = {
           failed_count: number
           id: string
           last_error: string | null
+          last_sent_at: string | null
           list_id: string | null
           list_ids: string[]
+          next_run_at: string | null
           opened_count: number
           preheader: string | null
           product_ids: string[]
           public_number: number | null
+          queue_locked_until: string | null
           recipients_count: number
           scheduled_for: string | null
           send_finished_at: string | null
@@ -513,12 +516,15 @@ export type Database = {
           failed_count?: number
           id?: string
           last_error?: string | null
+          last_sent_at?: string | null
           list_id?: string | null
           list_ids?: string[]
+          next_run_at?: string | null
           opened_count?: number
           preheader?: string | null
           product_ids?: string[]
           public_number?: number | null
+          queue_locked_until?: string | null
           recipients_count?: number
           scheduled_for?: string | null
           send_finished_at?: string | null
@@ -549,12 +555,15 @@ export type Database = {
           failed_count?: number
           id?: string
           last_error?: string | null
+          last_sent_at?: string | null
           list_id?: string | null
           list_ids?: string[]
+          next_run_at?: string | null
           opened_count?: number
           preheader?: string | null
           product_ids?: string[]
           public_number?: number | null
+          queue_locked_until?: string | null
           recipients_count?: number
           scheduled_for?: string | null
           send_finished_at?: string | null
@@ -704,6 +713,72 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      newsletter_send_queue: {
+        Row: {
+          attempts: number
+          campaign_id: string
+          created_at: string
+          email: string
+          id: string
+          language: string | null
+          last_error: string | null
+          locked_at: string | null
+          next_attempt_at: string | null
+          resend_message_id: string | null
+          sent_at: string | null
+          status: string
+          subscriber_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          campaign_id: string
+          created_at?: string
+          email: string
+          id?: string
+          language?: string | null
+          last_error?: string | null
+          locked_at?: string | null
+          next_attempt_at?: string | null
+          resend_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subscriber_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          campaign_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          language?: string | null
+          last_error?: string | null
+          locked_at?: string | null
+          next_attempt_at?: string | null
+          resend_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subscriber_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_send_queue_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_send_queue_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_sends: {
         Row: {
@@ -1698,6 +1773,10 @@ export type Database = {
       build_product_social_snapshot: {
         Args: { p_product_id: string }
         Returns: Json
+      }
+      claim_newsletter_campaign_lock: {
+        Args: { p_campaign_id: string; p_seconds?: number }
+        Returns: boolean
       }
       claim_publishing_events: {
         Args: { p_limit?: number; p_worker?: string }
