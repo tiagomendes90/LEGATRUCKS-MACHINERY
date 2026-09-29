@@ -25,22 +25,35 @@ function unsubUrl(supabaseUrl: string, token: string) {
   return `${supabaseUrl}/functions/v1/newsletter-unsubscribe?token=${token}`;
 }
 
-function startOfUtcDay(d = new Date()) {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-}
-function nextPeriodStart() {
-  // Próximo dia UTC + 10 min de margem.
-  return new Date(startOfUtcDay().getTime() + 24 * 3600_000 + 10 * 60_000);
-}
+// Regra da quota (documentação Resend, "Usage Limits" / "Retrieve Usage"):
+// a quota diária do plano Free é uma janela MÓVEL de 24 horas — não reinicia
+// à meia-noite. Cada envio só deixa de contar 24h depois de ter sido feito.
+const WINDOW_MS = 24 * 3600_000;
+const SLOT_MARGIN_MS = 5 * 60_000;
+const QUOTA_RETRY_MS = 60 * 60_000;
 
-/** Emails enviados hoje (UTC) por TODAS as campanhas — a quota é da conta. */
-async function sentToday(supabase: any): Promise<number> {
+/** Emails enviados nas últimas 24h por TODAS as campanhas — a quota é da conta. */
+async function sentInWindow(supabase: any): Promise<number> {
   const { count } = await supabase
     .from("newsletter_sends")
     .select("id", { count: "exact", head: true })
     .eq("status", "sent")
-    .gte("sent_at", startOfUtcDay().toISOString());
+    .gte("sent_at", new Date(Date.now() - WINDOW_MS).toISOString());
   return count ?? 0;
+}
+
+/** Momento em que o envio mais antigo da janela sai dela (liberta quota). */
+async function nextQuotaSlot(supabase: any): Promise<Date> {
+  const { data } = await supabase
+    .from("newsletter_sends")
+    .select("sent_at")
+    .eq("status", "sent")
+    .gte("sent_at", new Date(Date.now() - WINDOW_MS).toISOString())
+    .order("sent_at", { ascending: true })
+    .limit(1);
+  const oldest = (data ?? [])[0]?.sent_at;
+  if (!oldest) return new Date(Date.now() + QUOTA_RETRY_MS);
+  return new Date(new Date(oldest).getTime() + WINDOW_MS + SLOT_MARGIN_MS);
 }
 
 async function countByStatus(supabase: any, campaignId: string) {
@@ -56,9 +69,10 @@ async function countByStatus(supabase: any, campaignId: string) {
   return out;
 }
 
+/** 429 com daily/monthly_quota_exceeded (≠ rate_limit_exceeded, que é por segundo). */
 function isQuotaError(status: number, body: any) {
-  const msg = String(body?.message ?? body?.error ?? "").toLowerCase();
-  return status === 429 && (msg.includes("quota") || msg.includes("daily"));
+  const txt = `${body?.name ?? ""} ${body?.message ?? body?.error ?? ""}`.toLowerCase();
+  return status === 429 && (txt.includes("quota") || txt.includes("daily"));
 }
 
 export interface QueueRunResult {
