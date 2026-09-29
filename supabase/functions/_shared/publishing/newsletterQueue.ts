@@ -25,22 +25,35 @@ function unsubUrl(supabaseUrl: string, token: string) {
   return `${supabaseUrl}/functions/v1/newsletter-unsubscribe?token=${token}`;
 }
 
-function startOfUtcDay(d = new Date()) {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-}
-function nextPeriodStart() {
-  // Próximo dia UTC + 10 min de margem.
-  return new Date(startOfUtcDay().getTime() + 24 * 3600_000 + 10 * 60_000);
-}
+// Regra da quota (documentação Resend, "Usage Limits" / "Retrieve Usage"):
+// a quota diária do plano Free é uma janela MÓVEL de 24 horas — não reinicia
+// à meia-noite. Cada envio só deixa de contar 24h depois de ter sido feito.
+const WINDOW_MS = 24 * 3600_000;
+const SLOT_MARGIN_MS = 5 * 60_000;
+const QUOTA_RETRY_MS = 60 * 60_000;
 
-/** Emails enviados hoje (UTC) por TODAS as campanhas — a quota é da conta. */
-async function sentToday(supabase: any): Promise<number> {
+/** Emails enviados nas últimas 24h por TODAS as campanhas — a quota é da conta. */
+async function sentInWindow(supabase: any): Promise<number> {
   const { count } = await supabase
     .from("newsletter_sends")
     .select("id", { count: "exact", head: true })
     .eq("status", "sent")
-    .gte("sent_at", startOfUtcDay().toISOString());
+    .gte("sent_at", new Date(Date.now() - WINDOW_MS).toISOString());
   return count ?? 0;
+}
+
+/** Momento em que o envio mais antigo da janela sai dela (liberta quota). */
+async function nextQuotaSlot(supabase: any): Promise<Date> {
+  const { data } = await supabase
+    .from("newsletter_sends")
+    .select("sent_at")
+    .eq("status", "sent")
+    .gte("sent_at", new Date(Date.now() - WINDOW_MS).toISOString())
+    .order("sent_at", { ascending: true })
+    .limit(1);
+  const oldest = (data ?? [])[0]?.sent_at;
+  if (!oldest) return new Date(Date.now() + QUOTA_RETRY_MS);
+  return new Date(new Date(oldest).getTime() + WINDOW_MS + SLOT_MARGIN_MS);
 }
 
 async function countByStatus(supabase: any, campaignId: string) {
@@ -56,9 +69,10 @@ async function countByStatus(supabase: any, campaignId: string) {
   return out;
 }
 
+/** 429 com daily/monthly_quota_exceeded (≠ rate_limit_exceeded, que é por segundo). */
 function isQuotaError(status: number, body: any) {
-  const msg = String(body?.message ?? body?.error ?? "").toLowerCase();
-  return status === 429 && (msg.includes("quota") || msg.includes("daily"));
+  const txt = `${body?.name ?? ""} ${body?.message ?? body?.error ?? ""}`.toLowerCase();
+  return status === 429 && (txt.includes("quota") || txt.includes("daily"));
 }
 
 export interface QueueRunResult {
@@ -84,7 +98,7 @@ export async function processCampaignQueue(
   });
   if (!gotLock) return { locked: false, sent: 0, failed: 0, waiting_quota: false, done: false };
 
-  let sent = 0, failed = 0, waitingQuota = false;
+  let sent = 0, failed = 0, waitingQuota = false, providerQuota = false;
   try {
     const { data: campaign } = await supabase
       .from("newsletter_campaigns").select("*").eq("id", campaignId).maybeSingle();
@@ -98,7 +112,7 @@ export async function processCampaignQueue(
       .eq("campaign_id", campaignId).eq("status", "processing")
       .lt("locked_at", new Date(Date.now() - STALE_PROCESSING_MIN * 60_000).toISOString());
 
-    let remaining = Math.max(0, DAILY_LIMIT - (await sentToday(supabase)));
+    let remaining = Math.max(0, DAILY_LIMIT - (await sentInWindow(supabase)));
 
     // Conteúdo (versões por idioma) — exatamente a mesma renderização de antes.
     const products = await loadProductsByIds(supabase, campaign.product_ids ?? []);
@@ -206,12 +220,18 @@ export async function processCampaignQueue(
         if (status >= 200 && status < 300) {
           const ids = (body?.data ?? []) as any[];
           const at = new Date().toISOString();
+          // 1 única instrução atómica marca o lote inteiro como `sent` logo após o
+          // Resend aceitar — nunca fica metade do lote por marcar. Se a execução
+          // cair ANTES disto, o mesmo lote é reconstruído (mesmas linhas, mesma
+          // Idempotency-Key) e o Resend devolve a resposta anterior sem reenviar.
+          await supabase.from("newsletter_send_queue").update({
+            status: "sent", sent_at: at, locked_at: null, last_error: null,
+            attempts: group[0].attempts + 1,
+          }).in("id", group.map((r) => r.id));
           for (let i = 0; i < group.length; i++) {
-            const r = group[i];
-            await supabase.from("newsletter_send_queue").update({
-              status: "sent", sent_at: at, locked_at: null, last_error: null,
-              resend_message_id: ids[i]?.id ?? null, attempts: r.attempts + 1,
-            }).eq("id", r.id);
+            if (!ids[i]?.id) continue;
+            await supabase.from("newsletter_send_queue")
+              .update({ resend_message_id: ids[i].id }).eq("id", group[i].id);
           }
           const { error: logErr } = await supabase.from("newsletter_sends").insert(group.map((r, i) => ({
             campaign_id: campaignId, subscriber_id: r.subscriber_id, channel_key: "newsletter",
@@ -229,6 +249,7 @@ export async function processCampaignQueue(
         if (isQuotaError(status, body)) {
           // Quota diária esgotada — nada enviado; mantém pending.
           waitingQuota = true;
+          providerQuota = true;
           await supabase.from("newsletter_send_queue")
             .update({ status: "pending", locked_at: null, last_error: msg }).in("id", ids);
           continue;
@@ -267,8 +288,14 @@ export async function processCampaignQueue(
     const total = counts.pending + counts.processing + counts.sent + counts.failed + counts.skipped;
     const done = open === 0;
     const now = new Date();
-    // Próxima execução: quota esgotada → próximo dia; retries → daqui a 1 min.
-    const nextRun = done ? null : (waitingQuota ? nextPeriodStart() : new Date(now.getTime() + 60_000));
+    // Próxima execução:
+    //  - Resend respondeu 429 quota (ex.: outros emails da conta gastaram quota) → tenta daqui a 1h;
+    //  - limite local esgotado → quando o envio mais antigo das últimas 24h sair da janela;
+    //  - apenas retries temporários → daqui a 1 min.
+    const nextRun = done ? null
+      : providerQuota ? new Date(now.getTime() + QUOTA_RETRY_MS)
+      : waitingQuota ? await nextQuotaSlot(supabase)
+      : new Date(now.getTime() + 60_000);
 
     await supabase.from("newsletter_campaigns").update({
       status: done ? (counts.sent > 0 ? "sent" : "failed") : "sending",
