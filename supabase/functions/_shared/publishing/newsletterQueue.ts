@@ -220,12 +220,18 @@ export async function processCampaignQueue(
         if (status >= 200 && status < 300) {
           const ids = (body?.data ?? []) as any[];
           const at = new Date().toISOString();
+          // 1 única instrução atómica marca o lote inteiro como `sent` logo após o
+          // Resend aceitar — nunca fica metade do lote por marcar. Se a execução
+          // cair ANTES disto, o mesmo lote é reconstruído (mesmas linhas, mesma
+          // Idempotency-Key) e o Resend devolve a resposta anterior sem reenviar.
+          await supabase.from("newsletter_send_queue").update({
+            status: "sent", sent_at: at, locked_at: null, last_error: null,
+            attempts: group[0].attempts + 1,
+          }).in("id", group.map((r) => r.id));
           for (let i = 0; i < group.length; i++) {
-            const r = group[i];
-            await supabase.from("newsletter_send_queue").update({
-              status: "sent", sent_at: at, locked_at: null, last_error: null,
-              resend_message_id: ids[i]?.id ?? null, attempts: r.attempts + 1,
-            }).eq("id", r.id);
+            if (!ids[i]?.id) continue;
+            await supabase.from("newsletter_send_queue")
+              .update({ resend_message_id: ids[i].id }).eq("id", group[i].id);
           }
           const { error: logErr } = await supabase.from("newsletter_sends").insert(group.map((r, i) => ({
             campaign_id: campaignId, subscriber_id: r.subscriber_id, channel_key: "newsletter",
