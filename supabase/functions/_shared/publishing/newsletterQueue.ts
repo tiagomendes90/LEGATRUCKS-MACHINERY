@@ -153,11 +153,16 @@ export async function processCampaignQueue(
       return { locked: true, sent, failed, skipped, waiting_quota: false, done: true };
     }
 
-    // Linhas "processing" órfãs (execução interrompida) voltam a pending.
-    await supabase.from("newsletter_send_queue")
-      .update({ status: "pending", locked_at: null })
+    // Linhas "processing" órfãs (execução interrompida a meio de um lote).
+    // São reenviadas JÁ, com o mesmo agrupamento → mesma Idempotency-Key, antes
+    // de a chave expirar no Resend (24h). Se o Resend já tinha aceite, devolve a
+    // resposta anterior sem reenviar; se não, envia (ou recusa por quota → pending).
+    const { data: orphanRows } = await supabase.from("newsletter_send_queue")
+      .select("id, subscriber_id, email, language, attempts, locked_at, subscriber:newsletter_subscribers(unsubscribe_token, status)")
       .eq("campaign_id", campaignId).eq("status", "processing")
-      .lt("locked_at", new Date(nowMs() - STALE_PROCESSING_MIN * 60_000).toISOString());
+      .lt("locked_at", new Date(nowMs() - STALE_PROCESSING_MIN * 60_000).toISOString())
+      .order("created_at", { ascending: true });
+    const orphans = (orphanRows ?? []) as any[];
 
     // Quota usada hoje = máximo entre o que o Resend diz e a contagem interna.
     const providerUsed = await probeProviderUsage();
@@ -220,7 +225,6 @@ export async function processCampaignQueue(
       if (logErr) console.warn("[newsletter-queue] log sends", logErr.message);
       sent += rows.length;
       remaining -= rows.length;
-      used += rows.length;
     };
 
     const markInvalid = async (row: any, reason: string, lang: string) => {
@@ -260,6 +264,7 @@ export async function processCampaignQueue(
       // Idempotency-Key determinística por conjunto de linhas.
       const idemKey = `nl-${campaignId}-${group.map((r) => r.id).sort().join("")}`.slice(0, 256);
       let status = 0, body: any = {};
+      let hdr: number | null = null;
       try {
         const res = await resendFetch("/emails/batch", {
           method: "POST",
@@ -270,7 +275,7 @@ export async function processCampaignQueue(
         status = res.status;
         const h = readQuotaHeader(res);
         body = await res.json().catch(() => ({}));
-        if (h != null) used = Math.max(used, h);
+        hdr = h;
       } catch (err) {
         body = { message: err instanceof Error ? err.message : String(err) };
       }
@@ -285,6 +290,8 @@ export async function processCampaignQueue(
         const okRows = group.filter((_, i) => !badIdx.has(i));
         const ids = ((body?.data ?? []) as any[]).map((d) => d?.id ?? null);
         await markSent(okRows, ids, lang);
+        // O header já inclui este lote; nunca contar a dobrar.
+        used = Math.max(used + okRows.length, hdr ?? 0);
         for (const [i, reason] of badIdx) await markInvalid(group[i], reason, lang);
         return;
       }
@@ -314,7 +321,22 @@ export async function processCampaignQueue(
         await sendGroup(lang, group.slice(mid));
         return;
       }
-      // Temporário (rede, 5xx, 429 rate limit) → pending com backoff; failed ao fim de MAX_ATTEMPTS.
+      // Resultado DESCONHECIDO (rede caiu / 5xx): o Resend pode ter aceite o lote.
+      // As linhas ficam `processing` com o mesmo locked_at → daqui a 15 min são
+      // reenviadas como o MESMO lote (mesma Idempotency-Key) e o Resend deduplica.
+      if (status === 0 || status >= 500) {
+        for (const r of group) {
+          const att = r.attempts + 1;
+          await supabase.from("newsletter_send_queue").update(att >= MAX_ATTEMPTS
+            ? { status: "failed", attempts: att, locked_at: null, last_error: msg }
+            : { attempts: att, last_error: `resultado desconhecido, a confirmar: ${msg}` },
+          ).eq("id", r.id);
+          if (att >= MAX_ATTEMPTS) failed++;
+        }
+        transientStop = true;
+        return;
+      }
+      // 429 rate limit (pedido recusado, nada enviado) → pending com backoff.
       for (const r of group) {
         const att = r.attempts + 1;
         await supabase.from("newsletter_send_queue").update(att >= MAX_ATTEMPTS
@@ -326,6 +348,15 @@ export async function processCampaignQueue(
       }
       transientStop = true; // evita martelar o fornecedor nesta execução
     };
+
+    if (orphans.length) {
+      const groups = new Map<string, any[]>();
+      for (const r of orphans) {
+        const k = `${r.locked_at}|${i18n.resolve(r.language ?? campaign.default_language)}`;
+        (groups.get(k) ?? groups.set(k, []).get(k)!).push(r);
+      }
+      for (const [k, g] of groups) await sendGroup(k.split("|")[1], g);
+    }
 
     while (remaining > 0 && !waitingQuota && !accountError && !transientStop) {
       const nowIso = new Date(nowMs()).toISOString();
