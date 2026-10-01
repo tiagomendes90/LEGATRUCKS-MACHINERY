@@ -220,7 +220,6 @@ export async function processCampaignQueue(
       if (logErr) console.warn("[newsletter-queue] log sends", logErr.message);
       sent += rows.length;
       remaining -= rows.length;
-      used += rows.length;
     };
 
     const markInvalid = async (row: any, reason: string, lang: string) => {
@@ -260,6 +259,7 @@ export async function processCampaignQueue(
       // Idempotency-Key determinística por conjunto de linhas.
       const idemKey = `nl-${campaignId}-${group.map((r) => r.id).sort().join("")}`.slice(0, 256);
       let status = 0, body: any = {};
+      let hdr: number | null = null;
       try {
         const res = await resendFetch("/emails/batch", {
           method: "POST",
@@ -270,7 +270,7 @@ export async function processCampaignQueue(
         status = res.status;
         const h = readQuotaHeader(res);
         body = await res.json().catch(() => ({}));
-        if (h != null) used = Math.max(used, h);
+        hdr = h;
       } catch (err) {
         body = { message: err instanceof Error ? err.message : String(err) };
       }
@@ -285,6 +285,8 @@ export async function processCampaignQueue(
         const okRows = group.filter((_, i) => !badIdx.has(i));
         const ids = ((body?.data ?? []) as any[]).map((d) => d?.id ?? null);
         await markSent(okRows, ids, lang);
+        // O header já inclui este lote; nunca contar a dobrar.
+        used = Math.max(used + okRows.length, hdr ?? 0);
         for (const [i, reason] of badIdx) await markInvalid(group[i], reason, lang);
         return;
       }
