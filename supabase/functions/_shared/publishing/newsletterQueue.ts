@@ -321,7 +321,22 @@ export async function processCampaignQueue(
         await sendGroup(lang, group.slice(mid));
         return;
       }
-      // Temporário (rede, 5xx, 429 rate limit) → pending com backoff; failed ao fim de MAX_ATTEMPTS.
+      // Resultado DESCONHECIDO (rede caiu / 5xx): o Resend pode ter aceite o lote.
+      // As linhas ficam `processing` com o mesmo locked_at → daqui a 15 min são
+      // reenviadas como o MESMO lote (mesma Idempotency-Key) e o Resend deduplica.
+      if (status === 0 || status >= 500) {
+        for (const r of group) {
+          const att = r.attempts + 1;
+          await supabase.from("newsletter_send_queue").update(att >= MAX_ATTEMPTS
+            ? { status: "failed", attempts: att, locked_at: null, last_error: msg }
+            : { attempts: att, last_error: `resultado desconhecido, a confirmar: ${msg}` },
+          ).eq("id", r.id);
+          if (att >= MAX_ATTEMPTS) failed++;
+        }
+        transientStop = true;
+        return;
+      }
+      // 429 rate limit (pedido recusado, nada enviado) → pending com backoff.
       for (const r of group) {
         const att = r.attempts + 1;
         await supabase.from("newsletter_send_queue").update(att >= MAX_ATTEMPTS
