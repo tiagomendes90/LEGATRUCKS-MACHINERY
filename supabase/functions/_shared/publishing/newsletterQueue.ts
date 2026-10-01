@@ -153,11 +153,16 @@ export async function processCampaignQueue(
       return { locked: true, sent, failed, skipped, waiting_quota: false, done: true };
     }
 
-    // Linhas "processing" órfãs (execução interrompida) voltam a pending.
-    await supabase.from("newsletter_send_queue")
-      .update({ status: "pending", locked_at: null })
+    // Linhas "processing" órfãs (execução interrompida a meio de um lote).
+    // São reenviadas JÁ, com o mesmo agrupamento → mesma Idempotency-Key, antes
+    // de a chave expirar no Resend (24h). Se o Resend já tinha aceite, devolve a
+    // resposta anterior sem reenviar; se não, envia (ou recusa por quota → pending).
+    const { data: orphanRows } = await supabase.from("newsletter_send_queue")
+      .select("id, subscriber_id, email, language, attempts, locked_at, subscriber:newsletter_subscribers(unsubscribe_token, status)")
       .eq("campaign_id", campaignId).eq("status", "processing")
-      .lt("locked_at", new Date(nowMs() - STALE_PROCESSING_MIN * 60_000).toISOString());
+      .lt("locked_at", new Date(nowMs() - STALE_PROCESSING_MIN * 60_000).toISOString())
+      .order("created_at", { ascending: true });
+    const orphans = (orphanRows ?? []) as any[];
 
     // Quota usada hoje = máximo entre o que o Resend diz e a contagem interna.
     const providerUsed = await probeProviderUsage();
@@ -328,6 +333,15 @@ export async function processCampaignQueue(
       }
       transientStop = true; // evita martelar o fornecedor nesta execução
     };
+
+    if (orphans.length) {
+      const groups = new Map<string, any[]>();
+      for (const r of orphans) {
+        const k = `${r.locked_at}|${i18n.resolve(r.language ?? campaign.default_language)}`;
+        (groups.get(k) ?? groups.set(k, []).get(k)!).push(r);
+      }
+      for (const [k, g] of groups) await sendGroup(k.split("|")[1], g);
+    }
 
     while (remaining > 0 && !waitingQuota && !accountError && !transientStop) {
       const nowIso = new Date(nowMs()).toISOString();
