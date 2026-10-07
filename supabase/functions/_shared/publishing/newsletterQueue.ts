@@ -73,7 +73,17 @@ async function probeProviderUsage(): Promise<number | null> {
   }
 }
 
-/** Contagem interna (piso de segurança): newsletters enviadas hoje (dia UTC). */
+/**
+ * Contagem interna (piso de segurança): newsletters enviadas hoje (dia UTC).
+ *
+ * LIMITAÇÃO CONHECIDA (confirmada no teste real de 06/10/2026): o header
+ * `x-resend-daily-quota` NÃO chega através do gateway Lovable, pelo que na
+ * prática esta contagem é a única fonte. Ela NÃO vê emails enviados fora da
+ * fila (emails de teste, notificações de contacto, emails recebidos), logo a
+ * quota real disponível no Resend pode ser INFERIOR à calculada aqui.
+ * Isso é seguro: se o Resend recusar um lote por quota (429), o lote volta a
+ * `pending` e é processado no período seguinte — nada é perdido nem duplicado.
+ */
 async function sentTodayInternal(supabase: any): Promise<number> {
   const { count } = await supabase
     .from("newsletter_sends")

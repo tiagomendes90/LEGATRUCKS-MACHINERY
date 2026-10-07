@@ -64,7 +64,9 @@ export function resolveCampaignContent(
   const tpl = template ?? {};
 
   const subject = firstNonEmpty(fromChain("subject"), campaign?.subject, "LEGA");
-  const title = firstNonEmpty(fromChain("title"), campaign?.title, subject);
+  // `campaign.title` é o NOME INTERNO da campanha (só Admin) — nunca vai para o email.
+  // Título editorial: tradução do idioma → content_json.title → subject editorial.
+  const title = firstNonEmpty(fromChain("title"), campaign?.content_json?.title, subject);
   const preheaderRaw = firstNonEmpty(fromChain("preheader"), campaign?.preheader);
 
   return {
