@@ -30,11 +30,34 @@ const Navbar = () => {
     vans: 'nav.vans',
   };
 
-  // Build nav items dynamically from categories with translations
+  // Keep the main navigation available even if the categories query is
+  // temporarily empty or fails. Database categories remain the source of
+  // names and any additional categories; known primary categories are fallback
+  // entries so a transient Supabase issue cannot remove the whole menu.
+  const fallbackCategories = [
+    { slug: 'camioes', name: t('nav.trucks') },
+    { slug: 'maquinas', name: t('nav.machinery') },
+    { slug: 'reboques', name: t('nav.trailers') },
+    { slug: 'tractores', name: t('nav.tractors') },
+    { slug: 'vans', name: t('nav.vans') },
+    { slug: 'pecas', name: t('nav.parts') },
+  ];
+
   // Desired order for known slugs
   const order = ['camioes', 'maquinas', 'reboques', 'tractores', 'vans', 'pecas'];
 
-  const categoryItems = (categories as any[])
+  const databaseCategories = (categories as any[]);
+  const knownSlugs = new Set(fallbackCategories.map((category) => category.slug));
+  const extraCategories = databaseCategories.filter((category) => !knownSlugs.has(category.slug));
+  const categorySource = [
+    ...fallbackCategories.map((fallback) => {
+      const databaseCategory = databaseCategories.find((category) => category.slug === fallback.slug);
+      return databaseCategory ?? fallback;
+    }),
+    ...extraCategories,
+  ];
+
+  const categoryItems = categorySource
     .slice()
     .sort((a, b) => {
       const ai = order.indexOf(a.slug);
